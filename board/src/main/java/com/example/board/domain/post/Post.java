@@ -19,15 +19,15 @@ public class Post extends BaseTimeEntity {
     @Lob
     private String content;
 
-    @ManyToOne
-    private Member member;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Member author;
 
     @Builder
-    public Post(Long postId, String title, String content, Member member){
+    public Post(Long postId, String title, String content, Member author){
         this.postId = postId;
         this.title = title;
         this.content = content;
-        this.member = member;
+        this.author = author;
     }
 
 

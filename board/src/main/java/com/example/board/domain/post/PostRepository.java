@@ -1,12 +1,10 @@
 package com.example.board.domain.post;
 
+import com.example.board.domain.member.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface PostRepository extends JpaRepository<Long, Post> {
-    @Override
-    List<Long> findAllById(Iterable<Post> posts);
-
-    List<Post> findByMemberId(Long Member);
+public interface PostRepository extends JpaRepository<Post, Long> {
+    List<Post> findAllByAuthor(Member member);
 }
