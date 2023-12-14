@@ -25,4 +25,10 @@ public class PostService {
         post.update(requestDto.getTitle(), requestDto.getContent());
         return postId;
     }
+
+    @Transactional
+    public void deletePost(Long postId){
+        Post post = postRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("해당 게시글이 없습니다."));
+        postRepository.delete(post);
+    }
 }
