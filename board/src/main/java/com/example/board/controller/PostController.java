@@ -18,8 +18,8 @@ public class PostController {
         return postService.savePost(dto);
     }
 
-    @PostMapping("/update")
-    public Long update(@RequestBody PostUpdateRequestDto dto, Long id){
+    @PostMapping("/update/{id}")
+    public Long update(@RequestBody PostUpdateRequestDto dto,@PathVariable Long id){
         return postService.updatePost(dto, id);
     }
 }
