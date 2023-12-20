@@ -7,3 +7,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+
+custom:
+  jwt:
+    key: "knockknockwhosthere?theboynextdoor!"
