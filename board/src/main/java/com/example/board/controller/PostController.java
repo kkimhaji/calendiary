@@ -40,8 +40,8 @@ public class PostController {
     }
 
     @GetMapping("/read/{id}")
-    public PostResponseDto readPost(@PathVariable Long postId){
-        return postService.readPost(postId);
+    public PostResponseDto readPost(@PathVariable Long id){
+        return postService.readPost(id);
     }
 
 }
