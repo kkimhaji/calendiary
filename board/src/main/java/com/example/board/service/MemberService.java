@@ -8,12 +8,15 @@ import com.example.board.jwt.JwtTokenProvider;
 import com.example.board.jwt.RefreshToken;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.boot.model.naming.IllegalIdentifierException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collections;
 
 
 @Service
@@ -59,4 +62,11 @@ public class MemberService {
         return tokenDto;
     }
 
+    public String changeName(HttpServletRequest request, String newName){
+        Member loginMember = getMember(request);
+        if (newName == null ) throw new IllegalArgumentException("바꿀 닉네임을 입력해주세요");
+        Member user = Member.builder().memberId(loginMember.getMemberId()).nickname(newName).email(loginMember.getEmail()).password(loginMember.getPassword()).build();
+        memberRepository.save(user);
+        return newName;
+    }
 }
