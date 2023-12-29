@@ -2,6 +2,7 @@ package com.example.board.service;
 
 import com.example.board.domain.member.Member;
 import com.example.board.domain.member.MemberRepository;
+import com.example.board.dto.SignUpRequestDto;
 import com.example.board.dto.TokenDto;
 import com.example.board.jwt.JwtAuthenticationFilter;
 import com.example.board.jwt.JwtTokenProvider;
@@ -41,7 +42,7 @@ public class MemberService {
         Member user = memberRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
         if (!passwordEncoder.matches(password, user.getPassword()))
             throw new IllegalArgumentException("비밀번호가 틀렸습니다.");
-// 1. Login ID/PW 를 기반으로 Authentication 객체 생성
+        // 1. Login ID/PW 를 기반으로 Authentication 객체 생성
         // 이때 authentication 는 인증 여부를 확인하는 authenticated 값이 false
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(email, password);
 
@@ -49,8 +50,6 @@ public class MemberService {
         // authenticate 매서드가 실행될 때 CustomUserDetailsService 에서 만든 loadUserByUsername 메서드가 실행
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
-        // 3. 인증 정보를 기반으로 JWT 토큰 생성
-        TokenDto tokenDto = tokenProvider.createToken(authentication);
 
         //accessToken, RefreshToken 발급
 //        TokenDto tokenDTO = tokenProvider.createToken(user.getEmail(), user.getRoles());
@@ -59,7 +58,9 @@ public class MemberService {
 //        RefreshToken refreshToken = RefreshToken.builder()
 //                .key(user.getId()).token(tokenDTO.getRefreshToken()).build();
 //        refreshTokenRepository.save(refreshToken);
-        return tokenDto;
+
+        // 3. 인증 정보를 기반으로 JWT 토큰 생성
+        return tokenProvider.createToken(authentication);
     }
 
     public String changeName(HttpServletRequest request, String newName){
@@ -68,5 +69,12 @@ public class MemberService {
         Member user = Member.builder().memberId(loginMember.getMemberId()).nickname(newName).email(loginMember.getEmail()).password(loginMember.getPassword()).build();
         memberRepository.save(user);
         return newName;
+    }
+
+    public SignUpRequestDto signup(SignUpRequestDto requestDto){
+        if(memberRepository.findByEmail(requestDto.getEmail()).isPresent()) throw new IllegalArgumentException("이미 존재하는 계정입니다.");
+        memberRepository.save(requestDto.toEntity());
+        return requestDto;
+
     }
 }
