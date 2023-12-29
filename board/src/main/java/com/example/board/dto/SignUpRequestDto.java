@@ -4,6 +4,7 @@ import com.example.board.domain.member.Member;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Getter
 @NoArgsConstructor
@@ -19,7 +20,7 @@ public class SignUpRequestDto {
         this.password = password;
     }
 
-    public Member toEntity(){
-        return Member.builder().email(email).nickname(nickName).password(password).build();
+    public Member toEntity(String pwd){
+        return Member.builder().email(email).nickname(nickName).password(pwd).build();
     }
 }

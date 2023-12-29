@@ -1,6 +1,8 @@
 package com.example.board.controller;
 
+import com.example.board.domain.member.Member;
 import com.example.board.domain.member.MemberRepository;
+import com.example.board.dto.SignUpRequestDto;
 import com.example.board.dto.TokenDto;
 import com.example.board.service.MemberService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,6 +24,11 @@ public class MemberController {
     @PostMapping("/login")
     public TokenDto login(@RequestParam String email, @RequestParam String password){
         return memberService.login(email, password);
+    }
+
+    @PostMapping("/join")
+    public Member signup(@RequestBody SignUpRequestDto requestDto){
+        return memberService.signup(requestDto);
     }
 
 

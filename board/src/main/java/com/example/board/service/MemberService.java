@@ -71,10 +71,10 @@ public class MemberService {
         return newName;
     }
 
-    public SignUpRequestDto signup(SignUpRequestDto requestDto){
+    public Member signup(SignUpRequestDto requestDto){
         if(memberRepository.findByEmail(requestDto.getEmail()).isPresent()) throw new IllegalArgumentException("이미 존재하는 계정입니다.");
-        memberRepository.save(requestDto.toEntity());
-        return requestDto;
+        return memberRepository.save(requestDto.toEntity(passwordEncoder.encode(requestDto.getPassword())));
+//        return requestDto;
 
     }
 }
