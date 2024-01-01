@@ -1,6 +1,5 @@
-package com.example.board.jwt;
+package com.example.board.domain.jwt;
 
-import jakarta.annotation.Nullable;
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
