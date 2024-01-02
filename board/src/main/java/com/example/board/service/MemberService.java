@@ -3,9 +3,11 @@ package com.example.board.service;
 import com.example.board.domain.jwt.RefreshTokenRepository;
 import com.example.board.domain.member.Member;
 import com.example.board.domain.member.MemberRepository;
+import com.example.board.dto.LoginRequestDto;
 import com.example.board.dto.SignUpRequestDto;
 import com.example.board.dto.TokenDto;
 import com.example.board.dto.TokenRequestDto;
+import com.example.board.jwt.JwtAuthenticationFilter;
 import com.example.board.jwt.JwtTokenProvider;
 import com.example.board.domain.jwt.RefreshToken;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +18,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collections;
 
 
 @Service
@@ -37,8 +41,11 @@ public class MemberService {
     }
 
     @Transactional
-    public TokenDto login(String email, String password){
-        Member user = memberRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
+    public TokenDto login(LoginRequestDto requestDto){
+        String email = requestDto.getEmail();
+        String password = requestDto.getPassword();
+        Member user = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
         if (!passwordEncoder.matches(password, user.getPassword()))
             throw new IllegalArgumentException("비밀번호가 틀렸습니다.");
         // 1. Login ID/PW 를 기반으로 Authentication 객체 생성
@@ -71,8 +78,8 @@ public class MemberService {
     }
 
     public Member signup(SignUpRequestDto requestDto){
-        if(memberRepository.findByEmail(requestDto.getEmail()).isPresent()) throw new IllegalArgumentException("이미 존재하는 계정입니다.");
-        return memberRepository.save(requestDto.toEntity(passwordEncoder.encode(requestDto.getPassword())));
+        if(memberRepository.findByEmail(requestDto.getEmail()).isPresent()) throw new RuntimeException("이미 존재하는 계정입니다.");
+        return memberRepository.save(requestDto.toEntity(passwordEncoder.encode(requestDto.getPassword()), Collections.singletonList("ROLE_USER")));
 
     }
 
@@ -89,7 +96,6 @@ public class MemberService {
         //user pk로 user 검색 - repos에 저장된 refresh token이 없음?
         Member user = (Member) authentication.getPrincipal();
 
-//        User user = userRepository.findById(loginUser.getId()).orElseThrow(CUserNotFoundException::new);
         RefreshToken refreshToken = refreshTokenRepository.findByToken(user.getMemberId()).orElseThrow(()->new IllegalArgumentException("토큰이 유효하지 않습니다."));
 
         //access, refresh token 재발급 + refresh token save
