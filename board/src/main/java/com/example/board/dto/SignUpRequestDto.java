@@ -6,6 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @NoArgsConstructor
 public class SignUpRequestDto {
@@ -20,7 +23,7 @@ public class SignUpRequestDto {
         this.password = password;
     }
 
-    public Member toEntity(String pwd){
-        return Member.builder().email(email).nickname(nickName).password(pwd).build();
+    public Member toEntity(String pwd, List<String> roles){
+        return Member.builder().email(email).nickname(nickName).password(pwd).roles(roles).build();
     }
 }

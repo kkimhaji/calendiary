@@ -2,6 +2,7 @@ package com.example.board.controller;
 
 import com.example.board.domain.member.Member;
 import com.example.board.domain.member.MemberRepository;
+import com.example.board.dto.LoginRequestDto;
 import com.example.board.dto.SignUpRequestDto;
 import com.example.board.dto.TokenDto;
 import com.example.board.service.MemberService;
@@ -22,8 +23,8 @@ public class MemberController {
     }
 
     @PostMapping("/login")
-    public TokenDto login(@RequestParam String email, @RequestParam String password){
-        return memberService.login(email, password);
+    public TokenDto login(@RequestBody LoginRequestDto requestDto){
+        return memberService.login(requestDto);
     }
 
     @PostMapping("/join")
