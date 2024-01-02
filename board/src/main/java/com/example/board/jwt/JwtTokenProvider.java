@@ -41,12 +41,12 @@ public class JwtTokenProvider {
                 .setSubject(authentication.getName())
                 .claim("auth", authorities)
                 .setExpiration(accessTokenExpiresIn)
-                .signWith(SignatureAlgorithm.HS256, key)
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
         String refreshToken = Jwts.builder()
                 .setExpiration(new Date(now + 86400000))
-                .signWith(SignatureAlgorithm.HS256, key)
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
         return TokenDto.builder()
@@ -77,7 +77,7 @@ public class JwtTokenProvider {
     // 토큰 정보를 검증하는 메서드
     public boolean validateToken(String token) {
         try {
-            Jwts.parser().setSigningKey(key).parseClaimsJws(token);
+            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
             throw new IllegalArgumentException("Invalid JWT Token", e);
@@ -92,7 +92,7 @@ public class JwtTokenProvider {
 
     private Claims parseClaims(String accessToken) {
         try {
-            return Jwts.parser().setSigningKey(key).parseClaimsJws(accessToken).getBody();
+            return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(accessToken).getBody();
         }catch (ExpiredJwtException e) {
             return e.getClaims();
         }
