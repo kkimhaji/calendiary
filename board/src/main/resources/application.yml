@@ -11,3 +11,4 @@ spring:
 custom:
   jwt:
     key: "knockknockwhosthere?theboynextdoor!"
+    token-validate-time: 86400
