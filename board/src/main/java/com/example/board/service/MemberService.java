@@ -7,7 +7,6 @@ import com.example.board.dto.LoginRequestDto;
 import com.example.board.dto.SignUpRequestDto;
 import com.example.board.dto.TokenDto;
 import com.example.board.dto.TokenRequestDto;
-import com.example.board.jwt.JwtAuthenticationFilter;
 import com.example.board.jwt.JwtTokenProvider;
 import com.example.board.domain.jwt.RefreshToken;
 import jakarta.servlet.http.HttpServletRequest;
