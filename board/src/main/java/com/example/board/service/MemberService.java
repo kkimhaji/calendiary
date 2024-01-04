@@ -95,7 +95,7 @@ public class MemberService {
         //user pk로 user 검색 - repos에 저장된 refresh token이 없음?
         Member user = (Member) authentication.getPrincipal();
 
-        RefreshToken refreshToken = refreshTokenRepository.findByToken(user.getMemberId()).orElseThrow(()->new IllegalArgumentException("토큰이 유효하지 않습니다."));
+        RefreshToken refreshToken = refreshTokenRepository.findByTokenKey(user.getMemberId()).orElseThrow(()->new IllegalArgumentException("토큰이 유효하지 않습니다."));
 
         //access, refresh token 재발급 + refresh token save
         TokenDto newCreatedToken = tokenProvider.createToken(authentication);

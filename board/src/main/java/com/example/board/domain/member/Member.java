@@ -1,6 +1,7 @@
 package com.example.board.domain.member;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,8 +16,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Entity
-@NoArgsConstructor
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Member implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,14 +35,14 @@ public class Member implements UserDetails {
     @Builder.Default
     private List<String> roles = new ArrayList<>();
 
-    @Builder
-    public Member(Long memberId, String email, String nickname, String password, List<String> roles){
-        this.memberId = memberId;
-        this.email = email;
-        this.nickname = nickname;
-        this.password = password;
-        this.roles = roles;
-    }
+//    @Builder
+//    public Member(Long memberId, String email, String nickname, String password, List<String> roles){
+//        this.memberId = memberId;
+//        this.email = email;
+//        this.nickname = nickname;
+//        this.password = password;
+//        this.roles = roles;
+//    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

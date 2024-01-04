@@ -2,7 +2,9 @@ package com.example.board.jwt;
 
 import com.example.board.dto.TokenDto;
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.impl.Base64UrlCodec;
 import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.InitializingBean;
@@ -31,7 +33,7 @@ public class JwtTokenProvider implements InitializingBean {
 
     public JwtTokenProvider(@Value("${custom.jwt.key}") String secretKey,
                             @Value("${custom.jwt.token-validate-time}") long tokenValidateTime) {
-        this.secret = secretKey;
+        this.secret = Encoders.BASE64URL.encode(secretKey.getBytes());;
         this.tokenValidateTime = tokenValidateTime * 1000;
     }
 
