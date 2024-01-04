@@ -39,7 +39,7 @@ public class MemberService {
         return (Member) authentication.getPrincipal();
     }
 
-    @Transactional
+    @Transactional(readOnly = false)
     public TokenDto login(LoginRequestDto requestDto){
         String email = requestDto.getEmail();
         String password = requestDto.getPassword();
@@ -76,6 +76,7 @@ public class MemberService {
         return newName;
     }
 
+    @Transactional(readOnly = false)
     public Member signup(SignUpRequestDto requestDto){
         if(memberRepository.findByEmail(requestDto.getEmail()).isPresent()) throw new RuntimeException("이미 존재하는 계정입니다.");
         return memberRepository.save(requestDto.toEntity(passwordEncoder.encode(requestDto.getPassword()), Collections.singletonList("ROLE_USER")));
@@ -104,5 +105,12 @@ public class MemberService {
         RefreshToken updateRefreshToken = refreshToken.builder().token(newCreatedToken.getRefreshToken()).tokenKey(user.getMemberId()).rTokenId(refreshToken.getRTokenId()).build();
         refreshTokenRepository.save(updateRefreshToken);
         return newCreatedToken;
+    }
+
+    public Member getMemberInfo(Long memberId){
+        if (memberRepository.findById(memberId).isEmpty()){
+            throw new RuntimeException("사용자가 존재하지 않습니다.");
+        }
+        return memberRepository.findById(memberId).get();
     }
 }
