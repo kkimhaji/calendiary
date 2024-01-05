@@ -2,7 +2,6 @@ package com.example.board.jwt;
 
 import com.example.board.dto.TokenDto;
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.impl.Base64UrlCodec;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.Keys;
@@ -15,6 +14,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -22,6 +22,7 @@ import java.security.Key;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
@@ -30,32 +31,55 @@ public class JwtTokenProvider implements InitializingBean {
     private final long tokenValidateTime;
     private static final String AUTORITIES_KEY = "auth";
     private Key key;
+    private String ROLES = "roles";
+    private final UserDetailsService userDetailsService;
+
 
     public JwtTokenProvider(@Value("${custom.jwt.key}") String secretKey,
-                            @Value("${custom.jwt.token-validate-time}") long tokenValidateTime) {
-        this.secret = Encoders.BASE64URL.encode(secretKey.getBytes());;
+                            @Value("${custom.jwt.token-validate-time}") long tokenValidateTime, UserDetailsService userDetailsService) {
+        this.secret = Encoders.BASE64URL.encode(secretKey.getBytes());
+        this.userDetailsService = userDetailsService;
+        ;
         this.tokenValidateTime = tokenValidateTime * 1000;
     }
 
-    public TokenDto createToken(Authentication authentication){
+    public TokenDto createToken(Long userPK, List<String> roles){
+        Claims claims = Jwts.claims().setSubject(String.valueOf(userPK));
+        claims.put(ROLES, roles);
+
         //권한 가져오기
-        String authorities = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(","));
+//        String authorities = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority)
+//                .collect(Collectors.joining(","));
 
         long now = (new Date()).getTime();
         Date validity = new Date(now + this.tokenValidateTime);
-//        Date accessTokenExpiresIn = validity;
+
         String accessToken = Jwts.builder()
-                .setSubject(authentication.getName())
-                .claim(AUTORITIES_KEY, authorities)
+                .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
+                .setClaims(claims).setIssuedAt(new Date())
                 .setExpiration(validity)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
         String refreshToken = Jwts.builder()
+                .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
                 .setExpiration(validity)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
+
+
+//        String accessToken = Jwts.builder()
+//                .setSubject(authentication.getName())
+////                .claim(AUTORITIES_KEY, authorities)
+//                .setClaims(claims).setIssuedAt(now)
+//                .setExpiration(validity)
+//                .signWith(key, SignatureAlgorithm.HS256)
+//                .compact();
+//
+//        String refreshToken = Jwts.builder()
+//                .setExpiration(validity)
+//                .signWith(key, SignatureAlgorithm.HS256)
+//                .compact();
 
         return TokenDto.builder()
                 .grantType("Bearer")
@@ -67,10 +91,10 @@ public class JwtTokenProvider implements InitializingBean {
     // JWT 토큰을 복호화하여 토큰에 들어있는 정보를 꺼내는 메서드
     public Authentication getAuthentication(String accessToken){
         //토큰 복호화
-//        Claims claims = parseClaims(accessToken);
+        Claims claims = parseClaims(accessToken);
 
-        Claims claims = Jwts.parserBuilder().setSigningKey(key).build()
-                .parseClaimsJws(accessToken).getBody();
+//        Claims claims = Jwts.parserBuilder().setSigningKey(key).build()
+//                .parseClaimsJws(accessToken).getBody();
 
 
         if (claims.get(AUTORITIES_KEY) == null) {
@@ -85,7 +109,15 @@ public class JwtTokenProvider implements InitializingBean {
 
         // UserDetails 객체를 만들어서 Authentication 리턴
         UserDetails principal = new User(claims.getSubject(), "", authorities);
-        return new UsernamePasswordAuthenticationToken(principal, "", authorities);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(this.getUserPK(accessToken));
+
+
+
+        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+//        return new UsernamePasswordAuthenticationToken(principal, "", authorities);
+    }
+    public String getUserPK(String token){
+        return (Jwts.parserBuilder().setSigningKey(secret.getBytes())).build().parseClaimsJws(token).getBody().getSubject();
     }
     // 토큰 정보를 검증하는 메서드
     public boolean validateToken(String token) {

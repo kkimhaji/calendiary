@@ -32,5 +32,8 @@ public class MemberController {
         return memberService.signup(requestDto);
     }
 
-
+    @GetMapping("/{id}")
+    public Member getMember(@PathVariable Long id){
+        return memberService.getMemberInfo(id);
+    }
 }

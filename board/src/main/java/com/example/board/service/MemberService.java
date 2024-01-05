@@ -55,17 +55,19 @@ public class MemberService {
         // authenticate 매서드가 실행될 때 CustomUserDetailsService 에서 만든 loadUserByUsername 메서드가 실행
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
+        //accessToken, RefreshToken 발급
 
         //accessToken, RefreshToken 발급
-//        TokenDto tokenDTO = tokenProvider.createToken(user.getEmail(), user.getRoles());
+        TokenDto tokenDTO = tokenProvider.createToken(user.getMemberId(), user.getRoles());
+//        TokenDto tokenDTO = tokenProvider.createToken(authentication);
 
         //RefreshToken 저장
-//        RefreshToken refreshToken = RefreshToken.builder()
-//                .key(user.getId()).token(tokenDTO.getRefreshToken()).build();
-//        refreshTokenRepository.save(refreshToken);
+        RefreshToken refreshToken = RefreshToken.builder()
+                .tokenKey(user.getMemberId()).token(tokenDTO.getRefreshToken()).build();
+        refreshTokenRepository.save(refreshToken);
 
         // 3. 인증 정보를 기반으로 JWT 토큰 생성
-        return tokenProvider.createToken(authentication);
+        return tokenDTO;
     }
 
     public String changeName(HttpServletRequest request, String newName){
@@ -99,7 +101,7 @@ public class MemberService {
         RefreshToken refreshToken = refreshTokenRepository.findByTokenKey(user.getMemberId()).orElseThrow(()->new IllegalArgumentException("토큰이 유효하지 않습니다."));
 
         //access, refresh token 재발급 + refresh token save
-        TokenDto newCreatedToken = tokenProvider.createToken(authentication);
+        TokenDto newCreatedToken = tokenProvider.createToken(user.getMemberId(), user.getRoles());
 
 
         RefreshToken updateRefreshToken = refreshToken.builder().token(newCreatedToken.getRefreshToken()).tokenKey(user.getMemberId()).rTokenId(refreshToken.getRTokenId()).build();
