@@ -5,7 +5,9 @@ import jakarta.transaction.Transactional;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
 
+@Service
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final MemberRepository memberRepository;
@@ -16,9 +18,9 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     @Transactional
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return memberRepository.findByEmail(username)
-                .orElseThrow(()->new UsernameNotFoundException(username + "-> 데이터베이스에서 찾을 수 없습니다."));
+    public UserDetails loadUserByUsername(String userPK) throws UsernameNotFoundException {
+        return memberRepository.findById(Long.valueOf(userPK))
+                .orElseThrow(()->new UsernameNotFoundException(userPK + "-> 데이터베이스에서 찾을 수 없습니다."));
     }
 
 //    private User createUser(String username, Member user){
