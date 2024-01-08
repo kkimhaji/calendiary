@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.antlr.v4.runtime.misc.NotNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -34,15 +33,6 @@ public class Member implements UserDetails {
     @ElementCollection(fetch = FetchType.EAGER)
     @Builder.Default
     private List<String> roles = new ArrayList<>();
-
-//    @Builder
-//    public Member(Long memberId, String email, String nickname, String password, List<String> roles){
-//        this.memberId = memberId;
-//        this.email = email;
-//        this.nickname = nickname;
-//        this.password = password;
-//        this.roles = roles;
-//    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -76,11 +66,5 @@ public class Member implements UserDetails {
         return true;
     }
 
-//    public String getRoleKey(){
-//        return this.role.getKey();
-//    }
-    public void addRole(Role role) {
-        this.roles.add(role.getKey());
-    }
 
 }
