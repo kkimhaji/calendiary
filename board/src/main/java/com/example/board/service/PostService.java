@@ -22,8 +22,9 @@ public class PostService {
     private final MemberService memberService;
 
     @Transactional
-    public Long savePost(PostSaveRequestDto requestDto){
-        return postRepository.save(requestDto.toEntity()).getPostId();
+    public Long savePost(HttpServletRequest request, PostSaveRequestDto requestDto){
+        Member loginUser = memberService.getMember(request);
+        return postRepository.save(requestDto.toEntity(loginUser)).getPostId();
     }
 
     @Transactional

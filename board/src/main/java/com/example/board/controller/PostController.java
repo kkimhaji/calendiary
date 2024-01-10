@@ -20,8 +20,8 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping("/write")
-    public Long save(@RequestBody PostSaveRequestDto dto){
-        return postService.savePost(dto);
+    public Long save(@RequestBody PostSaveRequestDto dto, HttpServletRequest request){
+        return postService.savePost(request, dto);
     }
 
     @PostMapping("/update/{id}")
