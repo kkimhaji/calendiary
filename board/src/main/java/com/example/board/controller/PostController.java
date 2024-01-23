@@ -1,9 +1,9 @@
 package com.example.board.controller;
 
-import com.example.board.dto.PostListResponseDto;
-import com.example.board.dto.PostResponseDto;
-import com.example.board.dto.PostSaveRequestDto;
-import com.example.board.dto.PostUpdateRequestDto;
+import com.example.board.dto.post.PostListResponseDto;
+import com.example.board.dto.post.PostResponseDto;
+import com.example.board.dto.post.PostSaveRequestDto;
+import com.example.board.dto.post.PostUpdateRequestDto;
 import com.example.board.service.PostService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

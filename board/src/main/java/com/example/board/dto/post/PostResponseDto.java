@@ -1,26 +1,25 @@
-package com.example.board.dto;
+package com.example.board.dto.post;
 
 import com.example.board.domain.post.Post;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
-public class PostListResponseDto {
+public class PostResponseDto {
     private Long postId;
     private String title;
+    private String content;
     private LocalDateTime createDate;
-    private LocalDateTime updateDate;
 
-    public PostListResponseDto(Post post){
+    public PostResponseDto(Post post){
         this.postId = post.getPostId();
         this.title = post.getTitle();
+        this.content = post.getContent();
         this.createDate = post.getCreatedDate();
-        this.updateDate = post.getModifiedDate();
     }
-
 
 }

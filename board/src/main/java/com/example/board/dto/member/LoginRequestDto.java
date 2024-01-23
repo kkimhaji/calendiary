@@ -1,4 +1,4 @@
-package com.example.board.dto;
+package com.example.board.dto.member;
 
 import lombok.*;
 import org.antlr.v4.runtime.misc.NotNull;

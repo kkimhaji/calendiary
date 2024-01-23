@@ -1,10 +1,9 @@
 package com.example.board.controller;
 
 import com.example.board.domain.member.Member;
-import com.example.board.domain.member.MemberRepository;
-import com.example.board.dto.LoginRequestDto;
-import com.example.board.dto.SignUpRequestDto;
-import com.example.board.dto.TokenDto;
+import com.example.board.dto.member.LoginRequestDto;
+import com.example.board.dto.member.SignUpRequestDto;
+import com.example.board.dto.jwt.TokenDto;
 import com.example.board.service.MemberService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

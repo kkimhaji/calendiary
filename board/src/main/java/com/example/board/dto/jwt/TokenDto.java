@@ -1,4 +1,4 @@
-package com.example.board.dto;
+package com.example.board.dto.jwt;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

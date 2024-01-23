@@ -1,6 +1,6 @@
 package com.example.board.jwt;
 
-import com.example.board.dto.TokenDto;
+import com.example.board.dto.jwt.TokenDto;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.Keys;
