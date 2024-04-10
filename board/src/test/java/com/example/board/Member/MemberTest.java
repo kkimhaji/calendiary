@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.data.cassandra.DataCassandraTest;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
@@ -23,7 +22,6 @@ import static org.hamcrest.Matchers.nullValue;
 public class MemberTest {
     @Autowired
     MemberRepository memberRepository;
-    MemberService memberService;
 
     @Test
     @DisplayName("멤버 생성 테스트")
@@ -50,6 +48,10 @@ public class MemberTest {
 //        assertThatThrownBy(()->memberRepository.findById(member1.getMemberId())).isInstanceOf(IllegalArgumentException.class);
         assertThat(memberRepository.findById(member1.getMemberId())).isEmpty();
     }
+
+
+
+
 
 
 

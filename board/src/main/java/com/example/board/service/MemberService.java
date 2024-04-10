@@ -11,9 +11,12 @@ import com.example.board.jwt.JwtTokenProvider;
 import com.example.board.domain.jwt.RefreshToken;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,19 +50,9 @@ public class MemberService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
         if (!passwordEncoder.matches(password, user.getPassword()))
             throw new IllegalArgumentException("비밀번호가 틀렸습니다.");
-        // 1. Login ID/PW 를 기반으로 Authentication 객체 생성
-        // 이때 authentication 는 인증 여부를 확인하는 authenticated 값이 false
-//        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(email, password);
-
-        // 2. 실제 검증 (사용자 비밀번호 체크)이 이루어지는 부분
-        // authenticate 매서드가 실행될 때 CustomUserDetailsService 에서 만든 loadUserByUsername 메서드가 실행
-//        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
-
-        //accessToken, RefreshToken 발급
 
         //accessToken, RefreshToken 발급
         TokenDto tokenDTO = tokenProvider.createToken(user.getMemberId(), user.getRoles());
-//        TokenDto tokenDTO = tokenProvider.createToken(authentication);
 
         //RefreshToken 저장
         RefreshToken refreshToken = RefreshToken.builder()
@@ -68,6 +61,15 @@ public class MemberService {
 
         // 3. 인증 정보를 기반으로 JWT 토큰 생성
         return tokenDTO;
+    }
+
+    @Transactional
+    public TokenDto login(String email, String password){
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(email, password);
+        AuthenticationManager authenticationManager = authenticationManagerBuilder.getObject();
+
+        Authentication authentication = authenticationManager.authenticate(authenticationToken);
+        return tokenProvider.generateToken(authentication);
     }
 
     public String changeName(HttpServletRequest request, String newName){

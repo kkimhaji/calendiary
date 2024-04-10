@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtTokenProvider {
@@ -36,13 +38,38 @@ public class JwtTokenProvider {
 
     }
 
+    public TokenDto generateToken(Authentication authentication){
+        //권한 가져오기
+        String authorities = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(","));
+
+        long now = (new Date()).getTime();
+        Date validity = new Date(now + this.tokenValidateTime);
+
+        String accessToken = Jwts.builder()
+                .setSubject(authentication.getName())
+                .claim(AUTORITIES_KEY, authorities)
+                .signWith(key, SignatureAlgorithm.HS512)
+                .setExpiration(validity)
+                .compact();
+
+        String refreshToken = Jwts.builder()
+                .setExpiration(validity)
+                .signWith(key, SignatureAlgorithm.HS512)
+                .compact();
+
+        return TokenDto.builder().grantType("Bearer")
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .accessTokenExpired(tokenValidateTime)
+                .build();
+    }
+
     public TokenDto createToken(Long userPK, List<String> roles){
         Claims claims = Jwts.claims().setSubject(String.valueOf(userPK));
         claims.put(ROLES, roles);
 
-        //권한 가져오기
-//        String authorities = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority)
-//                .collect(Collectors.joining(","));
+
 
         long now = (new Date()).getTime();
         Date validity = new Date(now + this.tokenValidateTime);
