@@ -1,4 +1,4 @@
-package com.example.board.jwt;
+package com.example.board.auth;
 
 import com.example.board.dto.jwt.TokenDto;
 import io.jsonwebtoken.*;
