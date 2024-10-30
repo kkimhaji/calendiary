@@ -1,5 +1,6 @@
 package com.example.board.dto.member;
 
+import com.example.board.domain.member.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,4 +15,6 @@ public class RegisterRequest {
     private String nickname;
     private String email;
     private String password;
+
+    private Role role;
 }
