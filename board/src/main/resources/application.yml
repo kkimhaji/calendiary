@@ -1,12 +1,12 @@
 spring:
   datasource:
-    username: root
-    password: 12345678
+    username: ${MYSQL_USERNAME}
+    password: ${MYSQL_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/calendiary
+    url: ${MYSQL_DATASOURCE_URL}
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     show-sql: true
 
   mail:
