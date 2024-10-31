@@ -18,7 +18,7 @@ bin/
 *.yml
 !**/src/main/**/bin/
 !**/src/test/**/bin/
-
+*.env
 ### IntelliJ IDEA ###
 .idea
 *.iws
