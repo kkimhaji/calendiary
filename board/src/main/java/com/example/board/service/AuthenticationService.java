@@ -7,15 +7,13 @@ import com.example.board.domain.jwt.TokenRepository;
 import com.example.board.domain.jwt.TokenType;
 import com.example.board.domain.member.Member;
 import com.example.board.domain.member.MemberRepository;
-import com.example.board.domain.member.Role;
-import com.example.board.dto.member.AuthenticationRequest;
-import com.example.board.dto.member.RegisterRequest;
+import com.example.board.dto.member.AuthenticationRequestDTO;
+import com.example.board.dto.member.RegisterRequestDTO;
 import com.example.board.dto.member.VerifyUserDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.eclipse.angus.mail.imap.IMAPMessage;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -38,7 +36,7 @@ public class AuthenticationService {
     private final EmailService emailService;
 
     // save to the database and return the generated token
-    public Member register(RegisterRequest request) {
+    public Member register(RegisterRequestDTO request) {
         //create a user object out of the registerRequest
         var user = Member.builder().nickname(request.getNickname()).email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
@@ -83,7 +81,7 @@ public class AuthenticationService {
     }
 
 
-    public AuthenticationResponse authenticate(AuthenticationRequest request) {
+    public AuthenticationResponse authenticate(AuthenticationRequestDTO request) {
         //authenticationManager를 통해 검사를 모두 하고, 잘못된 경우 알아서 에러를 내고 끝내기 때문에 아래와 같은 모든 동작을 호출하는 것은 secure하다
         //authenticationManager를 통해서 이메일과 비밀번호가 일치하는지 확인
         var user = memberRepository.findByEmail(request.getEmail())
