@@ -17,7 +17,7 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final JwtService jwtService;
 
-    public Optional<Member> getLoginMember(HttpServletRequest request){
+    public Optional<Member> getMember(HttpServletRequest request){
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         String token = authHeader.substring(7);
         

@@ -1,5 +1,6 @@
 package com.example.board.domain.member;
 
+import com.example.board.domain.team.Team;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -7,9 +8,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Entity
@@ -28,6 +27,11 @@ public class Member implements UserDetails {
     private String nickname;
     @Column(nullable = false)
     private String password;
+
+    @ManyToMany(mappedBy = "members")
+//    @JoinColumn(name="team_id")
+    private Set<Team> teams = new HashSet<>();
+
 
     @Enumerated(EnumType.STRING)
     private Role role;

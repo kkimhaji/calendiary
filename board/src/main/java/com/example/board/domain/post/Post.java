@@ -2,6 +2,7 @@ package com.example.board.domain.post;
 
 import com.example.board.domain.BaseTimeEntity;
 import com.example.board.domain.member.Member;
+import com.example.board.domain.team.Team;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,11 +17,15 @@ public class Post extends BaseTimeEntity {
     private Long postId;
     @Column(nullable = false)
     private String title;
-    @Lob
+    @Lob //TEXT
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Member author;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "team_id")
+    private Team team;
 
     @Builder
     public Post(Long postId, String title, String content, Member author){
@@ -34,6 +39,5 @@ public class Post extends BaseTimeEntity {
         this.title = title;
         this.content = content;
     }
-
 
 }
