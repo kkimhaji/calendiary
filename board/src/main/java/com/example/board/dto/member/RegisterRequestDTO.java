@@ -19,12 +19,13 @@ public class RegisterRequestDTO {
     private String email;
     private String password;
 
+    private Role role;
 
     public Member toEntity(String pwd, String verificationCode, LocalDateTime codeExpiredAt, boolean enable){
         return Member.builder()
                 .nickname(nickname).email(email).password(pwd)
                 .verificationCode(verificationCode).verificationCodeExpiredAt(codeExpiredAt)
-                .enabled(enable)
+                .enabled(enable).role(role)
                 .build();
     }
 }
