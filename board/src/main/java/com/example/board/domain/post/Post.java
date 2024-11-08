@@ -28,11 +28,12 @@ public class Post extends BaseTimeEntity {
     private Team team;
 
     @Builder
-    public Post(Long postId, String title, String content, Member author){
+    public Post(Long postId, String title, String content, Member author, Team team){
         this.postId = postId;
         this.title = title;
         this.content = content;
         this.author = author;
+        this.team = team;
     }
 
     public void update(String title, String content){

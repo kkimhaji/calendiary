@@ -32,9 +32,8 @@ public class Member implements UserDetails {
 //    @JoinColumn(name="team_id")
     private Set<Team> teams = new HashSet<>();
 
-
-    @Enumerated(EnumType.STRING)
-    private Role role;
+//    @Enumerated(EnumType.STRING)
+//    private Role role;
 
     private boolean enabled;
     private String verificationCode;
@@ -42,8 +41,9 @@ public class Member implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of();
 //        return List.of(new SimpleGrantedAuthority(role.name()));
-        return role.getAuthorities();
+//        return role.getAuthorities();
     }
 
     @Override
@@ -69,6 +69,12 @@ public class Member implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public void setVerified(){
+        this.enabled = true;
+        this.verificationCode = null;
+        this.verificationCodeExpiredAt = null;
     }
 
 

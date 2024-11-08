@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: optional:file:local.env[.properties]
   datasource:
     username: ${MYSQL_USERNAME}
     password: ${MYSQL_PASSWORD}
@@ -6,7 +8,7 @@ spring:
     url: ${MYSQL_DATASOURCE_URL}
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     show-sql: true
 
   mail:
@@ -20,6 +22,7 @@ spring:
           auth: true
           starttls.enable: true
 
+
 security:
   jwt:
     secret-key: ${JWT_SECRET_KEY}
@@ -27,5 +30,3 @@ security:
     refresh-token:
       expiration: 604800000 # 7 days
 
-  config:
-    import: optional:file:.env[.properties]

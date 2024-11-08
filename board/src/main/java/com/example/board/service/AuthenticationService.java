@@ -38,13 +38,12 @@ public class AuthenticationService {
     // save to the database and return the generated token
     public Member register(RegisterRequestDTO request) {
         //create a user object out of the registerRequest
-        var user = Member.builder().nickname(request.getNickname()).email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .enabled(false)
-                .verificationCode(emailService.generateVerificationCode())
-                .verificationCodeExpiredAt(LocalDateTime.now().plusMinutes(15))
-                .role(request.getRole())
-                .build();
+        var user = request.toEntity(
+                passwordEncoder.encode(request.getPassword()),
+                emailService.generateVerificationCode(),
+                LocalDateTime.now().plusMinutes(15),
+                false
+        );
 
         emailService.sendVerificationEmail(user);
 
@@ -60,9 +59,7 @@ public class AuthenticationService {
                 throw new RuntimeException("Verification code has expired!");
 
             if (member.getVerificationCode().equals(dto.getVerificationCode())) {
-                member.setEnabled(true);
-                member.setVerificationCode(null);
-                member.setVerificationCodeExpiredAt(null);
+                member.setVerified();
                 memberRepository.save(member);
 
                 var savedUser = memberRepository.save(member);

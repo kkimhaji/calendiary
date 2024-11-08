@@ -14,7 +14,6 @@ import java.util.Set;
 
 @Getter
 @Setter
-@Builder
 @Entity
 @RequiredArgsConstructor
 public class Team {
@@ -22,6 +21,7 @@ public class Team {
     @Id @GeneratedValue
     private Long teamId;
     private String name;
+    private String description;
 
     @ManyToMany
     @JoinTable(
