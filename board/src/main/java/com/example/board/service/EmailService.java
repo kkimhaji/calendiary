@@ -60,8 +60,7 @@ public class EmailService {
             if (member.isEnabled())
                 throw new RuntimeException("Account is already verified");
 
-            member.setVerificationCode(generateVerificationCode());
-            member.setVerificationCodeExpiredAt(LocalDateTime.now().plusMinutes(15));
+            member.setVerification(generateVerificationCode(), LocalDateTime.now().plusMinutes(15));
             sendVerificationEmail(member);
             memberRepository.save(member);
         }else throw new RuntimeException("user not found");

@@ -8,6 +8,7 @@ import com.example.board.domain.jwt.TokenType;
 import com.example.board.domain.member.Member;
 import com.example.board.domain.member.MemberRepository;
 import com.example.board.dto.member.AuthenticationRequestDTO;
+import com.example.board.dto.member.MemberRegisterResponseDTO;
 import com.example.board.dto.member.RegisterRequestDTO;
 import com.example.board.dto.member.VerifyUserDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,18 +37,19 @@ public class AuthenticationService {
     private final EmailService emailService;
 
     // save to the database and return the generated token
-    public Member register(RegisterRequestDTO request) {
+    public MemberRegisterResponseDTO register(RegisterRequestDTO request) {
         //create a user object out of the registerRequest
-        var user = request.toEntity(
+        var member = request.toEntity(
                 passwordEncoder.encode(request.getPassword()),
                 emailService.generateVerificationCode(),
                 LocalDateTime.now().plusMinutes(15),
                 false
         );
 
-        emailService.sendVerificationEmail(user);
+        emailService.sendVerificationEmail(member);
+        memberRepository.save(member);
 
-        return memberRepository.save(user);
+        return new MemberRegisterResponseDTO(member);
     }
 
     public AuthenticationResponse verifyUser(VerifyUserDTO dto) {
@@ -120,10 +122,7 @@ public class AuthenticationService {
         var validUserTokens = tokenRepository.findAllValidTokenByUser(member.getMemberId());
         if (validUserTokens.isEmpty()) return;
 
-        validUserTokens.forEach(token -> {
-            token.setExpired(true);
-            token.setRevoked(true);
-        });
+        validUserTokens.forEach(Token::setTokenExpired);
         tokenRepository.saveAll(validUserTokens);
     }
 

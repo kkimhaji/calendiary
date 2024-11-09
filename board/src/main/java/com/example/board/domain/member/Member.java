@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -71,10 +70,16 @@ public class Member implements UserDetails {
         return true;
     }
 
+
     public void setVerified(){
         this.enabled = true;
         this.verificationCode = null;
         this.verificationCodeExpiredAt = null;
+    }
+
+    public void setVerification(String code, LocalDateTime expiredAt){
+        this.verificationCode = verificationCode;
+        this.verificationCodeExpiredAt = expiredAt;
     }
 
 

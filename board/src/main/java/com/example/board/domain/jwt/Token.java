@@ -8,7 +8,6 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-@Setter
 @Builder
 public class Token {
 
@@ -32,5 +31,12 @@ public class Token {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private Member member;
+
+    public void setTokenExpired(){
+        this.expired = true;
+        this.revoked = true;
+    }
+
+
 }
 

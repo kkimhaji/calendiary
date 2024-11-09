@@ -3,6 +3,7 @@ package com.example.board.controller;
 import com.example.board.auth.AuthenticationResponse;
 import com.example.board.domain.member.Member;
 import com.example.board.dto.member.AuthenticationRequestDTO;
+import com.example.board.dto.member.MemberRegisterResponseDTO;
 import com.example.board.dto.member.RegisterRequestDTO;
 import com.example.board.dto.member.VerifyUserDTO;
 import com.example.board.service.AuthenticationService;
@@ -24,7 +25,7 @@ public class AuthenticationController {
     private final EmailService emailService;
 
     @PostMapping("/register")
-    public ResponseEntity<Member> register(@RequestBody RegisterRequestDTO dto){
+    public ResponseEntity<MemberRegisterResponseDTO> register(@RequestBody RegisterRequestDTO dto){
         return ResponseEntity.ok(authService.register(dto));
     }
 
