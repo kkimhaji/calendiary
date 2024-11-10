@@ -1,16 +1,14 @@
 package com.example.board.domain.member;
 
-import com.example.board.domain.TeamMember.TeamMember;
-import com.example.board.domain.team.Team;
+import com.example.board.domain.teamMember.TeamMember;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Entity
 @Getter
@@ -36,6 +34,7 @@ public class Member implements UserDetails {
     private LocalDateTime verificationCodeExpiredAt;
 
     @OneToMany(mappedBy = "member")
+    @JsonIgnore
     private Set<TeamMember> teamMemberships = new HashSet<>();
 
 

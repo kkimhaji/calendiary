@@ -1,11 +1,11 @@
-package com.example.board.domain.TeamMember;
+package com.example.board.domain.teamMember;
 
 import com.example.board.domain.member.Member;
+import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.team.Team;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
@@ -19,13 +19,17 @@ public class TeamMember {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "team_id")
     private Team team;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
     private Member member;
 
-//    @ManyToOne
-//    private TeamRole role;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "role_id")
+    private TeamRole role;
+
     private LocalDateTime joinedAt;
 
 
