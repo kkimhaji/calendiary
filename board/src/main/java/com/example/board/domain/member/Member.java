@@ -1,5 +1,6 @@
 package com.example.board.domain.member;
 
+import com.example.board.domain.TeamMember.TeamMember;
 import com.example.board.domain.team.Team;
 import jakarta.persistence.*;
 import lombok.*;
@@ -27,10 +28,6 @@ public class Member implements UserDetails {
     @Column(nullable = false)
     private String password;
 
-    @ManyToMany(mappedBy = "members")
-//    @JoinColumn(name="team_id")
-    private Set<Team> teams = new HashSet<>();
-
     @Enumerated(EnumType.STRING)
     private Role role;
 
@@ -38,11 +35,34 @@ public class Member implements UserDetails {
     private String verificationCode;
     private LocalDateTime verificationCodeExpiredAt;
 
+    @OneToMany(mappedBy = "member")
+    private Set<TeamMember> teamMemberships = new HashSet<>();
+
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-//        return List.of();
-//        return List.of(new SimpleGrantedAuthority(role.name()));
-        return role.getAuthorities();
+        Set<GrantedAuthority> authorities = new HashSet<>();
+
+        // 각 팀별 역할에 따른 권한 추가
+//        teamMemberships.forEach(membership -> {
+//            String teamRole = String.format("ROLE_%s_%s",
+//                    membership.getTeam().getId(),
+//                    membership.getRole().getName());
+//            authorities.add(new SimpleGrantedAuthority(teamRole));
+//
+//            // 비트 권한을 개별 권한으로 변환
+//            String permissions = membership.getRole().getPermissions();
+//            for (TeamPermission permission : TeamPermission.values()) {
+//                if (PermissionUtils.hasPermission(permissions, permission.getValue())) {
+//                    String permissionAuth = String.format("PERMISSION_%s_%s",
+//                            membership.getTeam().getId(),
+//                            permission.name());
+//                    authorities.add(new SimpleGrantedAuthority(permissionAuth));
+//                }
+//            }
+//        });
+
+        return authorities;
     }
 
     @Override

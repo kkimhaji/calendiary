@@ -1,12 +1,15 @@
 package com.example.board.domain.team;
 
+import com.example.board.domain.TeamMember.TeamMember;
 import com.example.board.domain.member.Member;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -18,16 +21,14 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class Team {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long teamId;
     private String name;
     private String description;
+    private Member created_by;
+    @CreatedDate
+    private LocalDateTime createdAt;
 
-    @ManyToMany
-    @JoinTable(
-            name = "team_member",
-            joinColumns = @JoinColumn(name = "team_id"),
-            inverseJoinColumns = @JoinColumn(name = "member_id")
-    )
-    private Set<Member> members = new HashSet<>();
+    @OneToMany(mappedBy = "team")
+    private Set<TeamMember> members = new HashSet<>();
 }
