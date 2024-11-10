@@ -29,8 +29,8 @@ public class TeamMember {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "role_id")
     private TeamRole role;
+    private String teamNickname;
 
     private LocalDateTime joinedAt;
-
 
 }
