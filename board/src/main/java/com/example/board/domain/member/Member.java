@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
@@ -43,23 +44,23 @@ public class Member implements UserDetails {
         Set<GrantedAuthority> authorities = new HashSet<>();
 
         // 각 팀별 역할에 따른 권한 추가
-//        teamMemberships.forEach(membership -> {
-//            String teamRole = String.format("ROLE_%s_%s",
-//                    membership.getTeam().getId(),
-//                    membership.getRole().getName());
-//            authorities.add(new SimpleGrantedAuthority(teamRole));
-//
-//            // 비트 권한을 개별 권한으로 변환
-//            String permissions = membership.getRole().getPermissions();
-//            for (TeamPermission permission : TeamPermission.values()) {
-//                if (PermissionUtils.hasPermission(permissions, permission.getValue())) {
-//                    String permissionAuth = String.format("PERMISSION_%s_%s",
-//                            membership.getTeam().getId(),
-//                            permission.name());
-//                    authorities.add(new SimpleGrantedAuthority(permissionAuth));
-//                }
-//            }
-//        });
+        teamMemberships.forEach(membership -> {
+            String teamRole = String.format("ROLE_%s_%s",
+                    membership.getTeam().getTeamId(),
+                    membership.getRole().getRoleName());
+            authorities.add(new SimpleGrantedAuthority(teamRole));
+
+            // 비트 권한을 개별 권한으로 변환
+            String permissions = membership.getRole().getPermissions();
+            for (TeamPermission permission : TeamPermission.values()) {
+                if (PermissionUtils.hasPermission(permissions, permission.getValue())) {
+                    String permissionAuth = String.format("PERMISSION_%s_%s",
+                            membership.getTeam().getTeamId(),
+                            permission.name());
+                    authorities.add(new SimpleGrantedAuthority(permissionAuth));
+                }
+            }
+        });
 
         return authorities;
     }
