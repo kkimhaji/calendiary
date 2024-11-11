@@ -1,6 +1,8 @@
 package com.example.board.domain.member;
 
 import com.example.board.domain.teamMember.TeamMember;
+import com.example.board.permission.PermissionUtils;
+import com.example.board.permission.TeamPermission;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -27,9 +29,6 @@ public class Member implements UserDetails {
     @Column(nullable = false)
     private String password;
 
-    @Enumerated(EnumType.STRING)
-    private Role role;
-
     private boolean enabled;
     private String verificationCode;
     private LocalDateTime verificationCodeExpiredAt;
@@ -45,19 +44,22 @@ public class Member implements UserDetails {
 
         // 각 팀별 역할에 따른 권한 추가
         teamMemberships.forEach(membership -> {
-            String teamRole = String.format("ROLE_%s_%s",
-                    membership.getTeam().getTeamId(),
-                    membership.getRole().getRoleName());
-            authorities.add(new SimpleGrantedAuthority(teamRole));
+            // 팀별 역할 권한
+            authorities.add(new SimpleGrantedAuthority(
+                    String.format("TEAM_%d_ROLE_%s",
+                            membership.getTeam().getTeamId(),
+                            membership.getRole().getRoleName())
+            ));
 
-            // 비트 권한을 개별 권한으로 변환
+            // 팀별 상세 권한
             String permissions = membership.getRole().getPermissions();
             for (TeamPermission permission : TeamPermission.values()) {
-                if (PermissionUtils.hasPermission(permissions, permission.getValue())) {
-                    String permissionAuth = String.format("PERMISSION_%s_%s",
-                            membership.getTeam().getTeamId(),
-                            permission.name());
-                    authorities.add(new SimpleGrantedAuthority(permissionAuth));
+                if (PermissionUtils.hasPermission(permissions, permission)) {
+                    authorities.add(new SimpleGrantedAuthority(
+                            String.format("TEAM_%d_PERMISSION_%s",
+                                    membership.getTeam().getTeamId(),
+                                    permission.name())
+                    ));
                 }
             }
         });
