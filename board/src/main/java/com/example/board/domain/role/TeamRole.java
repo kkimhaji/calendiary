@@ -6,6 +6,7 @@ import com.example.board.permission.PermissionUtils;
 import com.example.board.permission.TeamPermission;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
@@ -14,6 +15,7 @@ import java.util.Set;
 
 @Entity
 @Getter
+@Setter
 public class TeamRole {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "role_id")

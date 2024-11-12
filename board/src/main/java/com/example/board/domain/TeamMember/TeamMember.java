@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 @Getter
 @Table(name = "team_members")
+@Setter
 public class TeamMember {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

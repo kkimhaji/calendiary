@@ -38,10 +38,10 @@ public class TeamPermissionEvaluator implements PermissionEvaluator {
         return false;
     }
 
-    private boolean hasTeamPermission(Member user, Team team, TeamPermission permission) {
-        return teamMemberRepository.findByTeamAndUser(team, user)
-                .map(member -> PermissionUtils.hasPermission(
-                        member.getRole().getPermissions(),
+    private boolean hasTeamPermission(Member member, Team team, TeamPermission permission) {
+        return teamMemberRepository.findByTeamAndMember(team, member)
+                .map(user -> PermissionUtils.hasPermission(
+                        user.getRole().getPermissions(),
                         permission))
                 .orElse(false);
     }
