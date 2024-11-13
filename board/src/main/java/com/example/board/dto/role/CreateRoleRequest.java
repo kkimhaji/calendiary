@@ -1,0 +1,19 @@
+package com.example.board.dto.role;
+
+import com.example.board.permission.TeamPermission;
+import lombok.Data;
+
+import java.util.Objects;
+import java.util.Set;
+
+public record CreateRoleRequest(String roleName, String permissions) {
+
+    public CreateRoleRequest{
+        Objects.requireNonNull(roleName, "Role name must not be null");
+        Objects.requireNonNull(permissions, "Permissions must not be null");
+        if (permissions.isEmpty()){
+            throw new IllegalArgumentException("At least one permission is required");
+        }
+    }
+}
+

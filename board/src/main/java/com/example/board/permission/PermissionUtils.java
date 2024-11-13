@@ -5,24 +5,24 @@ import org.springframework.stereotype.Component;
 @Component
 public class PermissionUtils {
 
-//    // 권한 추가
-//    public static String addPermission(String currentPermissions, long permissionToAdd) {
-//        long current = TeamPermission.fromString(currentPermissions);
-//        long updated = current | permissionToAdd;
-//        return TeamPermission.toBinaryString(updated);
+//    public static String initializePermissions() {
+//        return "0";  // 초기 권한 없음
 //    }
 //
-//    // 권한 제거
-//    public static String removePermission(String currentPermissions, long permissionToRemove) {
-//        long current = TeamPermission.fromString(currentPermissions);
-//        long updated = current & ~permissionToRemove;
-//        return TeamPermission.toBinaryString(updated);
+//    public static String addPermission(String currentPermissions, TeamPermission permission) {
+//        StringBuilder binary = new StringBuilder(currentPermissions);
+//        while (binary.length() <= permission.getPosition()) {
+//            binary.insert(0, "0");
+//        }
+//        binary.setCharAt(binary.length() - 1 - permission.getPosition(), '1');
+//        return binary.toString();
 //    }
 //
-//    // 권한 확인
-//    public static boolean hasPermission(String permissions, long permissionToCheck) {
-//        long current = TeamPermission.fromString(permissions);
-//        return (current & permissionToCheck) == permissionToCheck;
+//    public static boolean hasPermission(String permissions, TeamPermission permission) {
+//        if (permission.getPosition() >= permissions.length()) {
+//            return false;
+//        }
+//        return permissions.charAt(permissions.length() - 1 - permission.getPosition()) == '1';
 //    }
 
 

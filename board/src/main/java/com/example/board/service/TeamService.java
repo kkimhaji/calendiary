@@ -1,8 +1,8 @@
 package com.example.board.service;
 
 import com.example.board.domain.member.Member;
-import com.example.board.domain.role.TeamRole;
-import com.example.board.domain.role.TeamRoleRepository;
+import com.example.board.domain.team.TeamRole;
+import com.example.board.domain.team.TeamRoleRepository;
 import com.example.board.domain.team.Team;
 import com.example.board.domain.team.TeamRepository;
 import com.example.board.domain.teamMember.TeamMember;

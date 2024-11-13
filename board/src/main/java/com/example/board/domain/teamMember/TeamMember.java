@@ -1,7 +1,7 @@
 package com.example.board.domain.teamMember;
 
 import com.example.board.domain.member.Member;
-import com.example.board.domain.role.TeamRole;
+import com.example.board.domain.team.TeamRole;
 import com.example.board.domain.team.Team;
 import jakarta.persistence.*;
 import lombok.Builder;

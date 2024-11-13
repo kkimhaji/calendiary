@@ -2,9 +2,8 @@ package com.example.board.permission;
 
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
 public enum TeamPermission {
-    VIEW_WORKSPACE(0),      // 1
+    VIEW_POST(0),      // 1
     CREATE_POST(1),         // 2
     EDIT_POST(2),          // 4
     DELETE_POST(3),        // 8
