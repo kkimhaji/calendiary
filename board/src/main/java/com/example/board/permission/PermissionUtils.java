@@ -2,6 +2,9 @@ package com.example.board.permission;
 
 import org.springframework.stereotype.Component;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Component
 public class PermissionUtils {
 
@@ -40,6 +43,24 @@ public class PermissionUtils {
             return false;
         }
         return permissions.charAt(permissions.length() - 1 - permission.getPosition()) == '1';
+    }
+
+    public static String createPermissionBits(Set<TeamPermission> permissions) {
+        String bits = "0";
+        for (TeamPermission permission : permissions) {
+            bits = addPermission(bits, permission);
+        }
+        return bits;
+    }
+
+    public static Set<TeamPermission> getPermissionsFromBits(String permissionBits) {
+        Set<TeamPermission> permissions = new HashSet<>();
+        for (TeamPermission permission : TeamPermission.values()) {
+            if (hasPermission(permissionBits, permission)) {
+                permissions.add(permission);
+            }
+        }
+        return permissions;
     }
 
 

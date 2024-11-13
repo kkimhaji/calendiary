@@ -12,36 +12,76 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+import java.util.Set;
+
 @Service
 @RequiredArgsConstructor
 public class TeamRoleService {
     private final TeamRepository teamRepository;
     private final TeamRoleRepository teamRoleRepository;
 
-    public TeamRole createRole(Team team, CreateRoleRequest request){
-        if (teamRoleRepository.existsByTeamAndRoleName())
-            //DuplicateRoleException으로 나중에 바꿀 것
+    //    public TeamRole createRole(Team team, CreateRoleRequest request){
+//        if (teamRoleRepository.existsByTeamAndRoleName())
+//            //DuplicateRoleNameException 나중에 바꿀 것
+//            throw new RuntimeException("Role name already exists in this team");
+//
+//        TeamRole role = new TeamRole();
+//        role.setTeam(team);
+//        role.setRoleName(request.roleName());
+//        role.setPermissions(request.permissions());
+//
+//        return teamRoleRepository.save(role);
+//    }
+//
+//    public TeamRole updateRolePermissions(Long roleId, String newPermissions){
+//        TeamRole role = teamRoleRepository.findById(roleId).orElseThrow(() -> new EntityNotFoundException("Role not found"));
+//
+//        role.setPermissions(newPermissions);
+//        return teamRoleRepository.save(role);
+//    }
+//
+//    @Transactional(readOnly=true)
+//    public boolean checkPermission(Long roleId, TeamPermission permission){
+//        return teamRoleRepository.findById(roleId)
+//                .map(role -> role.hasPermission(permission))
+//                .orElse(false);
+//    }
+    public TeamRole createRole(Long teamId, CreateRoleRequest request) {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new EntityNotFoundException("Team not found"));
+
+        // 역할 이름 중복 검사
+        if (teamRoleRepository.existsByTeamAndRoleName(team, request.roleName())) {
             throw new RuntimeException("Role name already exists in this team");
+        }
 
         TeamRole role = new TeamRole();
         role.setTeam(team);
         role.setRoleName(request.roleName());
-        role.setPermissions(request.permissions());
+        role.setPermissions(request.permissions());  // 내부적으로 비트셋으로 변환
 
         return teamRoleRepository.save(role);
     }
 
-    public TeamRole updateRolePermissions(Long roleId, String newPermissions){
-        TeamRole role = teamRoleRepository.findById(roleId).orElseThrow(() -> new EntityNotFoundException("Role not found"));
+    public TeamRole updateRolePermissions(Long roleId, Set<TeamPermission> newPermissions) {
+        TeamRole role = teamRoleRepository.findById(roleId)
+                .orElseThrow(() -> new EntityNotFoundException("Role not found"));
 
         role.setPermissions(newPermissions);
         return teamRoleRepository.save(role);
     }
 
-    @Transactional(readOnly=true)
-    public boolean checkPermission(Long roleId, TeamPermission permission){
+    public boolean checkPermission(Long roleId, TeamPermission permission) {
         return teamRoleRepository.findById(roleId)
                 .map(role -> role.hasPermission(permission))
                 .orElse(false);
     }
+    public TeamRole getRoleById(Long roleId){
+        var role = teamRoleRepository.findById(roleId);
+        if (role.isEmpty())
+            throw new EntityNotFoundException("That is not proper roleId");
+        return role.get();
+    }
+
 }

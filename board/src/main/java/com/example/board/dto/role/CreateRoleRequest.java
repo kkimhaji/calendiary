@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.Objects;
 import java.util.Set;
 
-public record CreateRoleRequest(String roleName, String permissions) {
+public record CreateRoleRequest(String roleName, Set<TeamPermission> permissions) {
 
     public CreateRoleRequest{
         Objects.requireNonNull(roleName, "Role name must not be null");
