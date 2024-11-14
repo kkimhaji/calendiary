@@ -54,6 +54,7 @@ public class TeamService {
 
     public Team createTeam(Member member, String teamName, String description){
         Team newTeam = new Team();
+
         newTeam.setCreated_by(member);
         newTeam.setCreatedAt(LocalDateTime.now());
         newTeam.setName(teamName);

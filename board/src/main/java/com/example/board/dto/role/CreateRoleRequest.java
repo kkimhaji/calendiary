@@ -16,4 +16,3 @@ public record CreateRoleRequest(String roleName, Set<TeamPermission> permissions
         }
     }
 }
-
