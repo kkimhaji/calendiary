@@ -23,6 +23,8 @@ public class Team {
     private Long teamId;
     private String name;
     private String description;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by")
     private Member created_by;
     @CreatedDate
     private LocalDateTime createdAt;

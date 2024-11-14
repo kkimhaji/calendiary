@@ -22,9 +22,9 @@ public class TeamController {
 
     @PostMapping("/create")
     public ResponseEntity<Team> createTeam(HttpServletRequest request, TeamCreateRequestDTO dto){
-        var loginMember = memberService.getMember(request).get();
-        return ResponseEntity.ok(teamService.createTeam(loginMember, dto.getTeamName(), dto.getDescription()));
+        var loginMember = memberService.getLoginUser(request);
+        System.out.println("getloginmember");
+        return ResponseEntity.ok(teamService.createTeam(loginMember, dto));
     }
-
 
 }

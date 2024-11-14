@@ -7,6 +7,7 @@ import com.example.board.domain.team.Team;
 import com.example.board.domain.team.TeamRepository;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.teamMember.TeamMemberRepository;
+import com.example.board.dto.team.TeamCreateRequestDTO;
 import com.example.board.permission.PermissionUtils;
 import com.example.board.permission.TeamPermission;
 import jakarta.transaction.Transactional;
@@ -52,13 +53,13 @@ public class TeamService {
         return teamRoleRepository.save(role);
     }
 
-    public Team createTeam(Member member, String teamName, String description){
+    public Team createTeam(Member member, TeamCreateRequestDTO dto){
         Team newTeam = new Team();
-
+        System.out.println("createTeam");
         newTeam.setCreated_by(member);
         newTeam.setCreatedAt(LocalDateTime.now());
-        newTeam.setName(teamName);
-        newTeam.setDescription(description);
+        newTeam.setName(dto.getTeamName());
+        newTeam.setDescription(dto.getDescription());
 
 
         TeamRole admin = new TeamRole();

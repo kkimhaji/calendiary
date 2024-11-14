@@ -6,7 +6,9 @@ import com.example.board.domain.member.MemberRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -23,5 +25,13 @@ public class MemberService {
         
         String username = jwtService.extractUsername(token);
         return memberRepository.findByEmail(username);
+    }
+
+    @Transactional //token을 기반으로 현재 로그인한 유저를 받아옴
+    public Member getLoginUser(HttpServletRequest request){
+        String token = jwtService.resolveToken(request);
+        System.out.println(token);
+        Authentication authentication = jwtService.getAuthentication(token);
+        return (Member) authentication.getPrincipal();
     }
 }
