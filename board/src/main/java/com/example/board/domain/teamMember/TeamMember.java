@@ -4,19 +4,17 @@ import com.example.board.domain.member.Member;
 import com.example.board.domain.team.TeamRole;
 import com.example.board.domain.team.Team;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Builder
 @RequiredArgsConstructor
+@AllArgsConstructor
 @Getter
 @Table(name = "team_members")
 @Setter
+@Builder
 public class TeamMember {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -36,3 +34,4 @@ public class TeamMember {
     private LocalDateTime joinedAt;
 
 }
+

@@ -47,6 +47,7 @@ public class TeamRoleService {
 //                .map(role -> role.hasPermission(permission))
 //                .orElse(false);
 //    }
+
     public TeamRole createRole(Long teamId, CreateRoleRequest request) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new EntityNotFoundException("Team not found"));

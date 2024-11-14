@@ -1,5 +1,6 @@
 package com.example.board.domain.team;
 
+import com.example.board.domain.member.Member;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.permission.PermissionUtils;
 import com.example.board.permission.TeamPermission;
@@ -22,7 +23,7 @@ public class TeamRole {
 
     private String roleName;
     private String description;
-    private String permissions;
+    private String permissions = "0";
 
     @CreatedDate
     private LocalDateTime createdAt;
@@ -68,5 +69,13 @@ public boolean hasPermission(TeamPermission permission) {
 
     public Set<TeamPermission> getPermissionSet() {
         return PermissionUtils.getPermissionsFromBits(this.permissions);
+    }
+
+    public void setAdmin(Team team){
+        this.permissions = "11111";
+        this.createdAt = LocalDateTime.now();
+        this.roleName = "CREATOR";
+        this.description = "Who made this Team";
+        this.setTeam(team);
     }
 }

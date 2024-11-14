@@ -15,6 +15,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 @Service
@@ -41,11 +43,11 @@ public class TeamService {
         role.setTeam(team);
         role.setRoleName(roleName);
 
-        String permissionBits = "0";
-        for (TeamPermission permission : permissions) {
-            permissionBits = PermissionUtils.addPermission(permissionBits, permission);
-        }
-        role.setPermissions(permissionBits);
+//        String permissionBits = "0";
+//        for (TeamPermission permission : permissions) {
+//            permissionBits = PermissionUtils.addPermission(permissionBits, permission);
+//        }
+        role.setPermissions(permissions);
 
         return teamRoleRepository.save(role);
     }
@@ -57,10 +59,20 @@ public class TeamService {
         newTeam.setName(teamName);
         newTeam.setDescription(description);
 
+
+        TeamRole admin = new TeamRole();
+        admin.setAdmin(newTeam);
+        //role에 TeamMember설정?
+
         TeamMember teamMember = new TeamMember();
         teamMember.setMember(member);
         //TeamRole = ADMIN(모든 권한)으로 저장
-        //teamMember에도 role 저장할 것
+        teamMember.setTeamNickname("ADMIN");
+        teamMember.setJoinedAt(LocalDateTime.now());
+        teamMember.setRole(teamRoleRepository.save(admin));
+
+        teamMemberRepository.save(teamMember);
+
         return teamRepository.save(newTeam);
     }
 }
