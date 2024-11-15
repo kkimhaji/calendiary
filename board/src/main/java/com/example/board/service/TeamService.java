@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -53,28 +54,26 @@ public class TeamService {
         return teamRoleRepository.save(role);
     }
 
+    @Transactional
     public Team createTeam(Member member, TeamCreateRequestDTO dto){
-        Team newTeam = new Team();
-        System.out.println("createTeam");
-        newTeam.setCreated_by(member);
-        newTeam.setCreatedAt(LocalDateTime.now());
-        newTeam.setName(dto.getTeamName());
-        newTeam.setDescription(dto.getDescription());
-
+        Team newTeam = dto.toEntity(member);
+        System.out.println("in service: "+dto.getTeamName() +" / "+ dto.getDescription());
 
         TeamRole admin = new TeamRole();
         admin.setAdmin(newTeam);
-        //role에 TeamMember설정?
 
+//        admin = teamRoleRepository.save(admin);
+
+        //role에 TeamMember설정?
         TeamMember teamMember = new TeamMember();
         teamMember.setMember(member);
         //TeamRole = ADMIN(모든 권한)으로 저장
         teamMember.setTeamNickname("ADMIN");
         teamMember.setJoinedAt(LocalDateTime.now());
         teamMember.setRole(teamRoleRepository.save(admin));
-
+        teamMember.setTeam(teamRepository.save(newTeam));
         teamMemberRepository.save(teamMember);
 
-        return teamRepository.save(newTeam);
+        return newTeam;
     }
 }

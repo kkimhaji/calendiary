@@ -17,7 +17,8 @@ import java.util.Set;
 @Getter
 @Setter
 public class TeamRole {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "role_id")
     private Long id;
 
@@ -39,7 +40,7 @@ public class TeamRole {
 //        return PermissionUtils.hasPermission(this.permissions, permission.getValue());
 //    }
 
-//    public void addPermission(int position) {
+    //    public void addPermission(int position) {
 //        StringBuilder binary = new StringBuilder(permissions);
 //        // 길이가 부족하면 확장
 //        while (binary.length() <= position) {
@@ -55,9 +56,9 @@ public class TeamRole {
 //        }
 //        return permissions.charAt(permissions.length() - 1 - position) == '1';
 //    }
-public boolean hasPermission(TeamPermission permission) {
-    return PermissionUtils.hasPermission(this.permissions, permission);
-}
+    public boolean hasPermission(TeamPermission permission) {
+        return PermissionUtils.hasPermission(this.permissions, permission);
+    }
 
     public void addPermission(TeamPermission permission) {
         this.permissions = PermissionUtils.addPermission(this.permissions, permission);
@@ -71,7 +72,7 @@ public boolean hasPermission(TeamPermission permission) {
         return PermissionUtils.getPermissionsFromBits(this.permissions);
     }
 
-    public void setAdmin(Team team){
+    public void setAdmin(Team team) {
         this.permissions = "11111";
         this.createdAt = LocalDateTime.now();
         this.roleName = "CREATOR";

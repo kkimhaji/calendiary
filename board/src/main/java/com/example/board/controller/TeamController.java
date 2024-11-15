@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,8 +22,9 @@ public class TeamController {
     private final MemberService memberService;
 
     @PostMapping("/create")
-    public ResponseEntity<Team> createTeam(HttpServletRequest request, TeamCreateRequestDTO dto){
+    public ResponseEntity<Team> createTeam(HttpServletRequest request, @RequestBody TeamCreateRequestDTO dto){
         var loginMember = memberService.getMember(request).get();
+        System.out.println("in controller: "+dto.getTeamName()+" / " + dto.getDescription());
         return ResponseEntity.ok(teamService.createTeam(loginMember, dto));
     }
 
