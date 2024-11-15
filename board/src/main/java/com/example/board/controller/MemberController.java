@@ -20,9 +20,4 @@ public class MemberController {
     public ResponseEntity<Member> getLoginUser(HttpServletRequest request){
         return ResponseEntity.ok(memberService.getMember(request).get());
     }
-
-    @GetMapping("/loginUser")
-    public Member getMember(HttpServletRequest request){
-        return memberService.getLoginUser(request);
-    }
 }

@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
@@ -84,17 +85,6 @@ public class JwtService {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-    }
-
-    public String resolveToken(HttpServletRequest req){
-        return req.getHeader("X-AUTH-TOKEN");
-    }
-
-    //jwt 토믄으로 인증 정보 조회
-    public Authentication getAuthentication(String token){
-
-        UserDetails userDetails = userDetailsService.loadUserByUsername(extractUsername(token));
-        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 
     private Key getSigningKey() {

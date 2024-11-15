@@ -27,11 +27,4 @@ public class MemberService {
         return memberRepository.findByEmail(username);
     }
 
-    @Transactional //token을 기반으로 현재 로그인한 유저를 받아옴
-    public Member getLoginUser(HttpServletRequest request){
-        String token = jwtService.resolveToken(request);
-        System.out.println(token);
-        Authentication authentication = jwtService.getAuthentication(token);
-        return (Member) authentication.getPrincipal();
-    }
 }
