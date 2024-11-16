@@ -28,6 +28,7 @@ public class TeamService {
     private final TeamMemberRepository teamMemberRepository;
     private final TeamRepository teamRepository;
     private final TeamRoleRepository teamRoleRepository;
+    private final TeamRoleService teamRoleService;
 
 
     @PreAuthorize("hasPermission(#team, 'MANAGE_MEMBERS')")
@@ -56,22 +57,22 @@ public class TeamService {
 
     @Transactional
     public Team createTeam(Member member, TeamCreateRequestDTO dto){
-        Team newTeam = dto.toEntity(member);
+        Team newTeam = teamRepository.save(dto.toEntity(member));
         System.out.println("in service: "+dto.getTeamName() +" / "+ dto.getDescription());
+        TeamMember teamMember = new TeamMember();
+        teamMember.setMember(member);
 
-        TeamRole admin = new TeamRole();
-        admin.setAdmin(newTeam);
+        TeamRole admin = teamRoleService.createAdmin(newTeam);
 
 //        admin = teamRoleRepository.save(admin);
 
         //role에 TeamMember설정?
-        TeamMember teamMember = new TeamMember();
-        teamMember.setMember(member);
         //TeamRole = ADMIN(모든 권한)으로 저장
         teamMember.setTeamNickname("ADMIN");
         teamMember.setJoinedAt(LocalDateTime.now());
-        teamMember.setRole(teamRoleRepository.save(admin));
-        teamMember.setTeam(teamRepository.save(newTeam));
+        teamMember.setRole(admin);
+        teamMember.setTeam(newTeam);
+
         teamMemberRepository.save(teamMember);
 
         return newTeam;

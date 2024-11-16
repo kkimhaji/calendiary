@@ -12,8 +12,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+
+import static com.example.board.permission.TeamPermission.*;
 
 @Service
 @RequiredArgsConstructor
@@ -62,7 +66,7 @@ public class TeamRoleService {
         role.setTeam(team);
         role.setRoleName(request.roleName());
         role.setPermissions(request.permissions());  // 내부적으로 비트셋으로 변환
-
+        role.setDescription(request.description());
         return teamRoleRepository.save(role);
     }
 
@@ -84,6 +88,19 @@ public class TeamRoleService {
         if (role.isEmpty())
             throw new EntityNotFoundException("That is not proper roleId");
         return role.get();
+    }
+
+    public TeamRole createAdmin(Team team){
+
+        Set<TeamPermission> adminPermissions = new HashSet<>(Arrays.asList(
+                CREATE_POST, DELETE_POST, ADMINISTRATOR,
+                MANAGE_ROLES, EDIT_POST, MANAGE_MEMBERS,
+                VIEW_POST
+        ));
+
+        CreateRoleRequest request = new CreateRoleRequest("ADMIN", adminPermissions, "who made this team");
+        return createRole(team.getTeamId(), request);
+
     }
 
 }
