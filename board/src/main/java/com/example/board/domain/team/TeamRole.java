@@ -26,9 +26,6 @@ public class TeamRole {
     private String description;
     private String permissions = "0";
 
-    @CreatedDate
-    private LocalDateTime createdAt;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id")
     private Team team;
@@ -72,11 +69,10 @@ public class TeamRole {
         return PermissionUtils.getPermissionsFromBits(this.permissions);
     }
 
-    public void setAdmin(Team team) {
-        this.permissions = "11111";
-        this.createdAt = LocalDateTime.now();
-        this.roleName = "CREATOR";
-        this.description = "Who made this Team";
-        this.setTeam(team);
-    }
+//    public void setAdmin(Team team) {
+//        this.permissions = "11111";
+//        this.roleName = "CREATOR";
+//        this.description = "Who made this Team";
+//        this.setTeam(team);
+//    }
 }

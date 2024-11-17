@@ -30,7 +30,6 @@ public class TeamService {
     private final TeamRoleRepository teamRoleRepository;
     private final TeamRoleService teamRoleService;
 
-
     @PreAuthorize("hasPermission(#team, 'MANAGE_MEMBERS')")
     public TeamMember addMember(Team team, Member member, TeamRole role){
         TeamMember teamMember = new TeamMember();
