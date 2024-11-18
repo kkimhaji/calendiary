@@ -2,19 +2,16 @@ package com.example.board.service;
 
 import com.example.board.domain.team.Team;
 import com.example.board.domain.team.TeamRepository;
-import com.example.board.domain.team.TeamRole;
-import com.example.board.domain.team.TeamRoleRepository;
-import com.example.board.domain.teamMember.TeamMemberRepository;
+import com.example.board.domain.role.TeamRole;
+import com.example.board.domain.role.TeamRoleRepository;
 import com.example.board.dto.role.CreateRoleRequest;
 import com.example.board.permission.TeamPermission;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
 import static com.example.board.permission.TeamPermission.*;

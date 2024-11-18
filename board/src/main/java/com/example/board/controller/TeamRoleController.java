@@ -1,7 +1,6 @@
 package com.example.board.controller;
 
-import com.example.board.domain.team.Team;
-import com.example.board.domain.team.TeamRole;
+import com.example.board.domain.role.TeamRole;
 import com.example.board.dto.role.CreateRoleRequest;
 import com.example.board.dto.role.TeamRoleResponse;
 import com.example.board.permission.TeamPermission;
@@ -32,4 +31,8 @@ public class TeamRoleController {
         TeamRole role = teamRoleService.getRoleById(roleId);
         return ResponseEntity.ok(role.getPermissionSet());
     }
+
+    //관리자 권한 넘기기
+    //역할에 팀 멤버 추가하기
+
 }

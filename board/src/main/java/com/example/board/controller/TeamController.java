@@ -28,4 +28,5 @@ public class TeamController {
         return ResponseEntity.ok(teamService.createTeam(loginMember, dto));
     }
 
+    //팀 삭제 시 role과 teamMember 정보도 삭제
 }

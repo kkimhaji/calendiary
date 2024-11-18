@@ -1,14 +1,13 @@
 package com.example.board.service;
 
 import com.example.board.domain.member.Member;
-import com.example.board.domain.team.TeamRole;
-import com.example.board.domain.team.TeamRoleRepository;
+import com.example.board.domain.role.TeamRole;
+import com.example.board.domain.role.TeamRoleRepository;
 import com.example.board.domain.team.Team;
 import com.example.board.domain.team.TeamRepository;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.teamMember.TeamMemberRepository;
 import com.example.board.dto.team.TeamCreateRequestDTO;
-import com.example.board.permission.PermissionUtils;
 import com.example.board.permission.TeamPermission;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -16,9 +15,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
 @Service

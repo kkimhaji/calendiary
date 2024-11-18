@@ -1,15 +1,13 @@
-package com.example.board.domain.team;
+package com.example.board.domain.role;
 
-import com.example.board.domain.member.Member;
+import com.example.board.domain.team.Team;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.permission.PermissionUtils;
 import com.example.board.permission.TeamPermission;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.annotation.CreatedDate;
 
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -69,10 +67,4 @@ public class TeamRole {
         return PermissionUtils.getPermissionsFromBits(this.permissions);
     }
 
-//    public void setAdmin(Team team) {
-//        this.permissions = "11111";
-//        this.roleName = "CREATOR";
-//        this.description = "Who made this Team";
-//        this.setTeam(team);
-//    }
 }

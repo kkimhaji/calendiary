@@ -1,6 +1,6 @@
 package com.example.board.dto.role;
 
-import com.example.board.domain.team.TeamRole;
+import com.example.board.domain.role.TeamRole;
 import com.example.board.permission.TeamPermission;
 
 import java.util.Set;

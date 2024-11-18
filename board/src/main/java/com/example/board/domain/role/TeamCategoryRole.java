@@ -1,0 +1,45 @@
+package com.example.board.domain.role;
+
+import com.example.board.domain.team.TeamCategory;
+import com.example.board.permission.PermissionUtils;
+import com.example.board.permission.TeamPermission;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.Set;
+
+@Entity
+@Getter
+@Setter
+public class TeamCategoryRole {
+
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private TeamCategory teamCategory;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "role_id")
+    private TeamRole role;
+
+    private String permissions = "0";
+
+    public boolean hasPermission(TeamPermission permission) {
+        return PermissionUtils.hasPermission(this.permissions, permission);
+    }
+
+    public void addPermission(TeamPermission permission) {
+        this.permissions = PermissionUtils.addPermission(this.permissions, permission);
+    }
+
+    public void setPermissions(Set<TeamPermission> permissions) {
+        String permissionBits = "0";
+        for (TeamPermission permission : permissions) {
+            permissionBits = PermissionUtils.addPermission(permissionBits, permission);
+        }
+        this.permissions = permissionBits;
+    }
+}
