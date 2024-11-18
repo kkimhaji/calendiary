@@ -2,11 +2,77 @@ package com.example.board.domain.post;
 
 import com.example.board.domain.member.Member;
 import com.example.board.domain.team.Team;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findAllByAuthor(Member member);
     List<Post> findAllByTeam(Team team);
+
+    @Query("SELECT p FROM Post p " +
+            "JOIN FETCH p.author " +
+            "JOIN FETCH p.category " +
+            "WHERE p.team.id = :teamId AND p.category.id = :categoryId")
+    List<Post> findAllByTeamAndCategory(
+            @Param("teamId") Long teamId,
+            @Param("categoryId") Long categoryId
+    );
+
+    @Query("SELECT p FROM Post p " +
+            "JOIN FETCH p.author " +
+            "JOIN FETCH p.category " +
+            "WHERE p.id = :postId AND p.team.id = :teamId")
+    Optional<Post> findByIdAndTeamWithAuthorAndCategory(
+            @Param("postId") Long postId,
+            @Param("teamId") Long teamId
+    );
+
+    // 페이징 처리를 위한 메서드
+    @Query(value = "SELECT p FROM Post p " +
+            "JOIN FETCH p.author " +
+            "JOIN FETCH p.category " +
+            "WHERE p.team.id = :teamId AND p.category.id = :categoryId",
+            countQuery = "SELECT COUNT(p) FROM Post p " +
+                    "WHERE p.team.id = :teamId AND p.category.id = :categoryId")
+    Page<Post> findAllByTeamAndCategoryWithPaging(
+            @Param("teamId") Long teamId,
+            @Param("categoryId") Long categoryId,
+            Pageable pageable
+    );
+
+//    // 카테고리의 게시글 목록 조회 (제목만)
+//    @Query("SELECT new com.example.dto.PostSummaryDto(p.id, p.title, p.createdAt) " +
+//            "FROM Post p " +
+//            "WHERE p.category.id = :categoryId " +
+//            "ORDER BY p.createdAt DESC")
+//    Page<PostSummaryDto> findPostSummariesByCategoryId(
+//            @Param("categoryId") Long categoryId,
+//            Pageable pageable
+//    );
+//
+//    // 게시글 상세 조회
+//    @Query("SELECT p FROM Post p " +
+//            "JOIN FETCH p.author " +
+//            "WHERE p.id = :postId AND p.category.id = :categoryId")
+//    Optional<Post> findByIdWithAuthor(
+//            @Param("postId") Long postId,
+//            @Param("categoryId") Long categoryId
+//    );
+//
+//    // 최근 게시글 요약 정보
+//    @Query("SELECT new com.example.dto.PostSummaryDto(" +
+//            "p.id, p.title, p.createdAt) " +
+//            "FROM Post p " +
+//            "WHERE p.category.id = :categoryId " +
+//            "ORDER BY p.createdAt DESC")
+//    List<PostSummaryDto> findRecentPostsByCategoryId(
+//            @Param("categoryId") Long categoryId,
+//            Pageable pageable
+//    );
 }

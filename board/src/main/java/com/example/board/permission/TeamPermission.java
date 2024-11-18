@@ -20,4 +20,5 @@ public enum TeamPermission {
     public int getPosition() {
         return position;
     }
+
 }
