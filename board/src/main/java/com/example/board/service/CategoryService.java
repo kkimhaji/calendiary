@@ -1,8 +1,6 @@
 package com.example.board.service;
 
 import com.example.board.domain.role.TeamCategoryRole;
-import com.example.board.domain.role.TeamRole;
-import com.example.board.domain.role.TeamRoleRepository;
 import com.example.board.domain.team.CategoryRepository;
 import com.example.board.domain.team.Team;
 import com.example.board.domain.team.TeamCategory;
@@ -11,6 +9,8 @@ import com.example.board.dto.category.CreateCategoryRequest;
 import com.example.board.permission.TeamPermission;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import com.example.board.domain.role.TeamRole;
+import com.example.board.domain.role.TeamRoleRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;

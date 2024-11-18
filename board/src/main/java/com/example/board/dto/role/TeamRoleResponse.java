@@ -1,8 +1,7 @@
 package com.example.board.dto.role;
 
-import com.example.board.domain.role.TeamRole;
 import com.example.board.permission.TeamPermission;
-
+import com.example.board.domain.role.TeamRole;
 import java.util.Set;
 
 public record TeamRoleResponse(Long id, String name, Set<TeamPermission> permissions, Long teamId) {
