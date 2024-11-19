@@ -2,6 +2,7 @@ package com.example.board.domain.post;
 
 import com.example.board.domain.member.Member;
 import com.example.board.domain.team.Team;
+import com.example.board.dto.post.PostSummaryDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -46,33 +47,33 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             Pageable pageable
     );
 
-//    // 카테고리의 게시글 목록 조회 (제목만)
-//    @Query("SELECT new com.example.dto.PostSummaryDto(p.id, p.title, p.createdAt) " +
-//            "FROM Post p " +
-//            "WHERE p.category.id = :categoryId " +
-//            "ORDER BY p.createdAt DESC")
-//    Page<PostSummaryDto> findPostSummariesByCategoryId(
-//            @Param("categoryId") Long categoryId,
-//            Pageable pageable
-//    );
-//
-//    // 게시글 상세 조회
-//    @Query("SELECT p FROM Post p " +
-//            "JOIN FETCH p.author " +
-//            "WHERE p.id = :postId AND p.category.id = :categoryId")
-//    Optional<Post> findByIdWithAuthor(
-//            @Param("postId") Long postId,
-//            @Param("categoryId") Long categoryId
-//    );
-//
-//    // 최근 게시글 요약 정보
-//    @Query("SELECT new com.example.dto.PostSummaryDto(" +
-//            "p.id, p.title, p.createdAt) " +
-//            "FROM Post p " +
-//            "WHERE p.category.id = :categoryId " +
-//            "ORDER BY p.createdAt DESC")
-//    List<PostSummaryDto> findRecentPostsByCategoryId(
-//            @Param("categoryId") Long categoryId,
-//            Pageable pageable
-//    );
+    // 카테고리의 게시글 목록 조회 (제목만)
+    @Query("SELECT new com.example.dto.PostSummaryDto(p.id, p.title, p.createdAt) " +
+            "FROM Post p " +
+            "WHERE p.category.id = :categoryId " +
+            "ORDER BY p.createdAt DESC")
+    Page<PostSummaryDTO> findPostSummariesByCategoryId(
+            @Param("categoryId") Long categoryId,
+            Pageable pageable
+    );
+
+    // 게시글 상세 조회
+    @Query("SELECT p FROM Post p " +
+            "JOIN FETCH p.author " +
+            "WHERE p.id = :postId AND p.category.id = :categoryId")
+    Optional<Post> findByIdWithAuthor(
+            @Param("postId") Long postId,
+            @Param("categoryId") Long categoryId
+    );
+
+    // 최근 게시글 요약 정보
+    @Query("SELECT new com.example.dto.PostSummaryDto(" +
+            "p.id, p.title, p.createdAt) " +
+            "FROM Post p " +
+            "WHERE p.category.id = :categoryId " +
+            "ORDER BY p.createdAt DESC")
+    List<PostSummaryDTO> findRecentPostsByCategoryId(
+            @Param("categoryId") Long categoryId,
+            Pageable pageable
+    );
 }

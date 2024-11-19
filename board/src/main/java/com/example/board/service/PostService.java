@@ -14,7 +14,9 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.action.internal.EntityActionVetoException;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -70,6 +72,27 @@ public class PostService {
         }
         return postRepository.findAllByTeamAndCategoryWithPaging(teamId, categoryId, pageable)
                 .map(PostListResponse::from);
+    }
+
+    //게시글 목록 조회
+    @Transactional(readOnly = true)
+    public Page<PostSummaryDTO> getCategoryPosts(Long categoryId, Pageable pageable){
+        return postRepository.findPostSummariesByCategoryId(categoryId, pageable);
+    }
+
+    //게시글 상세 조회
+    @Transactional(readOnly = true)
+    public PostDetailDTO getPostDetail(Long postId, Long categoryId){
+        Post post = postRepository.findByIdWithAuthor(postId, categoryId)
+                .orElseThrow(()->new EntityNotFoundException("Post not found"));
+        return PostDetailDTO.from(post);
+    }
+
+    //최근 게시글 조회
+    @Transactional(readOnly = true)
+    @Cacheable(value = "recentPosts", key = "#categoryId")
+    public List<PostSummaryDTO> getRecentPosts(Long categoryId, int limit){
+        return postRepository.findRecentPostsByCategoryId(categoryId, PageRequest.of(0, limit));
     }
 
 //    //캐싱
