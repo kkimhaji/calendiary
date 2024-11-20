@@ -2,6 +2,7 @@ package com.example.board.domain.post;
 
 import com.example.board.domain.member.Member;
 import com.example.board.domain.team.Team;
+import com.example.board.dto.post.PostResponse;
 import com.example.board.dto.post.PostSummaryDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -54,6 +55,31 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             "ORDER BY p.createdAt DESC")
     Page<PostSummaryDTO> findPostSummariesByCategoryId(
             @Param("categoryId") Long categoryId,
+            Pageable pageable
+    );
+
+    // 팀의 카테고리별 게시글 조회
+    @Query("SELECT new com.example.dto.PostListDto(" +
+            "p.id, p.title, p.author.username, " +
+            "p.category.name, p.createdAt) " +
+            "FROM Post p " +
+            "WHERE p.team.id = :teamId " +
+            "AND p.category.id = :categoryId " +
+            "ORDER BY p.createdAt DESC")
+    Page<PostResponse> findByTeamAndCategory(
+            @Param("teamId") Long teamId,
+            @Param("categoryId") Long categoryId,
+            Pageable pageable
+    );
+
+    // 팀의 최근 게시글 목록 조회
+    @Query("SELECT new com.example.dto.PostSummaryDto(" +
+            "p.id, p.title, p.author.username, p.createdAt) " +
+            "FROM Post p " +
+            "WHERE p.team.id = :teamId " +
+            "ORDER BY p.createdAt DESC")
+    List<PostSummaryDTO> findRecentPostsByTeamId(
+            @Param("teamId") Long teamId,
             Pageable pageable
     );
 

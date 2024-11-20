@@ -64,6 +64,7 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "teamPosts", key = "#teamId + '_' + #categoryId")
     public Page<PostListResponse> getPostsByCategory(Long teamId, Long categoryId, Member member, Pageable pageable){
         TeamRole memberRole = teamMemberService.getCurrentUserRole(teamId, member);
 
@@ -95,10 +96,5 @@ public class PostService {
         return postRepository.findRecentPostsByCategoryId(categoryId, PageRequest.of(0, limit));
     }
 
-//    //캐싱
-//    @Cacheable(value = "categoryRecentPosts", key = "#categoryId")
-//    public List<Post> getRecentPosts(Long categoryId, int limit) {
-//        return postRepository.findTopByCategoryId(categoryId, PageRequest.of(0, limit));
-//    }
 
 }
