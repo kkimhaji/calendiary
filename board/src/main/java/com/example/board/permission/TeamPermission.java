@@ -9,7 +9,9 @@ public enum TeamPermission {
     DELETE_POST(3),        // 8
     MANAGE_MEMBERS(4),     // 16
     MANAGE_ROLES(5),       // 32
-    ADMINISTRATOR(6);      // 64
+    CREATE_COMMENT(6),
+    DELETE_COMMENT(7);
+
 
     private final int position;
 

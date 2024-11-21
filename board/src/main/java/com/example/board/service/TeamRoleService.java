@@ -22,33 +22,6 @@ public class TeamRoleService {
     private final TeamRepository teamRepository;
     private final TeamRoleRepository teamRoleRepository;
 
-    //    public TeamRole createRole(Team team, CreateRoleRequest request){
-//        if (teamRoleRepository.existsByTeamAndRoleName())
-//            //DuplicateRoleNameException 나중에 바꿀 것
-//            throw new RuntimeException("Role name already exists in this team");
-//
-//        TeamRole role = new TeamRole();
-//        role.setTeam(team);
-//        role.setRoleName(request.roleName());
-//        role.setPermissions(request.permissions());
-//
-//        return teamRoleRepository.save(role);
-//    }
-//
-//    public TeamRole updateRolePermissions(Long roleId, String newPermissions){
-//        TeamRole role = teamRoleRepository.findById(roleId).orElseThrow(() -> new EntityNotFoundException("Role not found"));
-//
-//        role.setPermissions(newPermissions);
-//        return teamRoleRepository.save(role);
-//    }
-//
-//    @Transactional(readOnly=true)
-//    public boolean checkPermission(Long roleId, TeamPermission permission){
-//        return teamRoleRepository.findById(roleId)
-//                .map(role -> role.hasPermission(permission))
-//                .orElse(false);
-//    }
-
     public TeamRole createRole(Long teamId, CreateRoleRequest request) {
 
         Team team = teamRepository.findById(teamId)
@@ -90,9 +63,8 @@ public class TeamRoleService {
     public TeamRole createAdmin(Team team){
 
         Set<TeamPermission> adminPermissions = new HashSet<>(Arrays.asList(
-                CREATE_POST, DELETE_POST, ADMINISTRATOR,
-                MANAGE_ROLES, EDIT_POST, MANAGE_MEMBERS,
-                VIEW_POST
+                CREATE_POST, DELETE_POST, MANAGE_ROLES, EDIT_POST, MANAGE_MEMBERS,
+                VIEW_POST, CREATE_COMMENT, DELETE_COMMENT
         ));
 
         CreateRoleRequest request = new CreateRoleRequest("ADMIN", adminPermissions, "who made this team");
