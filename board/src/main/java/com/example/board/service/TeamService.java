@@ -53,7 +53,6 @@ public class TeamService {
     @Transactional
     public Team createTeam(Member member, TeamCreateRequestDTO dto){
         Team newTeam = teamRepository.save(dto.toEntity(member));
-        System.out.println("in service: "+dto.getTeamName() +" / "+ dto.getDescription());
         TeamMember teamMember = new TeamMember();
         teamMember.setMember(member);
 
@@ -69,6 +68,7 @@ public class TeamService {
         teamMember.setTeam(newTeam);
 
         teamMemberRepository.save(teamMember);
+
 
         return newTeam;
     }

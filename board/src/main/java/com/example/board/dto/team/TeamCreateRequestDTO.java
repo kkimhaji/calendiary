@@ -7,16 +7,14 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
-@Data
-public class TeamCreateRequestDTO {
-
-    private String teamName;
-    private String description;
+public record TeamCreateRequestDTO(
+        String teamName,
+        String description) {
 
     public Team toEntity(Member member) {
         return Team.builder()
-                .name(teamName)
-                .description(description)
+                .name(this.teamName)
+                .description(this.description)
                 .created_by(member)
                 .createdAt(LocalDateTime.now())
                 .build();

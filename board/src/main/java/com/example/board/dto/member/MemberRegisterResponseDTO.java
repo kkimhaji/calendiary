@@ -5,20 +5,20 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Getter
-@NoArgsConstructor
-public class MemberRegisterResponseDTO {
-    private String email;
-    private String nickname;
-    private String verificationCode;
-    private boolean enable;
-    private LocalDateTime verificationCodeExpiredAt;
-
-    public MemberRegisterResponseDTO(Member member){
-        email = member.getEmail();
-        nickname = member.getNickname();
-        verificationCode = member.getVerificationCode();
-        enable = member.isEnabled();
-        verificationCodeExpiredAt = member.getVerificationCodeExpiredAt();
+public record MemberRegisterResponseDTO(
+         String email,
+         String nickname,
+         String verificationCode,
+         boolean enable,
+         LocalDateTime verificationCodeExpiredAt
+) {
+    public static MemberRegisterResponseDTO from(Member member){
+        return new MemberRegisterResponseDTO(
+                member.getEmail(),
+                member.getNickname(),
+                member.getVerificationCode(),
+                member.isEnabled(),
+                member.getVerificationCodeExpiredAt()
+        );
     }
 }

@@ -49,7 +49,7 @@ public class AuthenticationService {
         emailService.sendVerificationEmail(member);
         memberRepository.save(member);
 
-        return new MemberRegisterResponseDTO(member);
+        return MemberRegisterResponseDTO.from(member);
     }
 
     public AuthenticationResponse verifyUser(VerifyUserDTO dto) {
@@ -83,7 +83,7 @@ public class AuthenticationService {
     public AuthenticationResponse authenticate(AuthenticationRequestDTO request) {
         //authenticationManager를 통해 검사를 모두 하고, 잘못된 경우 알아서 에러를 내고 끝내기 때문에 아래와 같은 모든 동작을 호출하는 것은 secure하다
         //authenticationManager를 통해서 이메일과 비밀번호가 일치하는지 확인
-        var user = memberRepository.findByEmail(request.getEmail())
+        var user = memberRepository.findByEmail(request.email())
                 .orElseThrow();
 
         if (!user.isEnabled()){
@@ -92,7 +92,7 @@ public class AuthenticationService {
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.getEmail(), request.getPassword()
+                        request.email(), request.password()
                 )
         );
 
