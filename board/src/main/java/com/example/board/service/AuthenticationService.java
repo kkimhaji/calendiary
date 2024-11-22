@@ -40,7 +40,7 @@ public class AuthenticationService {
     public MemberRegisterResponseDTO register(RegisterRequestDTO request) {
         //create a user object out of the registerRequest
         var member = request.toEntity(
-                passwordEncoder.encode(request.getPassword()),
+                passwordEncoder.encode(request.password()),
                 emailService.generateVerificationCode(),
                 LocalDateTime.now().plusMinutes(15),
                 false
@@ -53,14 +53,14 @@ public class AuthenticationService {
     }
 
     public AuthenticationResponse verifyUser(VerifyUserDTO dto) {
-        Optional<Member> optionalMember = memberRepository.findByEmail(dto.getEmail());
+        Optional<Member> optionalMember = memberRepository.findByEmail(dto.email());
         if (optionalMember.isPresent()) {
             Member member = optionalMember.get();
 
             if (member.getVerificationCodeExpiredAt().isBefore(LocalDateTime.now()))
                 throw new RuntimeException("Verification code has expired!");
 
-            if (member.getVerificationCode().equals(dto.getVerificationCode())) {
+            if (member.getVerificationCode().equals(dto.verificationCode())) {
                 member.setVerified();
                 memberRepository.save(member);
 

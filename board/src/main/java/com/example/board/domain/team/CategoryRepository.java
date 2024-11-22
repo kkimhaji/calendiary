@@ -22,4 +22,6 @@ public interface CategoryRepository extends JpaRepository<TeamCategory, Long> {
             "LEFT JOIN FETCH rp.role " +
             "WHERE tc.team.id = :teamId")
     List<TeamCategory> findAllByTeamWithPermissions(@Param("teamId") Long teamId);
+
+    Team findTeamByCategory(Long id);
 }

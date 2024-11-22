@@ -19,8 +19,6 @@ public class TeamMemberService {
         return teamMemberRepository.findByTeamIdAndMember(teamId, member)
                 .map(TeamMember::getRole)
                 .orElseThrow(() -> new AccessDeniedException("You are not a member of this team!!"));
-
-
     }
 
 }
