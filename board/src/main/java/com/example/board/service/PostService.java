@@ -60,7 +60,6 @@ public class PostService {
                 .build();
 
         return postRepository.save(post);
-
     }
 
     @Transactional(readOnly = true)

@@ -9,11 +9,11 @@ public record PostListResponse(
         String title,
         String authorName,
         String categoryName,
-        LocalDateTime createdAt
+        LocalDateTime createdDate
 ) {
     public static PostListResponse from(Post post){
         return new PostListResponse(
-                post.getPostId(),
+                post.getId(),
                 post.getTitle(),
                 post.getAuthor().getUsername(),
                 post.getCategory().getName(),

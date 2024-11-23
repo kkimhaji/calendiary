@@ -9,6 +9,7 @@ import com.example.board.service.TeamService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,10 +24,10 @@ public class TeamController {
     private final MemberService memberService;
 
     @PostMapping("/create")
-    public ResponseEntity<TeamCreateResponse> createTeam(HttpServletRequest request, @RequestBody TeamCreateRequestDTO dto){
-        var loginMember = memberService.getMember(request)
-                .orElseThrow(() ->new IllegalArgumentException("no user"));
-        return ResponseEntity.ok(TeamCreateResponse.fromEntity(teamService.createTeam(loginMember, dto)));
+    public ResponseEntity<TeamCreateResponse> createTeam(@AuthenticationPrincipal Member member, @RequestBody TeamCreateRequestDTO dto){
+//        var loginMember = memberService.getMember(request)
+//                .orElseThrow(() ->new IllegalArgumentException("no user"));
+        return ResponseEntity.ok(TeamCreateResponse.fromEntity(teamService.createTeam(member, dto)));
     }
 
     //팀 삭제 시 role과 teamMember 정보도 삭제

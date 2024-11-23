@@ -16,7 +16,7 @@ import lombok.Setter;
 public class Post extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long postId;
+    private Long id;
     @Column(nullable = false)
     private String title;
     @Lob //TEXT
@@ -36,8 +36,8 @@ public class Post extends BaseTimeEntity {
     private Team team;
 
     @Builder
-    public Post(Long postId, String title, String content, Member author, Team team, TeamCategory category){
-        this.postId = postId;
+    public Post(Long id, String title, String content, Member author, Team team, TeamCategory category){
+        this.id = id;
         this.title = title;
         this.content = content;
         this.author = author;

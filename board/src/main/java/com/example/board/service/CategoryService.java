@@ -1,6 +1,6 @@
 package com.example.board.service;
 
-import com.example.board.domain.role.TeamCategoryRole;
+import com.example.board.domain.role.CategoryRolePermission;
 import com.example.board.domain.team.CategoryRepository;
 import com.example.board.domain.team.Team;
 import com.example.board.domain.team.TeamCategory;
@@ -35,8 +35,8 @@ public class CategoryService {
             TeamRole role = roleRepository.findById(roleId)
                     .orElseThrow(() -> new EntityNotFoundException("Role not found"));
 
-            TeamCategoryRole categoryRole = new TeamCategoryRole();
-            categoryRole.setTeamCategory(category);
+            CategoryRolePermission categoryRole = new CategoryRolePermission();
+            categoryRole.setCategory(category);
             categoryRole.setRole(role);
 
             //String -> TeamPermission

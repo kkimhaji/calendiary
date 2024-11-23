@@ -15,7 +15,7 @@ public record PostResponse(
 ) {
     public static PostResponse from(Post post){
         return new PostResponse(
-                post.getPostId(),
+                post.getId(),
                 post.getTitle(),
                 post.getContent(),
                 post.getAuthor().getUsername(),

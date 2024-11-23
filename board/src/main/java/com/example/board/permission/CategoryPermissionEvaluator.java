@@ -3,7 +3,6 @@ package com.example.board.permission;
 import com.example.board.domain.member.Member;
 import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.team.CategoryRepository;
-import com.example.board.domain.team.TeamCategory;
 import com.example.board.service.CategoryService;
 import com.example.board.service.TeamMemberService;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +18,7 @@ public class CategoryPermissionEvaluator {
 
     public boolean hasPermission(Long categoryId, Authentication authentication, String permission) {
         Member member = (Member) authentication.getPrincipal();
-        Long teamId = categoryRepository.findTeamByCategory(categoryId).getTeamId();
+        Long teamId = categoryRepository.findTeamById(categoryId).getId();
         TeamRole userRole = teamMemberService.getCurrentUserRole(teamId, member);
         return categoryService.checkCategoryPermission(
                 categoryId,

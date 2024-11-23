@@ -1,6 +1,6 @@
 package com.example.board.domain.team;
 
-import com.example.board.domain.role.TeamCategoryRole;
+import com.example.board.domain.role.CategoryRolePermission;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,7 +12,7 @@ public interface CategoryRepository extends JpaRepository<TeamCategory, Long> {
     @Query("SELECT crp FROM CategoryRolePermission crp " +
             "WHERE crp.category.id = :categoryId " +
             "AND crp.role.id = :roleId")
-    Optional<TeamCategoryRole> findCategoryRolePermission(
+    Optional<CategoryRolePermission> findCategoryRolePermission(
             @Param("categoryId") Long categoryId,
             @Param("roleId") Long roleId
     );
@@ -23,5 +23,6 @@ public interface CategoryRepository extends JpaRepository<TeamCategory, Long> {
             "WHERE tc.team.id = :teamId")
     List<TeamCategory> findAllByTeamWithPermissions(@Param("teamId") Long teamId);
 
-    Team findTeamByCategory(Long id);
+
+    Team findTeamById(Long id);
 }

@@ -2,6 +2,7 @@ package com.example.board.domain.post;
 
 import com.example.board.domain.member.Member;
 import com.example.board.domain.team.Team;
+import com.example.board.dto.post.PostListResponse;
 import com.example.board.dto.post.PostResponse;
 import com.example.board.dto.post.PostSummaryDTO;
 import org.springframework.data.domain.Page;
@@ -49,35 +50,36 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     );
 
     // 카테고리의 게시글 목록 조회 (제목만)
-    @Query("SELECT new com.example.dto.PostSummaryDto(p.id, p.title, p.createdAt) " +
+    @Query(value="SELECT new com.example.board.dto.post.PostSummaryDTO(p.id, p.title, p.createdDate) " +
             "FROM Post p " +
             "WHERE p.category.id = :categoryId " +
-            "ORDER BY p.createdAt DESC")
+            "ORDER BY p.createdDate DESC",
+            countQuery = "SELECT COUNT(p) FROM Post p WHERE p.category.id = :categoryId")
     Page<PostSummaryDTO> findPostSummariesByCategoryId(
             @Param("categoryId") Long categoryId,
             Pageable pageable
     );
 
     // 팀의 카테고리별 게시글 조회
-    @Query("SELECT new com.example.dto.PostListDto(" +
-            "p.id, p.title, p.author.username, " +
-            "p.category.name, p.createdAt) " +
+    @Query("SELECT new com.example.board.dto.post.PostListResponse(" +
+            "p.id, p.title, p.author.nickname, " +
+            "p.category.name, p.createdDate) " +
             "FROM Post p " +
             "WHERE p.team.id = :teamId " +
             "AND p.category.id = :categoryId " +
-            "ORDER BY p.createdAt DESC")
-    Page<PostResponse> findByTeamAndCategory(
+            "ORDER BY p.createdDate DESC")
+    Page<PostListResponse> findByTeamAndCategory(
             @Param("teamId") Long teamId,
             @Param("categoryId") Long categoryId,
             Pageable pageable
     );
 
     // 팀의 최근 게시글 목록 조회
-    @Query("SELECT new com.example.dto.PostSummaryDto(" +
-            "p.id, p.title, p.author.username, p.createdAt) " +
+    @Query("SELECT new com.example.board.dto.post.PostSummaryDTO(" +
+            "p.id, p.title, p.author.nickname, p.createdDate) " +
             "FROM Post p " +
             "WHERE p.team.id = :teamId " +
-            "ORDER BY p.createdAt DESC")
+            "ORDER BY p.createdDate DESC")
     List<PostSummaryDTO> findRecentPostsByTeamId(
             @Param("teamId") Long teamId,
             Pageable pageable
@@ -93,11 +95,11 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     );
 
     // 최근 게시글 요약 정보
-    @Query("SELECT new com.example.dto.PostSummaryDto(" +
-            "p.id, p.title, p.createdAt) " +
+    @Query("SELECT new com.example.board.dto.post.PostSummaryDTO(" +
+            "p.id, p.title, p.createdDate) " +
             "FROM Post p " +
             "WHERE p.category.id = :categoryId " +
-            "ORDER BY p.createdAt DESC")
+            "ORDER BY p.createdDate DESC")
     List<PostSummaryDTO> findRecentPostsByCategoryId(
             @Param("categoryId") Long categoryId,
             Pageable pageable

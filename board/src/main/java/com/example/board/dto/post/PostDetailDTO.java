@@ -14,7 +14,7 @@ public record PostDetailDTO(
 ) {
     public static PostDetailDTO from(Post post){
         return new PostDetailDTO(
-                post.getPostId(),
+                post.getId(),
                 post.getTitle(),
                 post.getContent(),
                 AuthorDTO.from(post.getAuthor()),

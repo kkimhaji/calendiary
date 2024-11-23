@@ -14,7 +14,7 @@ public record TeamCreateResponse(
 ) {
     public static TeamCreateResponse fromEntity(Team team) {
         return new TeamCreateResponse(
-                team.getTeamId(),
+                team.getId(),
                 team.getName(),
                 team.getDescription(),
                 team.getCreatedAt(),

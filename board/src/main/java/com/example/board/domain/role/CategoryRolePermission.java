@@ -12,14 +12,14 @@ import java.util.Set;
 @Entity
 @Getter
 @Setter
-public class TeamCategoryRole {
+public class CategoryRolePermission {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
-    private TeamCategory teamCategory;
+    private TeamCategory category;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "role_id")

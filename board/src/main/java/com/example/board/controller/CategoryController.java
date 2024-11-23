@@ -22,4 +22,6 @@ public class CategoryController {
         TeamCategory category = categoryService.createCategory(teamId, request);
         return ResponseEntity.ok(CategoryResponse.from(category));
     }
+
+    //category
 }

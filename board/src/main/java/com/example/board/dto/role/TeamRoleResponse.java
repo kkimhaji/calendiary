@@ -10,7 +10,7 @@ public record TeamRoleResponse(Long id, String name, Set<TeamPermission> permiss
                 role.getId(),
                 role.getRoleName(),
                 role.getPermissionSet(),
-                role.getTeam().getTeamId()
+                role.getTeam().getId()
         );
     }
 }

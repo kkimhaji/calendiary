@@ -1,6 +1,6 @@
 package com.example.board.dto.category;
 
-import com.example.board.domain.role.TeamCategoryRole;
+import com.example.board.domain.role.CategoryRolePermission;
 import com.example.board.permission.PermissionUtils;
 import com.example.board.permission.TeamPermission;
 
@@ -11,7 +11,7 @@ public record CategoryRolePermissionResponse(
         String roleName,
         Set<TeamPermission> permissions //or Set<String>으로 권한 이름 전달
 ) {
-    public static CategoryRolePermissionResponse from(TeamCategoryRole permission){
+    public static CategoryRolePermissionResponse from(CategoryRolePermission permission){
         return new CategoryRolePermissionResponse(
                 permission.getRole().getId(),
                 permission.getRole().getRoleName(),

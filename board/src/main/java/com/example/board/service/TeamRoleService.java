@@ -68,7 +68,7 @@ public class TeamRoleService {
         ));
 
         CreateRoleRequest request = new CreateRoleRequest("ADMIN", adminPermissions, "who made this team");
-        return createRole(team.getTeamId(), request);
+        return createRole(team.getId(), request);
 
     }
 
