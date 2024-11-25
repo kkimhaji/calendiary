@@ -8,6 +8,7 @@ import com.example.board.domain.team.TeamRepository;
 import com.example.board.dto.category.CreateCategoryRequest;
 import com.example.board.permission.TeamPermission;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.role.TeamRoleRepository;
@@ -23,6 +24,7 @@ public class CategoryService {
     private final TeamRoleRepository roleRepository;
     private final CategoryRepository categoryRepository;
 
+    @Transactional
     public TeamCategory createCategory(Long teamId, CreateCategoryRequest request){
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new EntityNotFoundException("Team not found"));

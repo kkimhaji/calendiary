@@ -48,7 +48,6 @@ public class TeamService {
     }
 
 
-    @Transactional
     public TeamCreateResponse createTeam(Member member, TeamCreateRequestDTO dto){
 
         Team newTeam = teamRepository.save(dto.toEntity(member));
