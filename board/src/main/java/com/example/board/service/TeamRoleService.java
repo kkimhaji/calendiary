@@ -5,13 +5,16 @@ import com.example.board.domain.team.TeamRepository;
 import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.role.TeamRoleRepository;
 import com.example.board.dto.role.CreateRoleRequest;
+import com.example.board.permission.PermissionUtils;
 import com.example.board.permission.TeamPermission;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static com.example.board.permission.TeamPermission.*;
@@ -22,6 +25,7 @@ public class TeamRoleService {
     private final TeamRepository teamRepository;
     private final TeamRoleRepository teamRoleRepository;
 
+    @PreAuthorize("hasPermission(#team, 'MANAGE_ROLES')")
     public TeamRole createRole(Long teamId, CreateRoleRequest request) {
 
         Team team = teamRepository.findById(teamId)
@@ -32,12 +36,7 @@ public class TeamRoleService {
             throw new RuntimeException("Role name already exists in this team");
         }
 
-        TeamRole role = new TeamRole();
-        role.setTeam(team);
-        role.setRoleName(request.roleName());
-        role.setPermissions(request.permissions());  // 내부적으로 비트셋으로 변환
-        role.setDescription(request.description());
-        return teamRoleRepository.save(role);
+        return teamRoleRepository.save(request.toEntity(team));
     }
 
     public TeamRole updateRolePermissions(Long roleId, Set<TeamPermission> newPermissions) {
@@ -69,7 +68,9 @@ public class TeamRoleService {
 
         CreateRoleRequest request = new CreateRoleRequest("ADMIN", adminPermissions, "who made this team");
         return createRole(team.getId(), request);
-
     }
 
+    public TeamRole createBasic(Team team){
+        return createRole(team.getId(), new CreateRoleRequest("Member", new HashSet<>(List.of(VIEW_POST)), "member of this team"));
+    }
 }

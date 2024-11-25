@@ -1,5 +1,7 @@
 package com.example.board.dto.role;
 
+import com.example.board.domain.role.TeamRole;
+import com.example.board.domain.team.Team;
 import com.example.board.permission.TeamPermission;
 import lombok.Data;
 
@@ -14,5 +16,14 @@ public record CreateRoleRequest(String roleName, Set<TeamPermission> permissions
         if (permissions.isEmpty()){
             throw new IllegalArgumentException("At least one permission is required");
         }
+    }
+
+    public TeamRole toEntity(Team team){
+        return TeamRole.builder()
+                .roleName(this.roleName)
+                .team(team)
+                .description(this.description)
+                .permissions(this.permissions)
+                .build();
     }
 }

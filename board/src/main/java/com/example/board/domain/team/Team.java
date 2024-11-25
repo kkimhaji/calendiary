@@ -1,5 +1,6 @@
 package com.example.board.domain.team;
 
+import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.member.Member;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -27,15 +28,18 @@ public class Team {
     @CreatedDate
     private LocalDateTime createdAt;
 
+    private Long basicRoleId;
+
     @OneToMany(mappedBy = "team")
     @JsonIgnore
     private Set<TeamMember> members = new HashSet<>();
 
     @Builder
-    public Team(String name, String description, Member created_by, LocalDateTime createdAt){
+    public Team(String name, String description, Member created_by, LocalDateTime createdAt, Long basicRoleId){
         this.name = name;
         this.description = description;
         this.created_by = created_by;
         this.createdAt = createdAt;
+        this.basicRoleId = basicRoleId;
     }
 }

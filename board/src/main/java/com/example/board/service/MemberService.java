@@ -19,12 +19,6 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final JwtService jwtService;
 
-    public Optional<Member> getMember(HttpServletRequest request){
-        String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        String token = authHeader.substring(7);
-        
-        String username = jwtService.extractUsername(token);
-        return memberRepository.findByEmail(username);
-    }
+
 
 }

@@ -5,6 +5,7 @@ import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.permission.PermissionUtils;
 import com.example.board.permission.TeamPermission;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -67,4 +68,11 @@ public class TeamRole {
         return PermissionUtils.getPermissionsFromBits(this.permissions);
     }
 
+    @Builder
+    public TeamRole(String roleName, String description, Set<TeamPermission> permissions, Team team) {
+        this.roleName = roleName;
+        this.description = description;
+        this.permissions = PermissionUtils.createPermissionBits(permissions);
+        this.team = team;
+    }
 }

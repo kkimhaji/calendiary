@@ -17,11 +17,6 @@ public class MemberController {
 
     private final MemberService memberService;
 
-    @GetMapping("/getloginuser")
-    public ResponseEntity<Member> getLoginUser(HttpServletRequest request){
-        return ResponseEntity.ok(memberService.getMember(request).get());
-    }
-
     @GetMapping("/getprincipal")
     public ResponseEntity<Member> getPrincipal(@AuthenticationPrincipal Member member){
         return ResponseEntity.ok(member);
