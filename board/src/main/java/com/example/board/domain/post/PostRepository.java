@@ -8,6 +8,7 @@ import com.example.board.dto.post.PostSummaryDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -88,11 +89,12 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     // 게시글 상세 조회
     @Query("SELECT p FROM Post p " +
             "JOIN FETCH p.author " +
-            "WHERE p.id = :postId AND p.category.id = :categoryId")
+            "WHERE p.id = :postId")
     Optional<Post> findByIdWithAuthor(
-            @Param("postId") Long postId,
-            @Param("categoryId") Long categoryId
+            @Param("postId") Long postId
     );
+
+
 
     // 최근 게시글 요약 정보
     @Query("SELECT new com.example.board.dto.post.PostSummaryDTO(" +
@@ -104,4 +106,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             @Param("categoryId") Long categoryId,
             Pageable pageable
     );
+
+    @Modifying
+    @Query("UPDATE Post p SET p.viewCount = p.viewCount + :count WHERE p.id = :postId")
+    void updateViewCount(@Param("postId") Long postId, @Param("count") long count);
 }

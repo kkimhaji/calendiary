@@ -21,6 +21,8 @@ public class Post extends BaseTimeEntity {
     private String title;
     @Lob //TEXT
     private String content;
+    @Column(name = "view_count", nullable = false)
+    private int viewCount = 0;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id")
@@ -48,6 +50,10 @@ public class Post extends BaseTimeEntity {
     public void update(String title, String content){
         this.title = title;
         this.content = content;
+    }
+
+    public void increaseViewCount(){
+        this.viewCount ++;
     }
 
 }

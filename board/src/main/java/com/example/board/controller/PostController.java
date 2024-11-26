@@ -3,6 +3,7 @@ package com.example.board.controller;
 import com.example.board.domain.member.Member;
 import com.example.board.domain.post.Post;
 import com.example.board.dto.post.CreatePostRequest;
+import com.example.board.dto.post.PostDetailDTO;
 import com.example.board.dto.post.PostListResponse;
 import com.example.board.dto.post.PostResponse;
 import com.example.board.service.PostService;
@@ -38,4 +39,8 @@ public class PostController {
         return ResponseEntity.ok(posts);
     }
 
+    @GetMapping("/{postId}")
+    public ResponseEntity<PostDetailDTO> getPost(@PathVariable Long postId){
+        return ResponseEntity.ok(postService.getPostDetail(postId));
+    }
 }
