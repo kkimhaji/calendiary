@@ -43,4 +43,9 @@ public class PostController {
     public ResponseEntity<PostDetailDTO> getPost(@PathVariable Long postId){
         return ResponseEntity.ok(postService.getPostDetail(postId));
     }
+
+    @PostMapping("/delete")
+    public void deletePost(@PathVariable Long teamId, @PathVariable Long categoryId, @PathVariable Long postId, @AuthenticationPrincipal Member member){
+        postService.deletePost(postId, member, categoryId, teamId);
+    }
 }

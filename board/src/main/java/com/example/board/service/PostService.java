@@ -124,4 +124,17 @@ public class PostService {
         });
     }
 
+    @Transactional
+    public void deletePost(Long postId, Member member, Long categoryId, Long teamId){
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new EntityNotFoundException("there is no such post"));
+        TeamRole memberRole = teamMemberService.getCurrentUserRole(teamId, member);
+
+        if (member.equals(post.getAuthor()) ||
+                categoryService.checkCategoryPermission(categoryId, memberRole.getId(), TeamPermission.DELETE_POST)){
+            postRepository.deleteById(postId);
+        }
+        else throw new AccessDeniedException("게시글을 삭제할 권한이 없습니다.");
+    }
+
 }
