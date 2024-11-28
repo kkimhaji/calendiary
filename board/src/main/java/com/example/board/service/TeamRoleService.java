@@ -8,6 +8,7 @@ import com.example.board.domain.role.TeamRoleRepository;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.teamMember.TeamMemberRepository;
 import com.example.board.dto.role.CreateRoleRequest;
+import com.example.board.exception.RoleDeletionException;
 import com.example.board.permission.PermissionUtils;
 import com.example.board.permission.TeamPermission;
 import jakarta.persistence.EntityNotFoundException;
@@ -80,25 +81,30 @@ public class TeamRoleService {
         return createRole(team.getId(), new CreateRoleRequest("Member", new HashSet<>(List.of(VIEW_POST)), "member of this team"));
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void deleteRole(Long teamId, Long roleId){
-        //role 삭제 -> 기존 멤버들: default role로 변경
-        // TeamMember 수정, Category의 role도 삭제
-        TeamRole targetRole = teamRoleRepository.findById(roleId)
-                .orElseThrow(()-> new EntityNotFoundException("role not found"));
-        Team team = teamRepository.findById(teamId).orElseThrow(()-> new EntityNotFoundException("no such team"));
-        Long basicRoleId = team.getBasicRoleId();
+        try {
+            //role 삭제 -> 기존 멤버들: default role로 변경
+            // TeamMember 수정, Category의 role도 삭제
+            TeamRole targetRole = teamRoleRepository.findById(roleId)
+                    .orElseThrow(() -> new EntityNotFoundException("role not found"));
+            Team team = teamRepository.findById(teamId).orElseThrow(() -> new EntityNotFoundException("no such team"));
+            Long basicRoleId = team.getBasicRoleId();
 
-        if (roleId.equals(basicRoleId))
-            throw new IllegalStateException("기본 역할은 삭제할 수 없습니다.");
+            if (roleId.equals(basicRoleId))
+                throw new IllegalStateException("기본 역할은 삭제할 수 없습니다.");
 
-        // defaultRole로 변경
-        updateMembersRole(team, targetRole);
+            // defaultRole로 변경
+            updateMembersRole(team, targetRole);
+        }
+        catch (Exception e){
+            throw new RoleDeletionException("역할 삭제 중 오류가 발생했습니다.");
+        }
     }
 
     private void updateMembersRole(Team team, TeamRole targetRole){
         TeamRole basicRole = teamRoleRepository.findById(team.getBasicRoleId())
-                .orElseThrow(() -> new EntityNotFoundException("basic role not found"));
+                .orElseThrow(() -> new EntityNotFoundException("role not found"));
 
         List<TeamMember> membersWithRole = teamMemberRepository.findAllByTeamAndRole(team, targetRole);
 
