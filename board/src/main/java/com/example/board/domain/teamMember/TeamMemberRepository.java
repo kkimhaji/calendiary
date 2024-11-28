@@ -1,6 +1,7 @@
 package com.example.board.domain.teamMember;
 
 import com.example.board.domain.member.Member;
+import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.team.Team;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -19,4 +20,11 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
             "JOIN FETCH tm.role " +
             "WHERE tm.team.id = :teamId AND tm.member = :member")
     Optional<TeamMember> findByTeamIdAndMember(@Param("teamId") Long teamId, @Param("member") Member member);
+
+    @Query("SELECT tm FROM TeamMember tm " +
+            "WHERE tm.team = :team AND tm.role = :role")
+    List<TeamMember> findAllByTeamAndRole(
+            @Param("team") Team team,
+            @Param("role") TeamRole role
+    );
 }

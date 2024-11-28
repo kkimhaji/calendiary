@@ -2,6 +2,7 @@ package com.example.board.domain.team;
 
 import com.example.board.domain.role.CategoryRolePermission;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -25,4 +26,8 @@ public interface CategoryRepository extends JpaRepository<TeamCategory, Long> {
 
 
     Team findTeamById(Long id);
+
+    @Modifying
+    @Query("DELETE FROM TeamCategoryRole tcr WHERE tcr.role.id = :roleId")
+    void deleteAllByRoleId(@Param("roleId") Long roleId);
 }

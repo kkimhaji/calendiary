@@ -1,9 +1,12 @@
 package com.example.board.service;
 
+import com.example.board.domain.team.CategoryRepository;
 import com.example.board.domain.team.Team;
 import com.example.board.domain.team.TeamRepository;
 import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.role.TeamRoleRepository;
+import com.example.board.domain.teamMember.TeamMember;
+import com.example.board.domain.teamMember.TeamMemberRepository;
 import com.example.board.dto.role.CreateRoleRequest;
 import com.example.board.permission.PermissionUtils;
 import com.example.board.permission.TeamPermission;
@@ -11,6 +14,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -24,6 +28,8 @@ import static com.example.board.permission.TeamPermission.*;
 public class TeamRoleService {
     private final TeamRepository teamRepository;
     private final TeamRoleRepository teamRoleRepository;
+    private final TeamMemberRepository teamMemberRepository;
+    private final CategoryRepository categoryRepository;
 
     @PreAuthorize("hasPermission(#team, 'MANAGE_ROLES')")
     public TeamRole createRole(Long teamId, CreateRoleRequest request) {
@@ -72,5 +78,35 @@ public class TeamRoleService {
 
     public TeamRole createBasic(Team team){
         return createRole(team.getId(), new CreateRoleRequest("Member", new HashSet<>(List.of(VIEW_POST)), "member of this team"));
+    }
+
+    @Transactional
+    public void deleteRole(Long teamId, Long roleId){
+        //role 삭제 -> 기존 멤버들: default role로 변경
+        // TeamMember 수정, Category의 role도 삭제
+        TeamRole targetRole = teamRoleRepository.findById(roleId)
+                .orElseThrow(()-> new EntityNotFoundException("role not found"));
+        Team team = teamRepository.findById(teamId).orElseThrow(()-> new EntityNotFoundException("no such team"));
+        Long basicRoleId = team.getBasicRoleId();
+
+        if (roleId.equals(basicRoleId))
+            throw new IllegalStateException("기본 역할은 삭제할 수 없습니다.");
+
+        // defaultRole로 변경
+        updateMembersRole(team, targetRole);
+    }
+
+    private void updateMembersRole(Team team, TeamRole targetRole){
+        TeamRole basicRole = teamRoleRepository.findById(team.getBasicRoleId())
+                .orElseThrow(() -> new EntityNotFoundException("basic role not found"));
+
+        List<TeamMember> membersWithRole = teamMemberRepository.findAllByTeamAndRole(team, targetRole);
+
+        membersWithRole.forEach(member -> member.setRole(basicRole));
+        teamMemberRepository.saveAll(membersWithRole);
+    }
+
+    private void deleteCategoryPermissions(Long roleId){
+        categoryRepository.deleteAllByRoleId(roleId);
     }
 }
