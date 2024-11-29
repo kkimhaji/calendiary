@@ -4,6 +4,7 @@ import com.example.board.domain.team.TeamCategory;
 import com.example.board.permission.PermissionUtils;
 import com.example.board.permission.TeamPermission;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -41,5 +42,12 @@ public class CategoryRolePermission {
             permissionBits = PermissionUtils.addPermission(permissionBits, permission);
         }
         this.permissions = permissionBits;
+    }
+
+   @Builder
+    public CategoryRolePermission(TeamCategory category, TeamRole role, String permissions) {
+        this.category = category;
+        this.role = role;
+        this.permissions = permissions;
     }
 }

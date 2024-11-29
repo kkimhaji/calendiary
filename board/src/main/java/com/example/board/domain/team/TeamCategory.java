@@ -3,6 +3,7 @@ package com.example.board.domain.team;
 import com.example.board.domain.post.Post;
 import com.example.board.domain.role.CategoryRolePermission;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,7 +14,6 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Getter
-@Setter
 public class TeamCategory {
     @Id @GeneratedValue(strategy = IDENTITY)
     private Long id;
@@ -34,11 +34,31 @@ public class TeamCategory {
     @OneToMany(mappedBy = "category")
     private Set<CategoryRolePermission> rolePermissions = new HashSet<>();
 
-
     public void addPost(Post post) {
 //        this.posts.add(post);
         if (post.getCategory() != this) {
             post.setCategory(this);
         }
+    }
+
+    @Builder
+    public TeamCategory(String name, String description, Team team) {
+        this.name = name;
+        this.description = description;
+        this.team = team;
+    }
+
+    public void updateName(String name){
+        this.name = name;
+    }
+
+    public void updateDescription(String description){
+        this.description = description;
+    }
+
+    public void addRolePermission(CategoryRolePermission permission){
+        this.rolePermissions.add(permission);
+        if (permission.getCategory()!=this)
+            permission.setCategory(this);
     }
 }
