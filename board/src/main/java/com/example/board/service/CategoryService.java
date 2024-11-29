@@ -1,5 +1,7 @@
 package com.example.board.service;
 
+import com.example.board.domain.post.Post;
+import com.example.board.domain.post.PostRepository;
 import com.example.board.domain.role.CategoryRolePermission;
 import com.example.board.domain.team.CategoryRepository;
 import com.example.board.domain.team.Team;
@@ -14,6 +16,7 @@ import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.role.TeamRoleRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -23,6 +26,7 @@ public class CategoryService {
     private final TeamRepository teamRepository;
     private final TeamRoleRepository roleRepository;
     private final CategoryRepository categoryRepository;
+    private final PostRepository postRepository;
 
     @Transactional
     public TeamCategory createCategory(Long teamId, CreateCategoryRequest request){
@@ -54,10 +58,27 @@ public class CategoryService {
         return categoryRepository.save(category);
     }
 
-
     public boolean checkCategoryPermission(Long categoryId, Long roleId, TeamPermission permission) {
         return categoryRepository.findCategoryRolePermission(categoryId, roleId)
                 .map(crp -> crp.hasPermission(permission))
                 .orElse(false);
     }
+
+    @Transactional
+    public void deleteAllCategoriesInTeam(Team team){
+        List<TeamCategory> categories = categoryRepository.findAllByTeam(team);
+        for (TeamCategory category : categories) {
+            deleteCategory(category);
+        }
+        categoryRepository.deleteAll(categories);
+    }
+
+    public void deleteCategory(TeamCategory category){
+        List<Post> postsInCategory = postRepository.findAllByCategory(category);
+        postsInCategory.forEach(post -> post.setCategory(null));
+        postRepository.deleteAll(postsInCategory);
+    }
+
+    //카테고리 수정 -> 게시글에 저장된 카테고리 정보도 수정
+
 }

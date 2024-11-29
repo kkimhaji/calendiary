@@ -20,6 +20,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -31,6 +32,7 @@ public class TeamService {
     private final TeamRoleRepository teamRoleRepository;
     private final TeamRoleService teamRoleService;
     private final MemberRepository memberRepository;
+    private final CategoryService categoryService;
 
     public TeamMember addMember(AddMemberRequestDTO dto){
         Team team = teamRepository.findById(dto.teamId())
@@ -49,7 +51,6 @@ public class TeamService {
 
 
     public TeamCreateResponse createTeam(Member member, TeamCreateRequestDTO dto){
-
         Team newTeam = teamRepository.save(dto.toEntity(member));
         TeamRole admin = teamRoleService.createAdmin(newTeam);
 
@@ -61,5 +62,18 @@ public class TeamService {
         teamMemberRepository.save(teamMember);
 
         return TeamCreateResponse.fromEntity(newTeam);
+    }
+
+    public void deleteTeam(Long teamId){
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new EntityNotFoundException("team not found"));
+        //team에 속한 카테고리 삭제
+        categoryService.deleteAllCategoriesInTeam(team);
+
+        //teamMember 수정
+
+
+        //team의 role 삭제
+        teamRoleService.deleteRole(team);
     }
 }

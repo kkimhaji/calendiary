@@ -141,4 +141,19 @@ public class TeamRoleService {
 
         return new AddMembersToRoleResponse(role.getRoleName(), membersName);
     }
+
+    public void deleteRole(Team team){
+        //teamMember의 role 수정
+        List<TeamMember> teamMembers = teamMemberRepository.findAllByTeam(team);
+        teamMembers.forEach(teamMember -> {
+            teamMember.setTeam(null);
+            teamMember.setRole(null);
+            teamMember.setMember(null);
+        });
+        teamMemberRepository.deleteAll(teamMembers);
+
+        List<TeamRole> roles = teamRoleRepository.findAllByTeam(team);
+        roles.forEach(role -> role.setMembers(null));
+        teamRoleRepository.deleteAll(roles);
+    }
 }

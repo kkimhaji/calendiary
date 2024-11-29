@@ -17,4 +17,6 @@ public interface TeamRoleRepository extends JpaRepository<TeamRole, Long> {
             @Param("teamId") Long teamId,
             @Param("roleId") Long roleId
     );
+
+    List<TeamRole> findAllByTeam(Team team);
 }

@@ -2,6 +2,7 @@ package com.example.board.domain.post;
 
 import com.example.board.domain.member.Member;
 import com.example.board.domain.team.Team;
+import com.example.board.domain.team.TeamCategory;
 import com.example.board.dto.post.PostListResponse;
 import com.example.board.dto.post.PostResponse;
 import com.example.board.dto.post.PostSummaryDTO;
@@ -18,6 +19,7 @@ import java.util.Optional;
 public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findAllByAuthor(Member member);
     List<Post> findAllByTeam(Team team);
+    List<Post> findAllByCategory(TeamCategory category);
 
     @Query("SELECT p FROM Post p " +
             "JOIN FETCH p.author " +
