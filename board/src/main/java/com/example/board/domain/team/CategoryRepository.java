@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 public interface CategoryRepository extends JpaRepository<TeamCategory, Long> {
@@ -30,4 +31,8 @@ public interface CategoryRepository extends JpaRepository<TeamCategory, Long> {
     @Modifying
     @Query("DELETE FROM TeamCategoryRole tcr WHERE tcr.role.id = :roleId")
     void deleteAllByRoleId(@Param("roleId") Long roleId);
+
+    @Query("SELECT tc FROM TeamCategory tc" +
+            "WHERE tc.team = :team")
+    List<TeamCategory> findAllByTeam(@Param("team") Team team);
 }
