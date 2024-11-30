@@ -3,6 +3,7 @@ package com.example.board.controller;
 import com.example.board.domain.team.TeamCategory;
 import com.example.board.dto.category.CategoryResponse;
 import com.example.board.dto.category.CreateCategoryRequest;
+import com.example.board.dto.category.UpdateCategoryRequest;
 import com.example.board.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,5 +24,8 @@ public class CategoryController {
         return ResponseEntity.ok(CategoryResponse.from(category));
     }
 
-    //category
+    @PutMapping("/update/{categoryId}")
+    public ResponseEntity<CategoryResponse> updateCategory(@PathVariable Long teamId, @PathVariable Long categoryId, @RequestBody UpdateCategoryRequest request){
+        return ResponseEntity.ok(categoryService.updateCategory(teamId, categoryId, request));
+    }
 }

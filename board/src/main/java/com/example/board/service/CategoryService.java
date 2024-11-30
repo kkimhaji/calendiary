@@ -105,16 +105,32 @@ public class CategoryService {
         postRepository.deleteAll(postsInCategory);
     }
 
+    @Transactional
     //카테고리 수정 -> 게시글에 저장된 카테고리 정보도 수정
-    public CategoryResponse updateCategory(Long categoryId, UpdateCategoryRequest request){
+    public CategoryResponse updateCategory(Long teamId, Long categoryId, UpdateCategoryRequest request){
         TeamCategory category = categoryRepository.findById(categoryId)
                 .orElseThrow(()->new EntityNotFoundException("category not found"));
 
         request.updateEntity(category);
 
-        if (request.rolePermissions()!= null && !request.rolePermissions().isEmpty())
-            updateCategoryPermissions();
+        if (request.rolePermissions()!= null && request.rolePermissions().isPresent())
+            updateCategoryPermissions(category, request, teamId);
+
         return CategoryResponse.from(categoryRepository.save(category));
+    }
+
+    private void updateCategoryPermissions(TeamCategory category, UpdateCategoryRequest request, Long teamId) {
+        Team team = teamRepository.findById(teamId).orElseThrow();
+        Map<Long, TeamRole> teamRoles = roleRepository.findAllByTeam(team)
+                .stream().collect(Collectors.toMap(TeamRole::getId, role -> role));
+
+        //기존 권한 삭제
+        category.clearRolePermissions();
+        categoryPermissionRepository.deleteAllByCategoryId(category.getId());
+
+        List<CategoryRolePermission> newPermissions = request.toCategoryRolePermissions(category, teamRoles);
+
+        categoryPermissionRepository.saveAll(newPermissions);
     }
 
 }

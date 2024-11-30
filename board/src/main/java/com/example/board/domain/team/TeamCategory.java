@@ -48,6 +48,9 @@ public class TeamCategory {
         this.team = team;
     }
 
+    public void clearRolePermissions(){
+        this.rolePermissions.clear();
+    }
     public void updateName(String name){
         this.name = name;
     }

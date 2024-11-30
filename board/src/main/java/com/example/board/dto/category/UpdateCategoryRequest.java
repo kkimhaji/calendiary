@@ -1,11 +1,12 @@
 package com.example.board.dto.category;
 
+import com.example.board.domain.role.CategoryRolePermission;
+import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.team.TeamCategory;
 
 import javax.swing.text.html.Option;
-import java.util.List;
-import java.util.Optional;
-import java.util.OptionalLong;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public record UpdateCategoryRequest(
         String name,
@@ -17,5 +18,15 @@ public record UpdateCategoryRequest(
             category.updateName(name);
         if (description != null)
             category.updateDescription(description);
+    }
+
+    public List<CategoryRolePermission> toCategoryRolePermissions(
+            TeamCategory category, Map<Long, TeamRole> teamRoles
+    ){
+
+        return rolePermissions.map(permissions -> permissions.stream()
+                .map(rolePermissionDto -> rolePermissionDto.toEntity(category, teamRoles.get(rolePermissionDto.roleId())))
+                .collect(Collectors.toList()))
+                .orElse(Collections.emptyList());
     }
 }

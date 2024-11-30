@@ -8,4 +8,6 @@ import java.util.List;
 public interface CategoryPermissionRepository extends JpaRepository<CategoryRolePermission, Long> {
     List<CategoryRolePermission> findAllByRole(TeamRole role);
     List<CategoryRolePermission> findAllByCategory(TeamCategory category);
+
+    void deleteAllByCategoryId(Long categoryId);
 }
