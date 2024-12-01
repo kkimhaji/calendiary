@@ -41,23 +41,6 @@ public class CategoryService {
         TeamCategory category = categoryRepository.save(request.toEntity(team));
         Map<Long, TeamRole> teamRoles = getTeamRoles(team, request);
         List<CategoryRolePermission> categoryRolePermissions = request.toCategoryRolePermissions(category, teamRoles);
-//        request.rolePermissions().forEach((roleId, permissions) -> {
-//            TeamRole role = roleRepository.findById(roleId)
-//                    .orElseThrow(() -> new EntityNotFoundException("Role not found"));
-//
-//            CategoryRolePermission categoryRole = new CategoryRolePermission();
-//            categoryRole.setCategory(category);
-//            categoryRole.setRole(role);
-//
-//            //String -> TeamPermission
-//            Set<TeamPermission> teamPermissions = permissions.stream()
-//                            .map(TeamPermission::valueOf)
-//                                    .collect(Collectors.toSet());
-//
-//            categoryRole.setPermissions(teamPermissions);
-//
-//            category.getRolePermissions().add(categoryRole);
-//        });
         categoryPermissionRepository.saveAll(categoryRolePermissions);
 
         return category;
@@ -113,8 +96,8 @@ public class CategoryService {
 
         request.updateEntity(category);
 
-        if (request.rolePermissions()!= null && request.rolePermissions().isPresent())
-            updateCategoryPermissions(category, request, teamId);
+        //권한 업데이트 내용이 있을 때만(Optional 존재) 권한 정보 업데이트
+        request.rolePermissions().ifPresent(permissions -> updateCategoryPermissions(category, request, teamId));
 
         return CategoryResponse.from(categoryRepository.save(category));
     }

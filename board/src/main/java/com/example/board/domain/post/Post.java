@@ -10,6 +10,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @NoArgsConstructor
@@ -37,6 +40,11 @@ public class Post extends BaseTimeEntity {
     @JoinColumn(name = "team_id")
     private Team team;
 
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
+    @OrderBy("createdAt ASC")
+    private List<Comment> comments = new ArrayList<>();
+
+
     @Builder
     public Post(Long id, String title, String content, Member author, Team team, TeamCategory category){
         this.id = id;
@@ -54,6 +62,13 @@ public class Post extends BaseTimeEntity {
 
     public void increaseViewCount(){
         this.viewCount ++;
+    }
+
+    public void addComment(Comment comment){
+        this.comments.add(comment);
+        if (comment.getPost() != this){
+            comment.setPost(this);
+        }
     }
 
 }

@@ -18,13 +18,14 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @PostMapping
-    @PreAuthorize("hasPermission(@teamRepository.findById(#teamId).orElse(null), 'MANAGE_ROLES')")
+    @PreAuthorize("hasPermission(@teamRepository.findById(#teamId).orElse(null), 'MANAGE_CATEGORIES')")
     public ResponseEntity<CategoryResponse> createCategory(@PathVariable Long teamId, @RequestBody CreateCategoryRequest request) {
         TeamCategory category = categoryService.createCategory(teamId, request);
         return ResponseEntity.ok(CategoryResponse.from(category));
     }
 
     @PutMapping("/update/{categoryId}")
+    @PreAuthorize("hasPermission(@teamRepository.findById(#teamId).orElse(null), 'MANAGE_CATEGORIES')")
     public ResponseEntity<CategoryResponse> updateCategory(@PathVariable Long teamId, @PathVariable Long categoryId, @RequestBody UpdateCategoryRequest request){
         return ResponseEntity.ok(categoryService.updateCategory(teamId, categoryId, request));
     }

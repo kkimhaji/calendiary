@@ -8,6 +8,7 @@ import com.example.board.domain.post.PostRepository;
 import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.role.TeamRoleRepository;
 import com.example.board.domain.team.Team;
+import com.example.board.dto.comment.CommentResponse;
 import com.example.board.dto.comment.CreateCommentRequest;
 import com.example.board.dto.post.PostResponse;
 import com.example.board.permission.TeamPermission;
@@ -28,22 +29,21 @@ public class CommentService {
     private final TeamMemberService teamMemberService;
 
     @Transactional
-    public Comment createComment(Member member, Post post, Team team, CreateCommentRequest request) throws AccessDeniedException {
-        TeamRole role = teamMemberService.getCurrentUserRole(team.getId(), member);
+    public CommentResponse createComment(Member member, Long postId, Long teamId, CreateCommentRequest request) throws AccessDeniedException {
+        Post post = postRepository.findById(postId).orElseThrow(()->new EntityNotFoundException("post not found"));
+        TeamRole role = teamMemberService.getCurrentUserRole(teamId, member);
         if (!categoryService.checkCategoryPermission(post.getCategory().getId(), role.getId(), TeamPermission.CREATE_COMMENT))
             throw new AccessDeniedException("댓글을 작성할 권한이 없습니다.");
 
-        //대댓글인 경우 부모 확인
-        Comment parent = null;
+        //부모가 있을 때만 부모 댓글 조회
+        Comment parent = request.parentCommentId().map(id -> commentRepository.findById(id))
+                .orElseThrow(() -> new EntityNotFoundException("Parent comment not found"))
+                .orElse(null);
 
-        Comment comment = Comment.builder()
-                .content(request.content())
-                .post(post)
-                .author(member)
-                .parent(parent)
-        .build();
+        Comment comment = request.toEntity(post, member, parent);
+        post.addComment(comment);
 
-        return commentRepository.save(comment);
+        return CommentResponse.from(commentRepository.save(comment));
     }
 
     @Transactional
@@ -65,4 +65,5 @@ public class CommentService {
         else
             comment.delete();
     }
+
 }

@@ -1,6 +1,8 @@
 package com.example.board.service;
 
 import com.example.board.domain.member.Member;
+import com.example.board.domain.post.Comment;
+import com.example.board.domain.post.CommentRepository;
 import com.example.board.domain.post.Post;
 import com.example.board.domain.post.PostRepository;
 import com.example.board.domain.role.TeamRole;
@@ -40,6 +42,7 @@ public class PostService {
     private final CategoryService categoryService;
     private final TeamMemberService teamMemberService;
     private final ConcurrentHashMap<Long, AtomicLong> viewCountCache = new ConcurrentHashMap<>();
+    private final CommentRepository commentRepository;
 
 
     @Transactional
@@ -88,11 +91,14 @@ public class PostService {
     //게시글 상세 조회
     @Transactional(readOnly = true)
     public PostDetailDTO getPostDetail(Long postId) {
-        Post post = postRepository.findByIdWithAuthor(postId)
+        Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("Post not found"));
         //조회수 증가: 비동기로 처리
+
+        List<Comment> comments = commentRepository.findAllByPostIdWithReplies(postId);
+
         increaseVieCount(postId);
-        return PostDetailDTO.from(post);
+        return PostDetailDTO.from(post, comments);
     }
 
     //최근 게시글 조회
