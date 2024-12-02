@@ -29,3 +29,6 @@ security:
     refresh-token:
       expiration: 604800000 # 7 days
 
+file:
+  upload:
+    location: ${FILE_LOCATION}

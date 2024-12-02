@@ -46,11 +46,11 @@ public class PostService {
 
 
     @Transactional
-    public Post createPost(Long teamId, CreatePostRequest request, Member author) throws AccessDeniedException {
+    public Post createPost(Long teamId, Long categoryId, CreatePostRequest request, Member author) throws AccessDeniedException {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new EntityNotFoundException("Team not found"));
 
-        TeamCategory category = categoryRepository.findById(request.categoryId())
+        TeamCategory category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new EntityNotFoundException("Category not found"));
 
         TeamRole memberRole = teamMemberService.getCurrentUserRole(teamId, author);

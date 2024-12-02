@@ -27,7 +27,7 @@ public class PostController {
     @PostMapping
     @PreAuthorize("@teamPermissionEvaluator.hasPermissionForCategory(principal, #categoryId, 'CREATE_POST')")
     public ResponseEntity<PostResponse> createPost(@PathVariable Long teamId, @PathVariable Long categoryId, @RequestBody CreatePostRequest request, @AuthenticationPrincipal Member member){
-        Post post = postService.createPost(teamId, request, member);
+        Post post = postService.createPost(teamId, categoryId, request, member);
         return ResponseEntity.ok(PostResponse.from(post));
     }
 
