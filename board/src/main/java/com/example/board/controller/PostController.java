@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,6 +25,7 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping
+    @PreAuthorize("@teamPermissionEvaluator.hasPermissionForCategory(principal, #categoryId, 'CREATE_POST')")
     public ResponseEntity<PostResponse> createPost(@PathVariable Long teamId, @PathVariable Long categoryId, @RequestBody CreatePostRequest request, @AuthenticationPrincipal Member member){
         Post post = postService.createPost(teamId, request, member);
         return ResponseEntity.ok(PostResponse.from(post));
@@ -40,11 +42,13 @@ public class PostController {
     }
 
     @GetMapping("/{postId}")
+    @PreAuthorize("@teamPermissionEvaluator.hasPermissionForCategory(principal, #categoryId, 'VIEW_POST')")
     public ResponseEntity<PostDetailDTO> getPost(@PathVariable Long postId){
         return ResponseEntity.ok(postService.getPostDetail(postId));
     }
 
     @PostMapping("/delete")
+    @PreAuthorize("@teamPermissionEvaluator.hasPermissionForCategory(principal, #categoryId, 'DELETE_POST')")
     public void deletePost(@PathVariable Long teamId, @PathVariable Long categoryId, @PathVariable Long postId, @AuthenticationPrincipal Member member){
         postService.deletePost(postId, member, categoryId, teamId);
     }
