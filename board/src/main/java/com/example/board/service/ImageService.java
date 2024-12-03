@@ -1,5 +1,6 @@
 package com.example.board.service;
 
+import com.example.board.exception.InvalidFileTypeException;
 import lombok.RequiredArgsConstructor;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,11 +10,14 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class ImageService {
+    private final List<String> ALLOWED_EXTENSIONS = Arrays.asList("jpg", "jpeg", "png", "gif");
 
     @Value("${file.upload.location}")
     private String uploadPath;
@@ -24,6 +28,7 @@ public class ImageService {
         }
         try {
             String originalFilename = file.getOriginalFilename();
+            validateImage(originalFilename);
             String storedFileName = createStoredFileName(originalFilename);
 
             Path destinationFile = Paths.get(uploadPath)
@@ -48,6 +53,12 @@ public class ImageService {
     private String extractExtension(String originalFilename) {
         int pos = originalFilename.lastIndexOf(".");
         return originalFilename.substring(pos + 1);
+    }
+
+    private void validateImage(String originalFileName){
+        String extension = extractExtension(originalFileName).toLowerCase();
+        if (!ALLOWED_EXTENSIONS.contains(extension))
+            throw new InvalidFileTypeException("Invalid file type: "+ extension);
     }
 
 

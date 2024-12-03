@@ -32,4 +32,8 @@ public class PostImage {
     public String getImageUrl() {
         return "/images/" + this.storedFileName;
     }
+
+    public void setPost(Post post) {
+        this.post = post;
+    }
 }

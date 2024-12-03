@@ -1,10 +1,7 @@
 package com.example.board.service;
 
 import com.example.board.domain.member.Member;
-import com.example.board.domain.post.Comment;
-import com.example.board.domain.post.CommentRepository;
-import com.example.board.domain.post.Post;
-import com.example.board.domain.post.PostRepository;
+import com.example.board.domain.post.*;
 import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.team.CategoryRepository;
 import com.example.board.domain.team.Team;
@@ -13,9 +10,8 @@ import com.example.board.domain.team.TeamRepository;
 import com.example.board.dto.post.*;
 import com.example.board.permission.TeamPermission;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.action.internal.EntityActionVetoException;
+import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,16 +21,16 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class PostService {
     private final PostRepository postRepository;
     private final TeamRepository teamRepository;
@@ -43,10 +39,10 @@ public class PostService {
     private final TeamMemberService teamMemberService;
     private final ConcurrentHashMap<Long, AtomicLong> viewCountCache = new ConcurrentHashMap<>();
     private final CommentRepository commentRepository;
+    private final ImageService imageService;
 
 
-    @Transactional
-    public Post createPost(Long teamId, Long categoryId, CreatePostRequest request, Member author) throws AccessDeniedException {
+    public Post createPost(Long teamId, Long categoryId, CreatePostRequest request, Member author) throws AccessDeniedException, FileUploadException {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new EntityNotFoundException("Team not found"));
 
@@ -59,14 +55,20 @@ public class PostService {
             throw new AccessDeniedException("해당 카테고리에 글을 작성할 권한이 없습니다.");
         }
 
-        Post post = Post.builder()
-                .title(request.title())
-                .content(request.content())
-                .team(team)
-                .category(category)
-                .author(author)
-                .build();
+        Post post = request.toEntity(team, category, author);
 
+        if (request.images()!= null && !request.images().isEmpty()){
+            for (MultipartFile image : request.images()) {
+                String storedFileName = imageService.saveFile(image);
+
+                PostImage postImage = PostImage.builder()
+                        .post(post)
+                        .originalFileName(image.getOriginalFilename())
+                        .storedFileName(storedFileName)
+                        .build();
+                post.addImage(postImage);
+            }
+        }
         return postRepository.save(post);
     }
 
@@ -94,10 +96,10 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("Post not found"));
         //조회수 증가: 비동기로 처리
+        increaseViewCount(postId);
 
         List<Comment> comments = commentRepository.findAllByPostIdWithReplies(postId);
 
-        increaseVieCount(postId);
         return PostDetailDTO.from(post, comments);
     }
 
@@ -109,7 +111,7 @@ public class PostService {
     }
 
     @Async
-    public CompletableFuture<Void> increaseVieCount(Long postId) {
+    public CompletableFuture<Void> increaseViewCount(Long postId) {
         return CompletableFuture.runAsync(() -> {
                     AtomicLong viewCount = viewCountCache.computeIfAbsent(postId, k -> new AtomicLong(0));
                     viewCount.incrementAndGet();
@@ -119,7 +121,6 @@ public class PostService {
 
     // 주기적으로 캐시된 조회수를 DB에 반영
     @Scheduled(fixedRate = 60000) // 1분마다 실행
-    @Transactional
     public void syncViewCountsToDatabase() {
         viewCountCache.forEach((postId, viewCount) -> {
             long count = viewCount.get();
@@ -130,7 +131,6 @@ public class PostService {
         });
     }
 
-    @Transactional
     public void deletePost(Long postId, Member member, Long categoryId, Long teamId){
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("there is no such post"));

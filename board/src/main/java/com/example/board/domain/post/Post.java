@@ -44,6 +44,9 @@ public class Post extends BaseTimeEntity {
     @OrderBy("createdAt ASC")
     private List<Comment> comments = new ArrayList<>();
 
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PostImage> images = new ArrayList<>();
+
 
     @Builder
     public Post(Long id, String title, String content, Member author, Team team, TeamCategory category){
@@ -69,6 +72,12 @@ public class Post extends BaseTimeEntity {
         if (comment.getPost() != this){
             comment.setPost(this);
         }
+    }
+
+    public void addImage(PostImage image){
+        this.images.add(image);
+        if (image.getPost() != this)
+            image.setPost(this);
     }
 
 }
