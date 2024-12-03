@@ -2,10 +2,8 @@ package com.example.board.controller;
 
 import com.example.board.domain.member.Member;
 import com.example.board.domain.post.Post;
-import com.example.board.dto.post.CreatePostRequest;
-import com.example.board.dto.post.PostDetailDTO;
-import com.example.board.dto.post.PostListResponse;
-import com.example.board.dto.post.PostResponse;
+import com.example.board.dto.post.*;
+import com.example.board.service.ImageService;
 import com.example.board.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
@@ -17,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 public class PostController {
 
     private final PostService postService;
+    private final ImageService imageService;
 
     @PostMapping
     @PreAuthorize("@teamPermissionEvaluator.hasPermissionForCategory(principal, #categoryId, 'CREATE_POST')")
@@ -38,21 +38,33 @@ public class PostController {
     public ResponseEntity<Page<PostListResponse>> getPosts(
             @PathVariable Long teamId, @PathVariable Long categoryId,
             @AuthenticationPrincipal Member member,
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)Pageable pageable
-            ){
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
         Page<PostListResponse> posts = postService.getPostsByCategory(teamId, categoryId, member, pageable);
         return ResponseEntity.ok(posts);
     }
 
     @GetMapping("/{postId}")
     @PreAuthorize("@teamPermissionEvaluator.hasPermissionForCategory(principal, #categoryId, 'VIEW_POST')")
-    public ResponseEntity<PostDetailDTO> getPost(@PathVariable Long postId){
+    public ResponseEntity<PostDetailDTO> getPost(@PathVariable Long postId) {
         return ResponseEntity.ok(postService.getPostDetail(postId));
     }
 
     @PostMapping("/delete")
     @PreAuthorize("@teamPermissionEvaluator.hasPermissionForCategory(principal, #categoryId, 'DELETE_POST')")
-    public void deletePost(@PathVariable Long teamId, @PathVariable Long categoryId, @PathVariable Long postId, @AuthenticationPrincipal Member member){
+    public void deletePost(@PathVariable Long teamId, @PathVariable Long categoryId, @PathVariable Long postId, @AuthenticationPrincipal Member member) {
         postService.deletePost(postId, member, categoryId, teamId);
+    }
+
+    @PostMapping("/images")
+    // CK Editor는 'upload'로 파일 전송
+    public ResponseEntity<ImageResponse> uploadImages(@RequestParam("upload") MultipartFile file) {
+        try {
+            return ResponseEntity.ok(imageService.savedImages(file));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(
+                    new ImageResponse(e.getMessage())
+            );
+        }
     }
 }

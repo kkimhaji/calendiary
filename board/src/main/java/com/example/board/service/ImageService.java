@@ -1,5 +1,6 @@
 package com.example.board.service;
 
+import com.example.board.dto.post.ImageResponse;
 import com.example.board.exception.InvalidFileTypeException;
 import lombok.RequiredArgsConstructor;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
@@ -23,7 +24,7 @@ public class ImageService {
     private String uploadPath;
 
     public String saveFile(MultipartFile file) throws FileUploadException {
-        if (file.isEmpty()){
+        if (file.isEmpty()) {
             throw new IllegalArgumentException("Failed to store empty file");
         }
         try {
@@ -39,7 +40,7 @@ public class ImageService {
             file.transferTo(destinationFile);
 
             return storedFileName;
-        } catch (IOException e){
+        } catch (IOException e) {
             throw new FileUploadException("Failed to store file", e);
         }
     }
@@ -55,11 +56,15 @@ public class ImageService {
         return originalFilename.substring(pos + 1);
     }
 
-    private void validateImage(String originalFileName){
+    private void validateImage(String originalFileName) {
         String extension = extractExtension(originalFileName).toLowerCase();
         if (!ALLOWED_EXTENSIONS.contains(extension))
-            throw new InvalidFileTypeException("Invalid file type: "+ extension);
+            throw new InvalidFileTypeException("Invalid file type: " + extension);
     }
 
+    public ImageResponse savedImages(MultipartFile file) throws FileUploadException {
+        String imageUrl = saveFile(file);
+        return new ImageResponse(imageUrl, file.getOriginalFilename(), imageUrl);
+    }
 
 }

@@ -2,6 +2,7 @@ package com.example.board.dto.post;
 
 import com.example.board.domain.post.Comment;
 import com.example.board.domain.post.Post;
+import com.example.board.domain.post.PostImage;
 import com.example.board.dto.comment.CommentResponse;
 
 import java.time.LocalDateTime;
@@ -15,6 +16,7 @@ public record PostDetailDTO(
         AuthorDTO author,
         String categoryName,
         LocalDateTime createdAt,
+        List<String> imageUrls,
         List<CommentResponse> comments
 ) {
     public static PostDetailDTO from(Post post, List<Comment> comments){
@@ -25,6 +27,9 @@ public record PostDetailDTO(
                 AuthorDTO.from(post.getAuthor()),
                 post.getCategory().getName(),
                 post.getCreatedDate(),
+                post.getImages().stream()
+                                .map(PostImage::getImageUrl)
+                                        .collect(Collectors.toList()),
                 post.getComments().stream()
                         .filter(comment -> comment.getParent() == null)
                         .map(CommentResponse::from)
