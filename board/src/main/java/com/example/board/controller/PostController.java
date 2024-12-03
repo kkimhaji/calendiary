@@ -8,6 +8,7 @@ import com.example.board.dto.post.PostListResponse;
 import com.example.board.dto.post.PostResponse;
 import com.example.board.service.PostService;
 import lombok.RequiredArgsConstructor;
+import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -26,12 +27,14 @@ public class PostController {
 
     @PostMapping
     @PreAuthorize("@teamPermissionEvaluator.hasPermissionForCategory(principal, #categoryId, 'CREATE_POST')")
-    public ResponseEntity<PostResponse> createPost(@PathVariable Long teamId, @PathVariable Long categoryId, @RequestBody CreatePostRequest request, @AuthenticationPrincipal Member member){
+    public ResponseEntity<PostResponse> createPost(@PathVariable Long teamId, @PathVariable Long categoryId, @RequestBody CreatePostRequest request, @AuthenticationPrincipal Member member) throws FileUploadException {
         Post post = postService.createPost(teamId, categoryId, request, member);
         return ResponseEntity.ok(PostResponse.from(post));
     }
 
+    //카테고리의 글 조회
     @GetMapping
+    @PreAuthorize("@teamPermissionEvaluator.hasPermissionForCategory(principal, #categoryId, 'VIEW_POST')")
     public ResponseEntity<Page<PostListResponse>> getPosts(
             @PathVariable Long teamId, @PathVariable Long categoryId,
             @AuthenticationPrincipal Member member,
