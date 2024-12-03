@@ -1,5 +1,6 @@
 package com.example.board.service;
 
+import com.example.board.config.HtmlSanitizer;
 import com.example.board.domain.member.Member;
 import com.example.board.domain.post.*;
 import com.example.board.domain.role.TeamRole;
@@ -40,23 +41,20 @@ public class PostService {
     private final ConcurrentHashMap<Long, AtomicLong> viewCountCache = new ConcurrentHashMap<>();
     private final CommentRepository commentRepository;
     private final ImageService imageService;
-
+    private final HtmlSanitizer htmlSanitizer;
 
     public Post createPost(Long teamId, Long categoryId, CreatePostRequest request, Member author) throws AccessDeniedException, FileUploadException {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new EntityNotFoundException("Team not found"));
-
         TeamCategory category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new EntityNotFoundException("Category not found"));
-
         TeamRole memberRole = teamMemberService.getCurrentUserRole(teamId, author);
         //카테고리 권한 검사
         if (!categoryService.checkCategoryPermission(category.getId(), memberRole.getId(), TeamPermission.CREATE_POST)) {
             throw new AccessDeniedException("해당 카테고리에 글을 작성할 권한이 없습니다.");
         }
 
-        Post post = request.toEntity(team, category, author);
-
+        Post post = request.toEntity(htmlSanitizer.sanitize(request.content()), team, category, author);
         if (request.images()!= null && !request.images().isEmpty()){
             for (MultipartFile image : request.images()) {
                 String storedFileName = imageService.saveFile(image);

@@ -1,5 +1,6 @@
 package com.example.board.dto.post;
 
+import com.example.board.config.HtmlSanitizer;
 import com.example.board.domain.member.Member;
 import com.example.board.domain.post.Post;
 import com.example.board.domain.team.Team;
@@ -13,10 +14,11 @@ public record CreatePostRequest(
         String content,
         List<MultipartFile> images
 ) {
-    public Post toEntity(Team team, TeamCategory category, Member author){
+    public Post toEntity(String safeContent, Team team, TeamCategory category, Member author){
+
         return Post.builder()
                 .title(title)
-                .content(content)
+                .content(safeContent)
                 .team(team)
                 .category(category)
                 .author(author)
