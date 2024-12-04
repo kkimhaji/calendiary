@@ -31,8 +31,7 @@ public class CommentService {
     @Transactional
     public CommentResponse createComment(Member member, Long postId, Long teamId, CreateCommentRequest request) throws AccessDeniedException {
         Post post = postRepository.findById(postId).orElseThrow(()->new EntityNotFoundException("post not found"));
-        TeamRole role = teamMemberService.getCurrentUserRole(teamId, member);
-        if (!categoryService.checkCategoryPermission(post.getCategory().getId(), role.getId(), TeamPermission.CREATE_COMMENT))
+        if (!categoryService.checkCategoryPermission(post.getCategory().getId(), member, TeamPermission.CREATE_COMMENT))
             throw new AccessDeniedException("댓글을 작성할 권한이 없습니다.");
 
         //부모가 있을 때만 부모 댓글 조회
@@ -51,10 +50,8 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(()->new EntityNotFoundException("Comment not found"));
 
-        TeamRole userRole = teamMemberService.getCurrentUserRole(teamId, member);
-
         if (!comment.getAuthor().equals(member) &&
-                !categoryService.checkCategoryPermission(comment.getPost().getCategory().getId(),userRole.getId(), TeamPermission.DELETE_COMMENT)){
+                !categoryService.checkCategoryPermission(comment.getPost().getCategory().getId(), member, TeamPermission.DELETE_COMMENT)){
             throw new AccessDeniedException("댓글을 삭제할 권한이 없습니다.");
         }
 

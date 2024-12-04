@@ -156,4 +156,5 @@ public class TeamRoleService {
         roles.forEach(role -> role.setMembers(null));
         teamRoleRepository.deleteAll(roles);
     }
+
 }

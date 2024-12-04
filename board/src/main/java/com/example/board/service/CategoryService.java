@@ -1,5 +1,6 @@
 package com.example.board.service;
 
+import com.example.board.domain.member.Member;
 import com.example.board.domain.post.Post;
 import com.example.board.domain.post.PostRepository;
 import com.example.board.domain.role.CategoryPermissionRepository;
@@ -33,6 +34,7 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final PostRepository postRepository;
     private final CategoryPermissionRepository categoryPermissionRepository;
+    private final TeamMemberService teamMemberService;
 
     @Transactional
     public TeamCategory createCategory(Long teamId, CreateCategoryRequest request){
@@ -61,7 +63,9 @@ public class CategoryService {
         return teamRoles;
     }
 
-    public boolean checkCategoryPermission(Long categoryId, Long roleId, TeamPermission permission) {
+    public boolean checkCategoryPermission(Long categoryId, Member member, TeamPermission permission) {
+        Long teamId = categoryRepository.findTeamById(categoryId).getId();
+        Long roleId = teamMemberService.getCurrentUserRole(teamId, member).getId();
         return categoryRepository.findCategoryRolePermission(categoryId, roleId)
                 .map(crp -> crp.hasPermission(permission))
                 .orElse(false);

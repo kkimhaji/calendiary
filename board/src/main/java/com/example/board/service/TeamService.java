@@ -49,7 +49,6 @@ public class TeamService {
         return teamMemberRepository.save(teamMember);
     }
 
-
     public TeamCreateResponse createTeam(Member member, TeamCreateRequestDTO dto){
         Team newTeam = teamRepository.save(dto.toEntity(member));
         TeamRole admin = teamRoleService.createAdmin(newTeam);

@@ -13,16 +13,12 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CategoryPermissionEvaluator {
     private final CategoryService categoryService;
-    private final CategoryRepository categoryRepository;
-    private final TeamMemberService teamMemberService;
 
     public boolean hasPermission(Long categoryId, Authentication authentication, String permission) {
         Member member = (Member) authentication.getPrincipal();
-        Long teamId = categoryRepository.findTeamById(categoryId).getId();
-        TeamRole userRole = teamMemberService.getCurrentUserRole(teamId, member);
         return categoryService.checkCategoryPermission(
                 categoryId,
-                userRole.getId(),
+                member,
                 TeamPermission.valueOf(permission)
         );
     }
