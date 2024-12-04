@@ -42,6 +42,7 @@ public class PostService {
     private final CommentRepository commentRepository;
     private final ImageService imageService;
     private final HtmlSanitizer htmlSanitizer;
+    private final PostImageRepository postImageRepository;
 
     public Post createPost(Long teamId, Long categoryId, CreatePostRequest request, Member author) throws AccessDeniedException, FileUploadException {
         Team team = teamRepository.findById(teamId)
@@ -140,5 +141,59 @@ public class PostService {
         }
         else throw new AccessDeniedException("게시글을 삭제할 권한이 없습니다.");
     }
+
+    public PostResponse updatePost(Long postId, Member author,UpdatePostRequestDTO requestDTO) throws FileUploadException {
+        Post post = postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("post not found"));
+
+        if (!post.getAuthor().equals(author)){
+            throw new AccessDeniedException("작성자만 수정할 수 있습니다.");
+        }
+
+        String sanitizedContent = htmlSanitizer.sanitize(requestDTO.content());
+        post.update(requestDTO.title(), sanitizedContent);
+
+        if (requestDTO.deleteImageIds() != null && !requestDTO.deleteImageIds().isEmpty())
+            deleteImages(post, requestDTO.deleteImageIds());
+
+        if (requestDTO.images() != null && !requestDTO.images().isEmpty())
+            addNewImages(post, requestDTO.images());
+
+        return PostResponse.from(post);
+    }
+
+    private void deleteImages(Post post, List<Long> imageIds) {
+        List<PostImage> imagesToDelete = postImageRepository.findAllByIdIn(imageIds);
+
+        for (PostImage image : imagesToDelete) {
+            // 이미지가 해당 게시글의 것인지 확인
+            if (!image.getPost().equals(post)) {
+                throw new IllegalArgumentException("잘못된 이미지 ID입니다.");
+            }
+
+            // 파일 시스템에서 파일 삭제
+            imageService.deleteImage(image.getStoredFileName());
+
+            // 게시글에서 이미지 제거
+            post.removeImage(image);
+
+            // DB에서 이미지 정보 삭제
+            postImageRepository.delete(image);
+        }
+    }
+
+    private void addNewImages(Post post, List<MultipartFile> newImages) throws FileUploadException {
+        for (MultipartFile image : newImages) {
+            String storedFileName = imageService.saveFile(image);
+
+            PostImage postImage = PostImage.builder()
+                    .post(post)
+                    .originalFileName(image.getOriginalFilename())
+                    .storedFileName(storedFileName)
+                    .build();
+
+            post.addImage(postImage);
+        }
+    }
+
 
 }

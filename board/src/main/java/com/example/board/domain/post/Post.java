@@ -63,6 +63,10 @@ public class Post extends BaseTimeEntity {
         this.content = content;
     }
 
+    public void removeImage(PostImage image){
+        this.images.remove(image);
+    }
+
     public void increaseViewCount(){
         this.viewCount ++;
     }
