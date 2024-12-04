@@ -1,20 +1,24 @@
 package com.example.board.service;
 
 import com.example.board.dto.post.ImageResponse;
+import com.example.board.exception.FileDeleteException;
 import com.example.board.exception.InvalidFileTypeException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ImageService {
@@ -65,6 +69,25 @@ public class ImageService {
     public ImageResponse savedImages(MultipartFile file) throws FileUploadException {
         String imageUrl = saveFile(file);
         return new ImageResponse(imageUrl, file.getOriginalFilename(), imageUrl);
+    }
+
+    public void deleteImage(String storedFileName) {
+        try {
+            Path filePath = Paths.get(uploadPath)
+                    .resolve(storedFileName)
+                    .normalize()
+                    .toAbsolutePath();
+
+            if (Files.exists(filePath)){
+                Files.delete(filePath);
+                log.info("File deleted successfully: {}", storedFileName);
+            }else {
+                log.warn("File not found: {}", storedFileName);
+            }
+        } catch (IOException e){
+            log.error("Failed to delete file: {}", storedFileName, e);
+            throw new FileDeleteException("파일 삭제 중 오류가 발생했습니다: "+storedFileName, e);
+        }
     }
 
 }

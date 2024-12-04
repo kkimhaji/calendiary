@@ -49,9 +49,9 @@ public class PostService {
                 .orElseThrow(() -> new EntityNotFoundException("Team not found"));
         TeamCategory category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new EntityNotFoundException("Category not found"));
-        TeamRole memberRole = teamMemberService.getCurrentUserRole(teamId, author);
+
         //카테고리 권한 검사
-        if (!categoryService.checkCategoryPermission(category.getId(), memberRole.getId(), TeamPermission.CREATE_POST)) {
+        if (!categoryService.checkCategoryPermission(categoryId, author, TeamPermission.CREATE_POST)) {
             throw new AccessDeniedException("해당 카테고리에 글을 작성할 권한이 없습니다.");
         }
 
@@ -74,9 +74,8 @@ public class PostService {
     @Transactional(readOnly = true)
     @Cacheable(value = "teamPosts", key = "#teamId + '_' + #categoryId")
     public Page<PostListResponse> getPostsByCategory(Long teamId, Long categoryId, Member member, Pageable pageable) {
-        TeamRole memberRole = teamMemberService.getCurrentUserRole(teamId, member);
 
-        if (!categoryService.checkCategoryPermission(categoryId, memberRole.getId(), TeamPermission.VIEW_POST)) {
+        if (!categoryService.checkCategoryPermission(categoryId, member, TeamPermission.VIEW_POST)) {
             throw new AccessDeniedException("해당 카테고리를 조회할 권한이 없습니다.");
         }
         return postRepository.findAllByTeamAndCategoryWithPaging(teamId, categoryId, pageable)
@@ -133,20 +132,19 @@ public class PostService {
     public void deletePost(Long postId, Member member, Long categoryId, Long teamId){
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("there is no such post"));
-        TeamRole memberRole = teamMemberService.getCurrentUserRole(teamId, member);
 
         if (member.equals(post.getAuthor()) ||
-                categoryService.checkCategoryPermission(categoryId, memberRole.getId(), TeamPermission.DELETE_POST)){
+                categoryService.checkCategoryPermission(categoryId, member, TeamPermission.DELETE_POST)){
             postRepository.deleteById(postId);
         }
         else throw new AccessDeniedException("게시글을 삭제할 권한이 없습니다.");
     }
 
-    public PostResponse updatePost(Long postId, Member author,UpdatePostRequestDTO requestDTO) throws FileUploadException {
+    public PostResponse updatePost(Long teamId, Long categoryId, Long postId, Member author,UpdatePostRequestDTO requestDTO) throws FileUploadException {
         Post post = postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("post not found"));
 
-        if (!post.getAuthor().equals(author)){
-            throw new AccessDeniedException("작성자만 수정할 수 있습니다.");
+        if (!post.getAuthor().equals(author) || categoryService.checkCategoryPermission(categoryId, author, TeamPermission.EDIT_POST)){
+            throw new AccessDeniedException("게시글을 수정할 권한이 없습니다.");
         }
 
         String sanitizedContent = htmlSanitizer.sanitize(requestDTO.content());

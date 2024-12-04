@@ -67,4 +67,9 @@ public class PostController {
             );
         }
     }
+
+    @PutMapping("/{postId}")
+    public ResponseEntity<PostResponse> updatePost(@PathVariable Long postId, @PathVariable Long teamId, @PathVariable Long categoryId, @RequestBody UpdatePostRequestDTO request, @AuthenticationPrincipal Member member) throws FileUploadException {
+        return ResponseEntity.ok(postService.updatePost(teamId, categoryId, postId, member, request));
+    }
 }
