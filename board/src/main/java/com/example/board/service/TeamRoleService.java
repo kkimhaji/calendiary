@@ -2,6 +2,7 @@ package com.example.board.service;
 
 import com.example.board.domain.member.Member;
 import com.example.board.domain.member.MemberRepository;
+import com.example.board.domain.role.CategoryPermissionRepository;
 import com.example.board.domain.team.CategoryRepository;
 import com.example.board.domain.team.Team;
 import com.example.board.domain.team.TeamRepository;
@@ -34,6 +35,7 @@ public class TeamRoleService {
     private final TeamMemberRepository teamMemberRepository;
     private final CategoryRepository categoryRepository;
     private final MemberRepository memberRepository;
+    private final CategoryPermissionRepository permissionRepository;
 
     @PreAuthorize("hasPermission(#team, 'MANAGE_ROLES')")
     public TeamRole createRole(Long teamId, CreateRoleRequest request) {
@@ -116,7 +118,7 @@ public class TeamRoleService {
     }
 
     private void deleteCategoryPermissions(Long roleId){
-        categoryRepository.deleteAllByRoleId(roleId);
+        permissionRepository.deleteAllByRoleId(roleId);
     }
 
     @Transactional

@@ -28,11 +28,5 @@ public interface CategoryRepository extends JpaRepository<TeamCategory, Long> {
 
     Team findTeamById(Long id);
 
-    @Modifying
-    @Query("DELETE FROM TeamCategoryRole tcr WHERE tcr.role.id = :roleId")
-    void deleteAllByRoleId(@Param("roleId") Long roleId);
-
-    @Query("SELECT tc FROM TeamCategory tc" +
-            "WHERE tc.team = :team")
-    List<TeamCategory> findAllByTeam(@Param("team") Team team);
+    List<TeamCategory> findAllByTeam(Team team);
 }

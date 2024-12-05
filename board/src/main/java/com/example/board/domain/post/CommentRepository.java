@@ -14,7 +14,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
             "JOIN FETCH c.author " +
             "WHERE c.post.id = :postId " +
             "AND c.parent IS NULL " +
-            "ORDER BY c.createdAt ASC")
+            "ORDER BY c.createdDate ASC")
     List<Comment> findAllByPostIdWithReplies(@Param("postId") Long postId);
 
     @Query("SELECT COUNT(c) FROM Comment c " +
