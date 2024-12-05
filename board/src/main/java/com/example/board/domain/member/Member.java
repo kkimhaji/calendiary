@@ -104,9 +104,17 @@ public class Member implements UserDetails {
     }
 
     public void setVerification(String code, LocalDateTime expiredAt){
-        this.verificationCode = verificationCode;
+        this.verificationCode = code;
         this.verificationCodeExpiredAt = expiredAt;
     }
 
 
+    public void updateName(String newNickname) {
+        this.nickname = newNickname;
+    }
+
+    public void updatePassword(String newPassword)
+    {
+        this.password = newPassword;
+    }
 }

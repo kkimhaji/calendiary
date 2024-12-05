@@ -41,7 +41,7 @@ public class AuthenticationService {
         //create a user object out of the registerRequest
         var member = request.toEntity(
                 passwordEncoder.encode(request.password()),
-                emailService.generateVerificationCode(),
+                emailService.generateRandomCode(),
                 LocalDateTime.now().plusMinutes(15),
                 false
         );
