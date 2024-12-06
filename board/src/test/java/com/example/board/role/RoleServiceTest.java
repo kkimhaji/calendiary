@@ -1,0 +1,84 @@
+package com.example.board.role;
+
+import com.example.board.domain.role.TeamRole;
+import com.example.board.domain.role.TeamRoleRepository;
+import com.example.board.domain.team.Team;
+import com.example.board.domain.teamMember.TeamMember;
+import com.example.board.dto.role.CreateRoleRequest;
+import com.example.board.dto.team.AddMemberRequestDTO;
+import com.example.board.dto.team.TeamCreateRequestDTO;
+import com.example.board.permission.PermissionUtils;
+import com.example.board.permission.TeamPermission;
+import com.example.board.service.TeamRoleService;
+import com.example.board.service.TeamService;
+import com.example.board.support.AbstractTestSupport;
+import jakarta.transaction.Transactional;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.ComponentScan;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
+import static com.example.board.permission.TeamPermission.*;
+import static com.example.board.permission.TeamPermission.DELETE_COMMENT;
+import static org.assertj.core.api.Assertions.assertThat;
+
+@SpringBootTest
+@ExtendWith(MockitoExtension.class)
+@ComponentScan("com.example.board")
+@Transactional
+public class RoleServiceTest extends AbstractTestSupport {
+    @Autowired
+    private TeamRoleService teamRoleService;
+    @Autowired
+    private TeamService teamService;
+    @Autowired
+    private TeamRoleRepository teamRoleRepository;
+    private Team team;
+    private TeamMember teamMember;
+
+    @BeforeEach
+    void init(){
+        var request = new TeamCreateRequestDTO("testTeam", "test");
+        team = teamService.createTeam(member1, request);
+
+        AddMemberRequestDTO dto = new AddMemberRequestDTO(team.getId(), team.getBasicRoleId(), member2.getMemberId());
+        teamMember = teamService.addMember(dto);
+    }
+
+    @Test
+    void createRoleTest(){
+        Set<TeamPermission> permissions = new HashSet<>(Arrays.asList(
+                CREATE_POST, DELETE_POST, MANAGE_ROLES, EDIT_POST, MANAGE_MEMBERS,
+                VIEW_POST
+        ));
+        var request = new CreateRoleRequest("testRole", permissions,"test create role");
+        TeamRole createdRole = teamRoleService.createRole(team.getId(), request);
+
+        assertThat(createdRole.getRoleName()).isEqualTo(request.roleName());
+        assertThat(createdRole.getPermissions()).isEqualTo(PermissionUtils.createPermissionBits(request.permissions()));
+        assertThat(createdRole.getPermissionSet()).isEqualTo(request.permissions());
+    }
+
+    @Test
+    void deleteRoleTest(){
+        Set<TeamPermission> permissions = new HashSet<>(Arrays.asList(
+                CREATE_POST, DELETE_POST, MANAGE_ROLES, EDIT_POST, MANAGE_MEMBERS,
+                VIEW_POST
+        ));
+        var request = new CreateRoleRequest("testRole", permissions,"test create role");
+        TeamRole createdRole = teamRoleService.createRole(team.getId(), request);
+        Long targetId = createdRole.getId();
+        teamRoleService.deleteRole(team.getId(), targetId);
+
+        assertThat(teamRoleRepository.findById(targetId)).isEmpty();
+    }
+
+}

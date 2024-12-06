@@ -1,9 +1,11 @@
 package com.example.board.team;
 
 import com.example.board.domain.member.Member;
+import com.example.board.domain.member.MemberRepository;
 import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.dto.team.AddMemberRequestDTO;
+import com.example.board.member.MemberRepositoryTest;
 import com.example.board.permission.TeamPermission;
 import com.example.board.support.AbstractTestSupport;
 import com.example.board.domain.team.Team;
@@ -31,25 +33,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ComponentScan("com.example.board")
 @ExtendWith(MockitoExtension.class)
 @Transactional
-public class TeamServiceTest extends AbstractTestSupport {
+public class TeamServiceTest extends AbstractTestSupport{
     private Team team;
+    private Member member;
+
     @Autowired
-    private ObjectMapper objectMapper;
+    private MemberRepository memberRepository;
     @Autowired
     private TeamService teamService;
-
     @Autowired
     private TeamMemberService teamMemberService;
 
     @BeforeEach
-    public void setUp(){
+    public void setUp() {
         super.setUp();
+
         var request = new TeamCreateRequestDTO("testTeam", "test");
         team = teamService.createTeam(member1, request);
     }
 
     @Test
-    void createTeam_adminPermission(){
+    void createTeam_adminPermission() {
         assertThat(team.getCreated_by()).isEqualTo(member1);
         TeamRole role = teamMemberService.getCurrentUserRole(team.getId(), member1);
         assertThat(role.getRoleName()).isEqualTo("ADMIN");
@@ -59,7 +63,7 @@ public class TeamServiceTest extends AbstractTestSupport {
     }
 
     @Test
-    void addTeamMember_defaultRole(){
+    void addTeamMember_defaultRole() {
         AddMemberRequestDTO dto = new AddMemberRequestDTO(team.getId(), team.getBasicRoleId(), member2.getMemberId());
         TeamMember teamMember = teamService.addMember(dto);
 

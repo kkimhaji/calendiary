@@ -37,7 +37,7 @@ public class TeamRoleService {
     private final MemberRepository memberRepository;
     private final CategoryPermissionRepository permissionRepository;
 
-    @PreAuthorize("hasPermission(#team, 'MANAGE_ROLES')")
+
     public TeamRole createRole(Long teamId, CreateRoleRequest request) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new EntityNotFoundException("Team not found"));
@@ -101,6 +101,7 @@ public class TeamRoleService {
             updateMembersRole(team, targetRole);
 
             deleteCategoryPermissions(roleId);
+            teamRoleRepository.deleteById(roleId);
         }
         catch (Exception e){
             throw new RoleDeletionException("역할 삭제 중 오류가 발생했습니다.");

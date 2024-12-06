@@ -2,6 +2,7 @@ package com.example.board.support;
 
 import com.example.board.domain.member.Member;
 import com.example.board.domain.member.MemberRepository;
+import com.example.board.domain.team.Team;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,7 @@ public abstract class AbstractTestSupport {
 
     protected Member member1;
     protected Member member2;
+    protected Team team;
 
     @BeforeEach
     public void setUp(){
@@ -32,4 +34,5 @@ public abstract class AbstractTestSupport {
     void cleanUp(){
         memberRepository.deleteAll();
     }
+
 }
