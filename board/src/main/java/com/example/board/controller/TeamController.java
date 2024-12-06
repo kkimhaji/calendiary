@@ -24,7 +24,7 @@ public class TeamController {
     public ResponseEntity<TeamCreateResponse> createTeam(@AuthenticationPrincipal Member member, @RequestBody TeamCreateRequestDTO dto){
 //        var loginMember = memberService.getMember(request)
 //                .orElseThrow(() ->new IllegalArgumentException("no user"));
-        return ResponseEntity.ok(teamService.createTeam(member, dto));
+        return ResponseEntity.ok(TeamCreateResponse.fromEntity(teamService.createTeam(member, dto)));
     }
 
     @PostMapping("/addmember")

@@ -15,7 +15,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.nullValue;
 
 @DataJpaTest
-@AutoConfigureTestDatabase
 public class MemberRepositoryTest {
     @Autowired
     MemberRepository memberRepository;

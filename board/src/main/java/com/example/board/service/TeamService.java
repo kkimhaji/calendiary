@@ -49,7 +49,7 @@ public class TeamService {
         return teamMemberRepository.save(teamMember);
     }
 
-    public TeamCreateResponse createTeam(Member member, TeamCreateRequestDTO dto){
+    public Team createTeam(Member member, TeamCreateRequestDTO dto){
         Team newTeam = teamRepository.save(dto.toEntity(member));
         TeamRole admin = teamRoleService.createAdmin(newTeam);
 
@@ -57,10 +57,10 @@ public class TeamService {
         teamMember.createTeam(newTeam, member, admin);
         var basicRole = teamRoleRepository.save(teamRoleService.createBasic(newTeam));
         newTeam.setBasicRoleId(basicRole.getId());
-        teamRepository.save(newTeam);
         teamMemberRepository.save(teamMember);
+        return teamRepository.save(newTeam);
 
-        return TeamCreateResponse.fromEntity(newTeam);
+//        return TeamCreateResponse.fromEntity(newTeam);
     }
 
     public void deleteTeam(Long teamId){
