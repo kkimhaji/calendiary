@@ -32,7 +32,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(MockitoExtension.class)
 @Transactional
 public class TeamServiceTest extends AbstractTestSupport {
-
     private Team team;
     @Autowired
     private ObjectMapper objectMapper;
@@ -51,15 +50,12 @@ public class TeamServiceTest extends AbstractTestSupport {
 
     @Test
     void createTeam_adminPermission(){
-
         assertThat(team.getCreated_by()).isEqualTo(member1);
         TeamRole role = teamMemberService.getCurrentUserRole(team.getId(), member1);
         assertThat(role.getRoleName()).isEqualTo("ADMIN");
 
 //        Set<TeamPermission> permissions = role.getPermissionSet();
 //        System.out.println("result : " + permissions.stream().map(TeamPermission::name).collect(Collectors.joining(", ")));
-
-        teamService.deleteTeam(team.getId());
     }
 
     @Test
@@ -68,6 +64,6 @@ public class TeamServiceTest extends AbstractTestSupport {
         TeamMember teamMember = teamService.addMember(dto);
 
         assertThat(teamMember.getRole().getId()).isEqualTo(team.getBasicRoleId());
-
     }
+
 }
