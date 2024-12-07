@@ -40,12 +40,10 @@ public class TeamService {
         TeamRole basicRole = teamRoleRepository.findById(team.getBasicRoleId())
                 .orElseThrow(()-> new EntityNotFoundException("no basic role"));
 
-        TeamMember teamMember = new TeamMember();
-        teamMember.setTeam(team);
-        teamMember.setMember(memberRepository.findById(dto.memberId())
-                .orElseThrow(() -> new UsernameNotFoundException("no such user")));
-        //기본 팀원으로 추가할 땐 basic으로
-        teamMember.setRole(basicRole);
+        var newMember = memberRepository.findById(dto.memberId())
+                .orElseThrow(() -> new UsernameNotFoundException("no such user"));
+
+        TeamMember teamMember = TeamMember.addTeamMember(team, newMember, basicRole);
         return teamMemberRepository.save(teamMember);
     }
 
@@ -53,8 +51,7 @@ public class TeamService {
         Team newTeam = teamRepository.save(dto.toEntity(member));
         TeamRole admin = teamRoleService.createAdmin(newTeam);
 
-        TeamMember teamMember = new TeamMember();
-        teamMember.createTeam(newTeam, member, admin);
+        TeamMember teamMember = TeamMember.createTeam(newTeam, member, admin);
         var basicRole = teamRoleRepository.save(teamRoleService.createBasic(newTeam));
         newTeam.setBasicRoleId(basicRole.getId());
         teamMemberRepository.save(teamMember);

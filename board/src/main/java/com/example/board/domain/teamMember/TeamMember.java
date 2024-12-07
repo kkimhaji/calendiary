@@ -11,8 +11,7 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Table(name = "team_members")
-@Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class TeamMember {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -31,21 +30,41 @@ public class TeamMember {
 
     private LocalDateTime joinedAt;
 
-    public void createTeam(Team team, Member member, TeamRole role){
-        this.member = member;
-        this.team = team;
-        this.role = role;
-        this.teamNickname = "ADMIN";
-        this.joinedAt = LocalDateTime.now();
+    public static TeamMember createTeam(Team team, Member member, TeamRole role){
+        return new TeamMember(
+                team, member, role,
+                "ADMIN", LocalDateTime.now()
+        );
     }
 
-//    @Builder
-//    public TeamMember(Team team, Member member, TeamRole role, String teamNickname, LocalDateTime joinedAt) {
-//        this.team = team;
-//        this.member = member;
-//        this.role = role;
-//        this.teamNickname = teamNickname;
-//        this.joinedAt = joinedAt;
-//    }
+    public void updateTeamNickname(String teamNickname){
+        this.teamNickname = teamNickname;
+    }
+
+    private TeamMember(Team team, Member member, TeamRole role, String teamNickname, LocalDateTime joinedAt) {
+        this.team = team;
+        this.member = member;
+        this.role = role;
+        this.teamNickname = teamNickname;
+        this.joinedAt = joinedAt;
+    }
+
+    //새로운 멤버를 팀에 추가할 때
+    public static TeamMember addTeamMember(Team team, Member newMember, TeamRole basicRole){
+        return new TeamMember(
+                team, newMember, basicRole,
+                newMember.getNickname(), LocalDateTime.now()
+        );
+    }
+
+    public void setRole(TeamRole role){
+        this.role = role;
+    }
+
+    public void reset(){
+        this.role = null;
+        this.member = null;
+        this.team = null;
+    }
 }
 
