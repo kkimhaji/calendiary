@@ -144,6 +144,15 @@ public class TeamRoleService {
         return new AddMembersToRoleResponse(role.getRoleName(), membersName);
     }
 
+    //역할에서 멤버 삭제하는 기능 추가할 것 - '역할'기준으로
+    public void removeMembersFromRole(){
+        //빼는 멤버는 기본 역할 or 원하는 역할로 변경
+        //역할 지정 안 된 경우엔 기본 역할로
+
+    }
+
+    //지정 역할로 변경하는 코드 따로 뺄 것
+
     //팀 삭제 시 사용되는 것 (기본 역할도 상관 없이 삭제)
     public void deleteRole(Team team){
         //teamMember의 role 수정
