@@ -70,12 +70,10 @@ public class TeamRoleService {
     }
 
     public TeamRole createAdmin(Team team){
-
         Set<TeamPermission> adminPermissions = new HashSet<>(Arrays.asList(
                 CREATE_POST, DELETE_POST, MANAGE_ROLES, EDIT_POST, MANAGE_MEMBERS,
                 VIEW_POST, CREATE_COMMENT, DELETE_COMMENT
         ));
-
         CreateRoleRequest request = new CreateRoleRequest("ADMIN", adminPermissions, "who made this team");
         return createRole(team.getId(), request);
     }
@@ -108,6 +106,7 @@ public class TeamRoleService {
         }
     }
 
+    //특정 역할의 멤버들 역할을 일괄적으로 기본 역할로 변경 (역할을 삭제하기 전에 사용)
     private void updateMembersRole(Team team, TeamRole targetRole){
         TeamRole basicRole = teamRoleRepository.findById(team.getBasicRoleId())
                 .orElseThrow(() -> new EntityNotFoundException("role not found"));
@@ -145,14 +144,11 @@ public class TeamRoleService {
         return new AddMembersToRoleResponse(role.getRoleName(), membersName);
     }
 
+    //팀 삭제 시 사용되는 것 (기본 역할도 상관 없이 삭제)
     public void deleteRole(Team team){
         //teamMember의 role 수정
         List<TeamMember> teamMembers = teamMemberRepository.findAllByTeam(team);
-        teamMembers.forEach(teamMember -> {
-            teamMember.setTeam(null);
-            teamMember.setRole(null);
-            teamMember.setMember(null);
-        });
+        teamMembers.forEach(TeamMember::reset);
         teamMemberRepository.deleteAll(teamMembers);
 
         List<TeamRole> roles = teamRoleRepository.findAllByTeam(team);
