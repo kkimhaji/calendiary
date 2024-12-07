@@ -5,16 +5,11 @@ import com.example.board.domain.member.MemberRepository;
 import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.dto.team.AddMemberRequestDTO;
-import com.example.board.member.MemberRepositoryTest;
-import com.example.board.permission.TeamPermission;
 import com.example.board.support.AbstractTestSupport;
 import com.example.board.domain.team.Team;
 import com.example.board.dto.team.TeamCreateRequestDTO;
 import com.example.board.service.TeamMemberService;
 import com.example.board.service.TeamService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,9 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -47,7 +39,6 @@ public class TeamServiceTest extends AbstractTestSupport{
     @BeforeEach
     public void setUp() {
         super.setUp();
-
         var request = new TeamCreateRequestDTO("testTeam", "test");
         team = teamService.createTeam(member1, request);
     }
@@ -68,6 +59,14 @@ public class TeamServiceTest extends AbstractTestSupport{
         TeamMember teamMember = teamService.addMember(dto);
 
         assertThat(teamMember.getRole().getId()).isEqualTo(team.getBasicRoleId());
+    }
+
+    @Test
+    void addTeamMember_defaultNickname(){
+        AddMemberRequestDTO dto = new AddMemberRequestDTO(team.getId(), team.getBasicRoleId(), member2.getMemberId());
+        TeamMember teamMember = teamService.addMember(dto);
+
+        assertThat(teamMember.getTeamNickname()).isEqualTo(member2.getNickname());
     }
 
 }
