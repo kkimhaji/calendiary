@@ -34,11 +34,11 @@ public class CategoryRolePermission {
     public static CategoryRolePermission createPermission(
             TeamCategory category,
             TeamRole role,
-            String permissions) {
+            Set<TeamPermission> permissions) {
         CategoryRolePermission permission = new CategoryRolePermission();
         permission.category = category;
         permission.role = role;
-        permission.permissions = permissions;
+        permission.permissions = PermissionUtils.createPermissionBits(permissions);
         return permission;
     }
 
@@ -63,9 +63,9 @@ public class CategoryRolePermission {
     }
 
    @Builder
-    public CategoryRolePermission(TeamCategory category, TeamRole role, String permissions) {
+    public CategoryRolePermission(TeamCategory category, TeamRole role, Set<TeamPermission> permissions) {
         this.category = category;
         this.role = role;
-        this.permissions = permissions;
+        this.permissions = PermissionUtils.createPermissionBits(permissions);
     }
 }

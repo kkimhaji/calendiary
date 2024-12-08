@@ -33,8 +33,6 @@ public class TeamRoleService {
     private final TeamRepository teamRepository;
     private final TeamRoleRepository teamRoleRepository;
     private final TeamMemberRepository teamMemberRepository;
-    private final CategoryRepository categoryRepository;
-    private final MemberRepository memberRepository;
     private final CategoryPermissionRepository permissionRepository;
 
 
