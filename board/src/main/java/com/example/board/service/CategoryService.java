@@ -77,8 +77,8 @@ public class CategoryService {
     }
 
     public boolean checkCategoryPermission(Long categoryId, Member member, TeamPermission permission) {
-        Long teamId = categoryRepository.findTeamById(categoryId).getId();
-        Long roleId = teamMemberService.getCurrentUserRole(teamId, member).getId();
+        TeamCategory category = categoryRepository.findWithTeamById(categoryId).orElseThrow(() -> new EntityNotFoundException("category not found"));
+        Long roleId = teamMemberService.getCurrentUserRole(category.getTeam().getId(), member).getId();
         return categoryRepository.findCategoryRolePermission(categoryId, roleId)
                 .map(crp -> crp.hasPermission(permission))
                 .orElse(false);

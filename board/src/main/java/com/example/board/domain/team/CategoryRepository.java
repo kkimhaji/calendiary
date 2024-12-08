@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.OptionalInt;
 
 public interface CategoryRepository extends JpaRepository<TeamCategory, Long> {
     @Query("SELECT crp FROM CategoryRolePermission crp " +
@@ -25,8 +26,11 @@ public interface CategoryRepository extends JpaRepository<TeamCategory, Long> {
             "WHERE tc.team.id = :teamId")
     List<TeamCategory> findAllByTeamWithPermissions(@Param("teamId") Long teamId);
 
+    Optional<Team> findTeamById(Long id);
 
-    Team findTeamById(Long id);
+    // 카테고리와 팀을 함께 조회 (N+1 문제 방지)
+    @Query("SELECT c FROM TeamCategory c JOIN FETCH c.team WHERE c.id = :categoryId")
+    Optional<TeamCategory> findWithTeamById(@Param("categoryId") Long categoryId);
 
     List<TeamCategory> findAllByTeam(Team team);
 }
