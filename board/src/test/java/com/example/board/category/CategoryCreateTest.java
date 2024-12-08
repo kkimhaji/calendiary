@@ -14,6 +14,7 @@ import com.example.board.service.CategoryService;
 import com.example.board.service.TeamRoleService;
 import com.example.board.service.TeamService;
 import com.example.board.support.AbstractTestSupport;
+import com.example.board.support.TestDataBuilder;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(MockitoExtension.class)
 @ComponentScan("com.example.board")
 public class CategoryCreateTest extends AbstractTestSupport {
+    @Autowired
+    private TestDataBuilder testDataBuilder;
 
     @Autowired
     private CategoryService categoryService;
@@ -44,27 +47,19 @@ public class CategoryCreateTest extends AbstractTestSupport {
     private Team team;
     private TeamMember teamMember;
     private TeamRole teamRole;
-    @Autowired
-    private TeamRoleService teamRoleService;
 
     @BeforeEach
     void init(){
-        var request = new TeamCreateRequestDTO("testTeam", "test");
-        team = teamService.createTeam(member1, request);
-        AddMemberRequestDTO dto = new AddMemberRequestDTO(team.getId(), team.getBasicRoleId(), member2.getMemberId());
-        teamMember = teamService.addMember(dto);
-        Set<TeamPermission> permissions = new HashSet<>(Arrays.asList(
-                CREATE_POST, DELETE_POST, MANAGE_ROLES, EDIT_POST, MANAGE_MEMBERS,
-                VIEW_POST
-        ));
-        var roleRequest = new CreateRoleRequest("test role", permissions, "role for test");
-        teamRole = teamRoleService.createRole(team.getId(), roleRequest);
+        team = testDataBuilder.createTeam(member1);
+        teamMember = testDataBuilder.addMemberToTeam(member2, team);
+        teamRole = testDataBuilder.createNewRole(team);
     }
 
     @Test
     void createCategoryTest(){
-        CategoryRolePermissionDTO dto = new CategoryRolePermissionDTO(teamRole.getId(), "VIEW_POST");
-        CreateCategoryRequest request = new CreateCategoryRequest("testCategory", "create category test", List.of(dto));
+        CategoryRolePermissionDTO dto1 = new CategoryRolePermissionDTO(teamRole.getId(), "VIEW_POST");
+        CategoryRolePermissionDTO dto2 = new CategoryRolePermissionDTO(teamRole.getId(), "MANAGE_ROLES");
+        CreateCategoryRequest request = new CreateCategoryRequest("testCategory", "create category test", List.of(dto1, dto2));
         TeamCategory newCategory = categoryService.createCategory(team.getId(), request);
 
         assertThat(newCategory.getName()).isEqualTo("testCategory");

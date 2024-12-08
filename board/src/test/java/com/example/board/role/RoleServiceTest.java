@@ -11,6 +11,7 @@ import com.example.board.permission.TeamPermission;
 import com.example.board.service.TeamRoleService;
 import com.example.board.service.TeamService;
 import com.example.board.support.AbstractTestSupport;
+import com.example.board.support.TestDataBuilder;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -40,20 +41,15 @@ public class RoleServiceTest extends AbstractTestSupport {
     private TeamRole teamRole;
     @Autowired
     private TeamService teamService;
+    @Autowired
+    private TestDataBuilder testDataBuilder;
 
 
     @BeforeEach
     void init(){
-        var request = new TeamCreateRequestDTO("testTeam", "test");
-        team = teamService.createTeam(member1, request);
-        AddMemberRequestDTO dto = new AddMemberRequestDTO(team.getId(), team.getBasicRoleId(), member2.getMemberId());
-        teamMember = teamService.addMember(dto);
-        Set<TeamPermission> permissions = new HashSet<>(Arrays.asList(
-                CREATE_POST, DELETE_POST, MANAGE_ROLES, EDIT_POST, MANAGE_MEMBERS,
-                VIEW_POST
-        ));
-        roleRequest = new CreateRoleRequest("test role", permissions, "role for test");
-        teamRole = teamRoleService.createRole(team.getId(), roleRequest);
+        team = testDataBuilder.createTeam(member1);
+        teamMember = testDataBuilder.addMemberToTeam(member2, team);
+        teamRole = testDataBuilder.createNewRole(team);
     }
 
     @Test

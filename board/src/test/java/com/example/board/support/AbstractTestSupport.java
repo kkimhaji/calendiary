@@ -22,7 +22,6 @@ public abstract class AbstractTestSupport {
 
     protected Member member1;
     protected Member member2;
-    protected Team team;
 
     @BeforeEach
     public void setUp(){

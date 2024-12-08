@@ -30,8 +30,6 @@ public class TeamServiceTest extends AbstractTestSupport{
     private Member member;
 
     @Autowired
-    private MemberRepository memberRepository;
-    @Autowired
     private TeamService teamService;
     @Autowired
     private TeamMemberService teamMemberService;

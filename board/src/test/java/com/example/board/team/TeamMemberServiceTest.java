@@ -8,6 +8,7 @@ import com.example.board.dto.team.TeamCreateRequestDTO;
 import com.example.board.service.TeamMemberService;
 import com.example.board.service.TeamService;
 import com.example.board.support.AbstractTestSupport;
+import com.example.board.support.TestDataBuilder;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,15 +30,15 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
     private TeamMemberService teamMemberService;
     @Autowired
     private TeamService teamService;
+    @Autowired
+    private TestDataBuilder testDataBuilder;
     private Team team;
     private TeamMember teamMember;
 
     @BeforeEach
     void init(){
-        var request = new TeamCreateRequestDTO("testTeam", "test");
-        team = teamService.createTeam(member1, request);
-        AddMemberRequestDTO dto = new AddMemberRequestDTO(team.getId(), team.getBasicRoleId(), member2.getMemberId());
-        teamMember = teamService.addMember(dto);
+        team = testDataBuilder.createTeam(member1);
+        teamMember = testDataBuilder.addMemberToTeam(member2, team);
     }
 
     @Test
