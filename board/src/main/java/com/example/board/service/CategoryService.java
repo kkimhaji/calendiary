@@ -40,8 +40,21 @@ public class CategoryService {
     public TeamCategory createCategory(Long teamId, CreateCategoryRequest request){
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new EntityNotFoundException("Team not found"));
-        TeamCategory category = categoryRepository.save(request.toEntity(team));
+        TeamCategory category = request.toEntity(team);
         Map<Long, TeamRole> teamRoles = getTeamRoles(team, request);
+        request.rolePermissions().forEach(rolePermDto -> {
+            TeamRole role = teamRoles.get(rolePermDto.roleId());
+            if (role == null) {
+                throw new EntityNotFoundException("Role not found: " + rolePermDto.roleId());
+            }
+            CategoryRolePermission permission = CategoryRolePermission.createPermission(
+                    category,
+                    role,
+                    rolePermDto.permissions()
+            );
+            category.addRolePermission(permission);
+        });
+        categoryRepository.save(category);
         List<CategoryRolePermission> categoryRolePermissions = request.toCategoryRolePermissions(category, teamRoles);
         categoryPermissionRepository.saveAll(categoryRolePermissions);
 

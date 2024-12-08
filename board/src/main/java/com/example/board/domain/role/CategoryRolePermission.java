@@ -1,18 +1,17 @@
 package com.example.board.domain.role;
 
+import com.example.board.domain.team.Team;
 import com.example.board.domain.team.TeamCategory;
 import com.example.board.permission.PermissionUtils;
 import com.example.board.permission.TeamPermission;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.Set;
 
 @Entity
 @Getter
-@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CategoryRolePermission {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,6 +31,17 @@ public class CategoryRolePermission {
         return PermissionUtils.hasPermission(this.permissions, permission);
     }
 
+    public static CategoryRolePermission createPermission(
+            TeamCategory category,
+            TeamRole role,
+            String permissions) {
+        CategoryRolePermission permission = new CategoryRolePermission();
+        permission.category = category;
+        permission.role = role;
+        permission.permissions = permissions;
+        return permission;
+    }
+
     public void addPermission(TeamPermission permission) {
         this.permissions = PermissionUtils.addPermission(this.permissions, permission);
     }
@@ -42,6 +52,14 @@ public class CategoryRolePermission {
             permissionBits = PermissionUtils.addPermission(permissionBits, permission);
         }
         this.permissions = permissionBits;
+    }
+
+    public void setCategory(TeamCategory category){
+        this.category = category;
+    }
+
+    public void setRole(TeamRole role){
+        this.role = role;
     }
 
    @Builder
