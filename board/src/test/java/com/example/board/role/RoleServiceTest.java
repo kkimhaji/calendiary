@@ -81,4 +81,15 @@ public class RoleServiceTest extends AbstractTestSupport {
         assertThat(teamRoleService.checkPermission(teamRole.getId(), VIEW_POST)).isTrue();
         assertThat(teamRoleService.checkPermission(teamRole.getId(), MANAGE_CATEGORIES)).isFalse();
     }
+
+    @Test
+    void deleteMemberFromRoleTest(){
+        var addRequest = new AddMembersToRoleRequest(teamRole.getId(), Collections.singletonList(member2.getMemberId()));
+        teamRoleService.addMemberToRole(team.getId(), addRequest);
+
+        //멤버를 역할에서 삭제하기 - 기본 역할
+        teamRoleService.removeMemberFromRole(team.getId(), member2.getMemberId(), null);
+
+        assertThat(teamMember.getRole().getRoleName()).isEqualTo("Member");
+    }
 }

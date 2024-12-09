@@ -20,6 +20,4 @@ public interface TeamRoleRepository extends JpaRepository<TeamRole, Long> {
 
     List<TeamRole> findAllByTeam(Team team);
     List<TeamRole> findAllByTeamId(Long teamId);
-
-    Optional<TeamRole> findByTeamIdAndName(Long teamId, String name);
 }
