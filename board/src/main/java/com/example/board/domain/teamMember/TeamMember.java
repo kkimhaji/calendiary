@@ -66,5 +66,9 @@ public class TeamMember {
         this.member = null;
         this.team = null;
     }
+
+    public void updateRole(TeamRole role){
+        this.role = role;
+    }
 }
 

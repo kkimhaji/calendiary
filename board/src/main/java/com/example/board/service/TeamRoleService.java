@@ -142,13 +142,38 @@ public class TeamRoleService {
         return new AddMembersToRoleResponse(role.getRoleName(), membersName);
     }
 
+    @Transactional
     //역할에서 멤버 삭제하는 기능 추가할 것 - '역할'기준으로
-    public void removeMembersFromRole(){
-        //빼는 멤버는 기본 역할 or 원하는 역할로 변경
-        //역할 지정 안 된 경우엔 기본 역할로
+    public void removeMemberFromRole(Long teamId, Long memberId, Long newRoleId){
+        //빼는 멤버는 기본 역할 or 원하는 역할로
+        if (newRoleId != null){
+            changeMemberRole(teamId, memberId, newRoleId);
+        }else{
+            //역할 지정 안 된 경우엔 기본 역할로
+            changeToDefaultRole(teamId, memberId);
+        }
+    }
+    // 특정 역할로 변경
+    private void changeMemberRole(Long teamId, Long memberId, Long newRoleId) {
+        TeamMember teamMember = teamMemberRepository.findByTeamIdAndMemberId(teamId, memberId)
+                .orElseThrow(() -> new EntityNotFoundException("TeamMember not found"));
 
+        TeamRole newRole = teamRoleRepository.findById(newRoleId)
+                .orElseThrow(() -> new EntityNotFoundException("New role not found"));
+
+        teamMember.updateRole(newRole);
     }
 
+    private void changeToDefaultRole(Long teamId, Long memberId) {
+        TeamMember teamMember = teamMemberRepository.findByTeamIdAndMemberId(teamId, memberId)
+                .orElseThrow(() -> new EntityNotFoundException("TeamMember not found"));
+
+        Team team = teamRepository.findById(teamId).orElseThrow(() -> new EntityNotFoundException("team not found"));
+        TeamRole defaultRole = teamRoleRepository.findById(team.getBasicRoleId()).orElseThrow(() -> new EntityNotFoundException("role not found"));
+        teamMember.updateRole(defaultRole);
+
+        teamMember.updateRole(defaultRole);
+    }
     //지정 역할로 변경하는 코드 따로 뺄 것
 
     //팀 삭제 시 사용되는 것 (기본 역할도 상관 없이 삭제)
