@@ -96,8 +96,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             @Param("postId") Long postId
     );
 
-
-
     // 최근 게시글 요약 정보
     @Query("SELECT new com.example.board.dto.post.PostSummaryDTO(" +
             "p.id, p.title, p.createdDate) " +
@@ -112,4 +110,11 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Modifying
     @Query("UPDATE Post p SET p.viewCount = p.viewCount + :count WHERE p.id = :postId")
     void updateViewCount(@Param("postId") Long postId, @Param("count") long count);
+
+    // 더 효율적인 쿼리 사용
+    @Query("SELECT p FROM Post p WHERE p.title LIKE %:keyword%")
+    List<Post> findByTitleContaining(@Param("keyword") String keyword);
+
+    @Query("SELECT p FROM Post p WHERE p.content LIKE %:keyword%")
+    List<Post> findByContentContaining(@Param("keyword") String keyword);
 }
