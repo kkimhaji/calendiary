@@ -50,7 +50,7 @@ public class CategoryServiceTest extends AbstractTestSupport {
     void init(){
         team = testDataBuilder.createTeam(member1);
         teamMember = testDataBuilder.addMemberToTeam(member2, team);
-        teamRole = testDataBuilder.createNewRole(team);
+        teamRole = testDataBuilder.createNewRole(team, "test role");
         category = testDataBuilder.createCategory(teamRole, team, member1);
     }
 

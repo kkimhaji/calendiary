@@ -5,8 +5,6 @@ import com.example.board.domain.team.Team;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.dto.role.AddMembersToRoleRequest;
 import com.example.board.dto.role.CreateRoleRequest;
-import com.example.board.dto.team.AddMemberRequestDTO;
-import com.example.board.dto.team.TeamCreateRequestDTO;
 import com.example.board.permission.TeamPermission;
 import com.example.board.service.TeamRoleService;
 import com.example.board.service.TeamService;
@@ -49,7 +47,7 @@ public class RoleServiceTest extends AbstractTestSupport {
     void init(){
         team = testDataBuilder.createTeam(member1);
         teamMember = testDataBuilder.addMemberToTeam(member2, team);
-        teamRole = testDataBuilder.createNewRole(team);
+        teamRole = testDataBuilder.createNewRole(team, "test role");
     }
 
     @Test
@@ -83,13 +81,24 @@ public class RoleServiceTest extends AbstractTestSupport {
     }
 
     @Test
-    void deleteMemberFromRoleTest(){
+    void deleteMemberFromRole_defaultRole(){
         var addRequest = new AddMembersToRoleRequest(teamRole.getId(), Collections.singletonList(member2.getMemberId()));
         teamRoleService.addMemberToRole(team.getId(), addRequest);
 
         //멤버를 역할에서 삭제하기 - 기본 역할
         teamRoleService.removeMemberFromRole(team.getId(), member2.getMemberId(), null);
-
         assertThat(teamMember.getRole().getRoleName()).isEqualTo("Member");
+        assertThat(teamMember.getRole().getId()).isEqualTo(team.getBasicRoleId());
+    }
+
+    @Test
+    void deleteMemberFromRole_changeRole(){
+        var addRequest = new AddMembersToRoleRequest(teamRole.getId(), Collections.singletonList(member2.getMemberId()));
+        teamRoleService.addMemberToRole(team.getId(), addRequest);
+
+        TeamRole newRole = testDataBuilder.createNewRole(team, "test role2");
+        teamRoleService.removeMemberFromRole(team.getId(), member2.getMemberId(), newRole.getId());
+
+        assertThat(teamMember.getRole().getId()).isEqualTo(newRole.getId());
     }
 }
