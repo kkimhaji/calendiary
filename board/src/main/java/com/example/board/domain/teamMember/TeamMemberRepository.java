@@ -3,6 +3,7 @@ package com.example.board.domain.teamMember;
 import com.example.board.domain.member.Member;
 import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.team.Team;
+import com.example.board.dto.team.TeamListDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -42,4 +43,9 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
             "WHERE t.id = :teamId AND m.id = :memberId")
     Optional<TeamMember> findByTeamIdAndMemberId(@Param("teamId") Long teamId, @Param("memberId") Long memberId);
 
+    @Query("SELECT new com.example.board.dto.TeamListDto(t.id, t.name) " +
+            "FROM Team t " +
+            "JOIN TeamMember tm ON t = tm.team " +
+            "WHERE tm.member.id = :memberId")
+    List<TeamListDTO> findTeamListByMemberId(@Param("memberId") Long memberId);
 }
