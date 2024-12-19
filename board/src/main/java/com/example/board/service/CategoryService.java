@@ -9,10 +9,7 @@ import com.example.board.domain.team.CategoryRepository;
 import com.example.board.domain.team.Team;
 import com.example.board.domain.team.TeamCategory;
 import com.example.board.domain.team.TeamRepository;
-import com.example.board.dto.category.CategoryResponse;
-import com.example.board.dto.category.CategoryRolePermissionDTO;
-import com.example.board.dto.category.CreateCategoryRequest;
-import com.example.board.dto.category.UpdateCategoryRequest;
+import com.example.board.dto.category.*;
 import com.example.board.permission.TeamPermission;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -133,4 +130,7 @@ public class CategoryService {
         categoryPermissionRepository.saveAll(newPermissions);
     }
 
+    public List<CategoryListDTO> getCategoryListByTeam(Long teamId){
+        return categoryRepository.findCategoryListByTeamId(teamId);
+    }
 }

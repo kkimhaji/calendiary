@@ -1,6 +1,7 @@
 package com.example.board.domain.team;
 
 import com.example.board.domain.role.CategoryRolePermission;
+import com.example.board.dto.category.CategoryListDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -33,4 +34,8 @@ public interface CategoryRepository extends JpaRepository<TeamCategory, Long> {
     Optional<TeamCategory> findWithTeamById(@Param("categoryId") Long categoryId);
 
     List<TeamCategory> findAllByTeam(Team team);
+
+    @Query("SELECT new com.example.board.dto.category.CategoryListDTO(c.id, c.name) " +
+            "FROM TeamCategory c WHERE c.team.id = :teamId")
+    List<CategoryListDTO> findCategoryListByTeamId(@Param("teamId") Long teamId);
 }
