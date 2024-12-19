@@ -3,7 +3,6 @@ package com.example.board.service;
 import com.example.board.config.AsyncConfig;
 import com.example.board.domain.post.Post;
 import com.example.board.domain.post.PostRepository;
-import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -38,7 +37,7 @@ public class PostSearchService {
                     Set<Post> combinedResults = new HashSet<>();
                     combinedResults.addAll(titleSearch.join());
                     combinedResults.addAll(contentSearch.join());
-                    
+
                     return new ArrayList<>(combinedResults);
                 })
                 .join();
