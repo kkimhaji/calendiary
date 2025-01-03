@@ -11,6 +11,7 @@ import com.example.board.domain.teamMember.TeamMemberRepository;
 import com.example.board.dto.team.AddMemberRequestDTO;
 import com.example.board.dto.team.TeamCreateRequestDTO;
 import com.example.board.dto.team.TeamCreateResponse;
+import com.example.board.dto.team.TeamInfoDTO;
 import com.example.board.permission.TeamPermission;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -58,6 +60,10 @@ public class TeamService {
         return teamRepository.save(newTeam);
 
 //        return TeamCreateResponse.fromEntity(newTeam);
+    }
+
+    public TeamInfoDTO getTeamInfo(Long teamId){
+        return teamRepository.findTeamDetailsById(teamId);
     }
 
     public void deleteTeam(Long teamId){

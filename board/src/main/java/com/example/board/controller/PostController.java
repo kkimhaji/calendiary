@@ -19,13 +19,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/teams/{teamId}/category/{categoryId}/posts")
+@RequestMapping("/teams/{teamId}")
 public class PostController {
 
     private final PostService postService;
     private final ImageService imageService;
 
-    @PostMapping
+    @PostMapping("/category/{categoryId}/posts")
     @PreAuthorize("@teamPermissionEvaluator.hasPermissionForCategory(principal, #categoryId, 'CREATE_POST')")
     public ResponseEntity<PostResponse> createPost(@PathVariable Long teamId, @PathVariable Long categoryId, @RequestBody CreatePostRequest request, @AuthenticationPrincipal Member member) throws FileUploadException {
         Post post = postService.createPost(teamId, categoryId, request, member);
@@ -33,7 +33,7 @@ public class PostController {
     }
 
     //카테고리의 글 조회
-    @GetMapping
+    @GetMapping("/category/{categoryId}/posts")
     @PreAuthorize("@teamPermissionEvaluator.hasPermissionForCategory(principal, #categoryId, 'VIEW_POST')")
     public ResponseEntity<Page<PostListResponse>> getPosts(
             @PathVariable Long teamId, @PathVariable Long categoryId,
@@ -44,19 +44,19 @@ public class PostController {
         return ResponseEntity.ok(posts);
     }
 
-    @GetMapping("/{postId}")
+    @GetMapping("/category/{categoryId}/posts/{postId}")
     @PreAuthorize("@teamPermissionEvaluator.hasPermissionForCategory(principal, #categoryId, 'VIEW_POST')")
     public ResponseEntity<PostDetailDTO> getPost(@PathVariable Long postId) {
         return ResponseEntity.ok(postService.getPostDetail(postId));
     }
 
-    @PostMapping("/delete")
+    @PostMapping("/category/{categoryId}/posts/delete/{postId}")
     @PreAuthorize("@teamPermissionEvaluator.hasPermissionForCategory(principal, #categoryId, 'DELETE_POST')")
     public void deletePost(@PathVariable Long teamId, @PathVariable Long categoryId, @PathVariable Long postId, @AuthenticationPrincipal Member member) {
         postService.deletePost(postId, member, categoryId, teamId);
     }
 
-    @PostMapping("/images")
+    @PostMapping("/category/{categoryId}/posts/{postId}/images")
     // CK Editor는 'upload'로 파일 전송
     public ResponseEntity<ImageResponse> uploadImages(@RequestParam("upload") MultipartFile file) {
         try {
@@ -68,7 +68,7 @@ public class PostController {
         }
     }
 
-    @PutMapping("/{postId}")
+    @PutMapping("/category/{categoryId}/posts/{postId}")
     public ResponseEntity<PostResponse> updatePost(@PathVariable Long postId, @PathVariable Long teamId, @PathVariable Long categoryId, @RequestBody UpdatePostRequestDTO request, @AuthenticationPrincipal Member member) throws FileUploadException {
         return ResponseEntity.ok(postService.updatePost(teamId, categoryId, postId, member, request));
     }

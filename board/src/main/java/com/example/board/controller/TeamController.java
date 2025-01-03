@@ -4,6 +4,7 @@ import com.example.board.domain.member.Member;
 import com.example.board.dto.team.AddMemberRequestDTO;
 import com.example.board.dto.team.TeamCreateRequestDTO;
 import com.example.board.dto.team.TeamCreateResponse;
+import com.example.board.dto.team.TeamInfoDTO;
 import com.example.board.service.MemberService;
 import com.example.board.service.TeamService;
 import lombok.RequiredArgsConstructor;
@@ -41,4 +42,8 @@ public class TeamController {
         teamService.deleteTeam(teamId);
     }
 
+    @GetMapping("/{teamId}")
+    public ResponseEntity<TeamInfoDTO> getTeamInfo(@PathVariable Long teamId){
+        return ResponseEntity.ok(teamService.getTeamInfo(teamId));
+    }
 }

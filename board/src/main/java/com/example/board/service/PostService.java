@@ -3,7 +3,6 @@ package com.example.board.service;
 import com.example.board.config.HtmlSanitizer;
 import com.example.board.domain.member.Member;
 import com.example.board.domain.post.*;
-import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.team.CategoryRepository;
 import com.example.board.domain.team.Team;
 import com.example.board.domain.team.TeamCategory;
@@ -104,7 +103,7 @@ public class PostService {
     //최근 게시글 조회
     @Transactional(readOnly = true)
     @Cacheable(value = "recentPosts", key = "#categoryId")
-    public List<PostSummaryDTO> getRecentPosts(Long categoryId, int limit) {
+    public List<PostSummaryDTO> getRecentCategoryPosts(Long categoryId, int limit) {
         return postRepository.findRecentPostsByCategoryId(categoryId, PageRequest.of(0, limit));
     }
 

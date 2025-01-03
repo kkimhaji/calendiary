@@ -28,8 +28,9 @@ public class MemberController {
         return ResponseEntity.ok(member);
     }
 
-    @GetMapping("getTeam")
+    @GetMapping("/getTeam")
     public ResponseEntity<List<TeamListDTO>> getTeams(@AuthenticationPrincipal Member member){
+        System.out.println("get team by member");
         return ResponseEntity.ok(teamMemberService.getTeams(member));
     }
 }
