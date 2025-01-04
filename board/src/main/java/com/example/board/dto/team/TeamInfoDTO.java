@@ -6,8 +6,8 @@ public record TeamInfoDTO(
         Long id,
         String name,
         String description,
-        String createdBy,
+        String created_by,
         LocalDateTime createdAt,
-        int memberCount
+        long memberCount
 ) {
 }

@@ -63,7 +63,8 @@ public class TeamService {
     }
 
     public TeamInfoDTO getTeamInfo(Long teamId){
-        return teamRepository.findTeamDetailsById(teamId);
+        return teamRepository.findTeamDetailsById(teamId)
+                .orElseThrow(() -> new EntityNotFoundException("Team not found"));
     }
 
     public void deleteTeam(Long teamId){

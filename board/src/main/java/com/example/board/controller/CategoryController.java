@@ -20,7 +20,7 @@ public class CategoryController {
 
     private final CategoryService categoryService;
 
-    @PostMapping
+    @PostMapping("/create")
     @PreAuthorize("hasPermission(@teamRepository.findById(#teamId).orElse(null), 'MANAGE_CATEGORIES')")
     public ResponseEntity<CategoryResponse> createCategory(@PathVariable Long teamId, @RequestBody CreateCategoryRequest request) {
         TeamCategory category = categoryService.createCategory(teamId, request);

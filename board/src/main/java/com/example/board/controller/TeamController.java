@@ -35,7 +35,6 @@ public class TeamController {
     }
 
     //팀 삭제 시 role과 teamMember 정보, category&post도 삭제
-
     @DeleteMapping("/delete/{teamId}")
     @PreAuthorize("hasPermission(#team, 'ADMIN')")
     public void deleteTeam(@PathVariable Long teamId){
