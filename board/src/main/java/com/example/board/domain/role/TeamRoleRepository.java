@@ -1,6 +1,7 @@
 package com.example.board.domain.role;
 
 import com.example.board.domain.team.Team;
+import com.example.board.dto.role.TeamRoleDetailDto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -20,4 +21,11 @@ public interface TeamRoleRepository extends JpaRepository<TeamRole, Long> {
 
     List<TeamRole> findAllByTeam(Team team);
     List<TeamRole> findAllByTeamId(Long teamId);
+
+    @Query("SELECT new com.example.board.dto.role.TeamRoleDetailDto(" +
+            "tr.id, tr.name, tr.permissions, " +
+            "(SELECT COUNT(tm) FROM TeamMember tm WHERE tm.teamRole = tr)) " +
+            "FROM TeamRole tr " +
+            "WHERE tr.team.id = :teamId")
+    List<TeamRoleDetailDto> findTeamRoleDetailsWithMemberCount(@Param("teamId") Long teamId);
 }
