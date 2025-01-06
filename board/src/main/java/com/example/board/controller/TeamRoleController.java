@@ -1,10 +1,7 @@
 package com.example.board.controller;
 
 import com.example.board.domain.role.TeamRole;
-import com.example.board.dto.role.AddMembersToRoleRequest;
-import com.example.board.dto.role.AddMembersToRoleResponse;
-import com.example.board.dto.role.CreateRoleRequest;
-import com.example.board.dto.role.TeamRoleResponse;
+import com.example.board.dto.role.*;
 import com.example.board.permission.TeamPermission;
 import com.example.board.service.TeamRoleService;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Set;
 
 @RestController
@@ -47,5 +45,12 @@ public class TeamRoleController {
     public ResponseEntity<AddMembersToRoleResponse> addMembersToRole(@PathVariable Long teamId, @RequestBody AddMembersToRoleRequest request){
         return ResponseEntity.ok(teamRoleService.addMemberToRole(teamId, request));
     }
+
+    @GetMapping("/get")
+    public ResponseEntity<List<TeamRoleDetailDto>> getRoles(@PathVariable Long teamId){
+        return ResponseEntity.ok(teamRoleService.getRolesByTeam(teamId));
+    }
+
+
 
 }

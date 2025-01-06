@@ -13,6 +13,7 @@ import com.example.board.domain.teamMember.TeamMemberRepository;
 import com.example.board.dto.role.AddMembersToRoleRequest;
 import com.example.board.dto.role.AddMembersToRoleResponse;
 import com.example.board.dto.role.CreateRoleRequest;
+import com.example.board.dto.role.TeamRoleDetailDto;
 import com.example.board.exception.RoleDeletionException;
 import com.example.board.permission.PermissionUtils;
 import com.example.board.permission.TeamPermission;
@@ -34,7 +35,6 @@ public class TeamRoleService {
     private final TeamRoleRepository teamRoleRepository;
     private final TeamMemberRepository teamMemberRepository;
     private final CategoryPermissionRepository permissionRepository;
-
 
     public TeamRole createRole(Long teamId, CreateRoleRequest request) {
         Team team = teamRepository.findById(teamId)
@@ -186,6 +186,10 @@ public class TeamRoleService {
         List<TeamRole> roles = teamRoleRepository.findAllByTeam(team);
         roles.forEach(role -> role.setMembers(null));
         teamRoleRepository.deleteAll(roles);
+    }
+
+    public List<TeamRoleDetailDto> getRolesByTeam(Long teamId){
+        return teamRoleRepository.findTeamRoleDetailsWithMemberCount(teamId);
     }
 
 }

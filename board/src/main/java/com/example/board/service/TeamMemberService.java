@@ -4,6 +4,7 @@ import com.example.board.domain.member.Member;
 import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.teamMember.TeamMemberRepository;
+import com.example.board.dto.member.TeamMemberDto;
 import com.example.board.dto.team.TeamListDTO;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +38,10 @@ public class TeamMemberService {
     public List<TeamListDTO> getTeams(Member member){
         Long memberId = member.getMemberId();
         return teamMemberRepository.findTeamListByMemberId(memberId);
+    }
+
+    public List<TeamMemberDto> getMembersByRole(Long roleId){
+        return teamMemberRepository.findMembersByRoleId(roleId);
     }
 
 }
