@@ -83,7 +83,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             "FROM Post p " +
             "WHERE p.team.id = :teamId " +
             "ORDER BY p.createdDate DESC")
-    List<PostSummaryDTO> findRecentPostsByTeamId(
+    Optional<List<PostSummaryDTO>> findRecentPostsByTeamId(
             @Param("teamId") Long teamId,
             Pageable pageable
     );

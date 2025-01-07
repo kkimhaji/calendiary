@@ -17,6 +17,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/teams/{teamId}")
@@ -71,5 +73,13 @@ public class PostController {
     @PutMapping("/category/{categoryId}/posts/{postId}")
     public ResponseEntity<PostResponse> updatePost(@PathVariable Long postId, @PathVariable Long teamId, @PathVariable Long categoryId, @RequestBody UpdatePostRequestDTO request, @AuthenticationPrincipal Member member) throws FileUploadException {
         return ResponseEntity.ok(postService.updatePost(teamId, categoryId, postId, member, request));
+    }
+
+    //팀의 최근 게시글 목록 조회
+    @GetMapping("/recent")
+    public ResponseEntity<List<PostSummaryDTO>> getRecentPosts(
+            @PathVariable Long teamId,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
+        return ResponseEntity.ok(postService.getRecentPosts(teamId, pageable));
     }
 }
