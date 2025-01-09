@@ -10,10 +10,7 @@ import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.role.TeamRoleRepository;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.teamMember.TeamMemberRepository;
-import com.example.board.dto.role.AddMembersToRoleRequest;
-import com.example.board.dto.role.AddMembersToRoleResponse;
-import com.example.board.dto.role.CreateRoleRequest;
-import com.example.board.dto.role.TeamRoleDetailDto;
+import com.example.board.dto.role.*;
 import com.example.board.exception.RoleDeletionException;
 import com.example.board.permission.PermissionUtils;
 import com.example.board.permission.TeamPermission;
@@ -190,6 +187,10 @@ public class TeamRoleService {
 
     public List<TeamRoleDetailDto> getRolesByTeam(Long teamId){
         return teamRoleRepository.findTeamRoleDetailsWithMemberCount(teamId);
+    }
+
+    public List<TeamRoleInfoDTO> getRolesInfo(Long teamId){
+        return teamRoleRepository.findTeamRoleInfo(teamId);
     }
 
 }

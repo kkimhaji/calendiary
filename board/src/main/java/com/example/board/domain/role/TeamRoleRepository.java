@@ -2,6 +2,7 @@ package com.example.board.domain.role;
 
 import com.example.board.domain.team.Team;
 import com.example.board.dto.role.TeamRoleDetailDto;
+import com.example.board.dto.role.TeamRoleInfoDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -28,4 +29,10 @@ public interface TeamRoleRepository extends JpaRepository<TeamRole, Long> {
             "FROM TeamRole tr " +
             "WHERE tr.team.id = :teamId")
     List<TeamRoleDetailDto> findTeamRoleDetailsWithMemberCount(@Param("teamId") Long teamId);
+
+    @Query("SELECT new com.example.board.dto.role.TeamRoleInfoDTO(" +
+            "tr.id, tr.roleName, " +
+            "FROM TeamRole tr " +
+            "WHERE tr.team.id = :teamId")
+    List<TeamRoleInfoDTO> findTeamRoleInfo(@Param("teamId") Long teamId);
 }

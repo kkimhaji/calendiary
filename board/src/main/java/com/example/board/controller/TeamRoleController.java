@@ -47,10 +47,14 @@ public class TeamRoleController {
     }
 
     @GetMapping("/get")
-    public ResponseEntity<List<TeamRoleDetailDto>> getRoles(@PathVariable Long teamId){
+    public ResponseEntity<List<TeamRoleDetailDto>> getRolesWithCount(@PathVariable Long teamId){
         return ResponseEntity.ok(teamRoleService.getRolesByTeam(teamId));
     }
 
-
+    //카테고리 생성 시 권한을 주기 위해
+    @GetMapping("/get_roles")
+    public ResponseEntity<List<TeamRoleInfoDTO>> getRoles(@PathVariable Long teamId){
+        return ResponseEntity.ok(teamRoleService.getRolesInfo(teamId));
+    }
 
 }
