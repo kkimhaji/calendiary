@@ -24,6 +24,8 @@ spring:
           starttls.enable: true
 
 security:
+  debug:
+    true
   jwt:
     secret-key: ${JWT_SECRET_KEY}
     expiration: 86400000 # one day
@@ -33,3 +35,9 @@ security:
 file:
   upload:
     location: ${FILE_LOCATION}
+
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
