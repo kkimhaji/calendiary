@@ -65,10 +65,7 @@ public class TeamRoleService {
     }
 
     public TeamRole createAdmin(Team team){
-        Set<TeamPermission> adminPermissions = new HashSet<>(Arrays.asList(
-                CREATE_POST, DELETE_POST, MANAGE_ROLES, EDIT_POST, MANAGE_MEMBERS,
-                VIEW_POST, CREATE_COMMENT, DELETE_COMMENT
-        ));
+        Set<TeamPermission> adminPermissions = new HashSet<>(Arrays.asList(TeamPermission.values()));
         CreateRoleRequest request = new CreateRoleRequest("ADMIN", adminPermissions, "who made this team");
         return createRole(team.getId(), request);
     }
