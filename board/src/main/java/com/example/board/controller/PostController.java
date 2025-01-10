@@ -47,7 +47,7 @@ public class PostController {
     }
 
     @GetMapping("/category/{categoryId}/posts/{postId}")
-    @PreAuthorize("@teamPermissionEvaluator.hasPermissionForCategory(principal, #categoryId, 'VIEW_POST')")
+    @PreAuthorize("@hasPermissionForCategory(principal, #categoryId, 'VIEW_POST')")
     public ResponseEntity<PostDetailDTO> getPost(@PathVariable Long postId) {
         return ResponseEntity.ok(postService.getPostDetail(postId));
     }

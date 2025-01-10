@@ -28,7 +28,7 @@ public class CategoryController {
     }
 
     @PutMapping("/update/{categoryId}")
-    @PreAuthorize("hasPermission(@teamRepository.findById(#teamId).orElse(null), 'MANAGE_CATEGORIES')")
+    @PreAuthorize("hasPermissionForCategory(@teamRepository.findById(#teamId).orElse(null), 'MANAGE_CATEGORIES')")
     public ResponseEntity<CategoryResponse> updateCategory(@PathVariable Long teamId, @PathVariable Long categoryId, @RequestBody UpdateCategoryRequest request){
         return ResponseEntity.ok(categoryService.updateCategory(teamId, categoryId, request));
     }

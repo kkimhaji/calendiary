@@ -48,7 +48,7 @@ public class TestDataBuilder {
     public TeamRole createNewRole(Team team, String roleName){
         Set<TeamPermission> permissions = new HashSet<>(Arrays.asList(
                 CREATE_POST, DELETE_POST, MANAGE_ROLES, EDIT_POST, MANAGE_MEMBERS,
-                VIEW_POST
+                VIEW_POST, MANAGE_CATEGORIES
         ));
         var roleRequest = new CreateRoleRequest(roleName, permissions, "role for test");
         return teamRoleService.createRole(team.getId(), roleRequest);
