@@ -8,7 +8,7 @@ import java.util.Set;
 @Component
 public class PermissionUtils {
 
-    public static String addPermission(String current, TeamPermission permission) {
+    public static <T extends Enum<T> & PermissionType> String addPermission(String current, T permission) {
         StringBuilder binary = new StringBuilder(current);
         while (binary.length() <= permission.getPosition()) {
             binary.insert(0, "0");
@@ -17,60 +17,63 @@ public class PermissionUtils {
         return binary.toString();
     }
 
-    public static boolean hasPermission(String permissions, TeamPermission permission) {
+    public static <T extends Enum<T> & PermissionType> boolean hasPermission(String permissions, T permission) {
         if (permission.getPosition() >= permissions.length()) {
             return false;
         }
         return permissions.charAt(permissions.length() - 1 - permission.getPosition()) == '1';
     }
 
-    public static String createPermissionBits(Set<TeamPermission> permissions) {
+    public static <T extends Enum<T> & PermissionType> String createPermissionBits(Set<T> permissions) {
         String bits = "0";
-        for (TeamPermission permission : permissions) {
+        for (T permission : permissions) {
             bits = addPermission(bits, permission);
         }
         return bits;
     }
 
-    public static Set<TeamPermission> getPermissionsFromBits(String permissionBits) {
-        Set<TeamPermission> permissions = new HashSet<>();
-        for (TeamPermission permission : TeamPermission.values()) {
+    public static <T extends Enum<T> & PermissionType> Set<T> getPermissionsFromBits(
+            String permissionBits, Class<T> enumClass) {
+        Set<T> permissions = new HashSet<>();
+        for (T permission : enumClass.getEnumConstants()) {
             if (hasPermission(permissionBits, permission)) {
                 permissions.add(permission);
             }
         }
         return permissions;
     }
-
-
-//String
-//    public static String addPermission(String current, int position) {
-//        char[] bits = current.toCharArray();
-//        if (position >= bits.length) {
-//            // 새로운 비트열 생성
-//            char[] newBits = new char[position + 1];
-//            Arrays.fill(newBits, '0');
-//            System.arraycopy(bits, 0, newBits, newBits.length - bits.length, bits.length);
-//            bits = newBits;
+//    public static String addPermission(String current, TeamPermission permission) {
+//        StringBuilder binary = new StringBuilder(current);
+//        while (binary.length() <= permission.getPosition()) {
+//            binary.insert(0, "0");
 //        }
-//        bits[bits.length - 1 - position] = '1';
-//        return new String(bits);
+//        binary.setCharAt(binary.length() - 1 - permission.getPosition(), '1');
+//        return binary.toString();
 //    }
 //
-//    public static String removePermission(String current, int position) {
-//        if (position >= current.length()) {
-//            return current;
-//        }
-//        char[] bits = current.toCharArray();
-//        bits[bits.length - 1 - position] = '0';
-//        return new String(bits);
-//    }
-//
-//    public static boolean hasPermission(String permissions, int position) {
-//        if (position >= permissions.length()) {
+//    public static boolean hasPermission(String permissions, TeamPermission permission) {
+//        if (permission.getPosition() >= permissions.length()) {
 //            return false;
 //        }
-//        return permissions.charAt(permissions.length() - 1 - position) == '1';
+//        return permissions.charAt(permissions.length() - 1 - permission.getPosition()) == '1';
+//    }
+//
+//    public static String createPermissionBits(Set<TeamPermission> permissions) {
+//        String bits = "0";
+//        for (TeamPermission permission : permissions) {
+//            bits = addPermission(bits, permission);
+//        }
+//        return bits;
+//    }
+//
+//    public static Set<TeamPermission> getPermissionsFromBits(String permissionBits) {
+//        Set<TeamPermission> permissions = new HashSet<>();
+//        for (TeamPermission permission : TeamPermission.values()) {
+//            if (hasPermission(permissionBits, permission)) {
+//                permissions.add(permission);
+//            }
+//        }
+//        return permissions;
 //    }
 
 }
