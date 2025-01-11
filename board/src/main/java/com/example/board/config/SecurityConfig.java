@@ -1,6 +1,9 @@
 package com.example.board.config;
 
 import com.example.board.auth.JwtAuthenticationFilter;
+import com.example.board.domain.team.Team;
+import com.example.board.domain.team.TeamCategory;
+import com.example.board.permission.CategoryPermissionEvaluator;
 import com.example.board.permission.TeamPermissionEvaluator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -14,6 +17,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -22,6 +26,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Configuration
@@ -34,6 +39,7 @@ public class SecurityConfig {
     private final AuthenticationProvider authenticationProvider;
     private final LogoutHandler logoutHandler;
     private final TeamPermissionEvaluator teamPermissionEvaluator;
+    private final CategoryPermissionEvaluator categoryPermissionEvaluator;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -60,9 +66,30 @@ public class SecurityConfig {
     public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
         DefaultMethodSecurityExpressionHandler expressionHandler =
                 new DefaultMethodSecurityExpressionHandler();
-        expressionHandler.setPermissionEvaluator(teamPermissionEvaluator);
+        expressionHandler.setPermissionEvaluator(new DelegatingPermissionEvaluator());
         return expressionHandler;
     }
 
+    private class DelegatingPermissionEvaluator implements PermissionEvaluator {
+        @Override
+        public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {
+            if (targetDomainObject instanceof Team) {
+                return teamPermissionEvaluator.hasPermission(authentication, targetDomainObject, permission);
+            } else if (targetDomainObject instanceof TeamCategory) {
+                return categoryPermissionEvaluator.hasPermission(authentication, targetDomainObject, permission);
+            }
+            return false;
+        }
 
+        @Override
+        public boolean hasPermission(Authentication authentication, Serializable targetId, String targetType, Object permission) {
+            if ("Team".equals(targetType)) {
+                return teamPermissionEvaluator.hasPermission(authentication, targetId, targetType, permission);
+            } else if ("Category".equals(targetType)) {
+                return categoryPermissionEvaluator.hasPermission(authentication, targetId, targetType, permission);
+            }
+            return false;
+        }
+
+    }
 }
