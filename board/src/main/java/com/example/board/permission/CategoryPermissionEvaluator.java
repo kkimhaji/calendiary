@@ -2,10 +2,14 @@ package com.example.board.permission;
 
 import com.example.board.domain.member.Member;
 import com.example.board.domain.role.TeamRole;
+import com.example.board.domain.role.TeamRoleRepository;
 import com.example.board.domain.team.CategoryRepository;
+import com.example.board.domain.team.TeamCategory;
+import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.service.CategoryService;
 import com.example.board.service.TeamMemberService;
 import com.sun.security.auth.UserPrincipal;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
@@ -16,6 +20,8 @@ import java.io.Serializable;
 @RequiredArgsConstructor
 public class CategoryPermissionEvaluator implements CustomPermissionEvaluator{
     private final CategoryService categoryService;
+    private final CategoryRepository categoryRepository;
+    private final TeamRoleRepository teamRoleRepository;
 
 //    public boolean hasPermission(Long categoryId, Authentication authentication, String permission) {
 //        Member member = (Member) authentication.getPrincipal();
@@ -32,11 +38,13 @@ public class CategoryPermissionEvaluator implements CustomPermissionEvaluator{
             return false;
         }
 
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        Category category = (Category) targetDomainObject;
+        Member member = (Member) authentication.getPrincipal();
+        TeamCategory category = (TeamCategory) targetDomainObject;
         CategoryPermission categoryPermission = (CategoryPermission) permission;
 
-        CategoryRole role = categoryRoleService.findByUserAndCategory(userPrincipal.getUser(), category);
+        TeamRole role = teamRoleRepository.findByTeamAndMember(category.getTeam(), member)
+                .orElseThrow(() -> new EntityNotFoundException("팀 멤버를 찾을 수 없습니다."));
+
         return PermissionUtils.hasPermission(role.getPermissions(), categoryPermission);
     }
 
@@ -46,7 +54,7 @@ public class CategoryPermissionEvaluator implements CustomPermissionEvaluator{
             return false;
         }
 
-        Category category = categoryService.findById((Long) targetId);
+        TeamCategory category = categoryRepository.findById((Long) targetId).orElseThrow(() -> new EntityNotFoundException("category not found"));
         return hasPermission(authentication, category, permission);
     }
 }

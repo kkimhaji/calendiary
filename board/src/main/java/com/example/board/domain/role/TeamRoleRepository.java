@@ -1,5 +1,6 @@
 package com.example.board.domain.role;
 
+import com.example.board.domain.member.Member;
 import com.example.board.domain.team.Team;
 import com.example.board.dto.role.TeamRoleDetailDto;
 import com.example.board.dto.role.TeamRoleInfoDTO;
@@ -35,4 +36,11 @@ public interface TeamRoleRepository extends JpaRepository<TeamRole, Long> {
             "FROM TeamRole tr " +
             "WHERE tr.team.id = :teamId")
     List<TeamRoleInfoDTO> findTeamRoleInfo(@Param("teamId") Long teamId);
+
+    // 성능 최적화를 위한 fetch join 버전
+    @Query("SELECT tr FROM TeamRole tr " +
+            "LEFT JOIN FETCH tr.members tm " +
+            "WHERE tr.team = :team AND tr.id = " +
+            "(SELECT tm2.role.id FROM TeamMember tm2 WHERE tm2.team = :team AND tm2.member = :member)")
+    Optional<TeamRole> findByTeamAndMember(@Param("team") Team team, @Param("member") Member member);
 }

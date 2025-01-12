@@ -6,6 +6,7 @@ import com.example.board.domain.role.CategoryRolePermission;
 import com.example.board.domain.team.CategoryRepository;
 import com.example.board.domain.team.Team;
 import com.example.board.domain.team.TeamCategory;
+import com.example.board.domain.team.TeamRepository;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.teamMember.TeamMemberRepository;
 import com.example.board.service.TeamMemberService;
@@ -24,10 +25,7 @@ import java.nio.file.attribute.UserPrincipal;
 public class TeamPermissionEvaluator implements CustomPermissionEvaluator {
 
     private final TeamMemberRepository teamMemberRepository;
-    private final CategoryRepository categoryRepository;
-    private final TeamMemberService teamMemberService;
-    private final CategoryPermissionRepository categoryPermissionRepository;
-    private final TeamService teamService;
+    private final TeamRepository teamRepository;
 
     @Override
     public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {
@@ -35,12 +33,12 @@ public class TeamPermissionEvaluator implements CustomPermissionEvaluator {
             return false;
         }
 
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        Team team = (Team) targetDomainObject;
+        Member member = (Member) authentication.getPrincipal();
+        Long teamId = ((Team) targetDomainObject).getId();
         TeamPermission teamPermission = (TeamPermission) permission;
 
-        TeamMember member = teamMemberService.findByTeamAndUser(team, userPrincipal.getUser());
-        return PermissionUtils.hasPermission(member.getRole().getPermissions(), teamPermission);
+        TeamMember teamMember = teamMemberRepository.findByTeamIdAndMember(teamId, member).orElseThrow(() -> new EntityNotFoundException("Team member not found"));
+        return PermissionUtils.hasPermission(teamMember.getRole().getPermissions(), teamPermission);
     }
 
     @Override
@@ -49,7 +47,7 @@ public class TeamPermissionEvaluator implements CustomPermissionEvaluator {
             return false;
         }
 
-        Team team = teamService.findById((Long) targetId);
+        Team team = teamRepository.findById((Long) targetId).orElseThrow(() -> new EntityNotFoundException("Team not found"));
         return hasPermission(authentication, team, permission);
     }
 

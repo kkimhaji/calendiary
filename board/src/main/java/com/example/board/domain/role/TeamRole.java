@@ -64,7 +64,7 @@ public class TeamRole {
     }
 
     public Set<TeamPermission> getPermissionSet() {
-        return PermissionUtils.getPermissionsFromBits(this.permissions);
+        return PermissionUtils.getPermissionsFromBits(this.permissions, TeamPermission.class);
     }
 
     @Builder
