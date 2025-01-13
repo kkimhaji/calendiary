@@ -5,8 +5,6 @@ import com.example.board.domain.role.TeamRoleRepository;
 import com.example.board.domain.team.Team;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.dto.role.CreateRoleRequest;
-import com.example.board.dto.team.AddMemberRequestDTO;
-import com.example.board.dto.team.TeamCreateRequestDTO;
 import com.example.board.permission.PermissionUtils;
 import com.example.board.permission.TeamPermission;
 import com.example.board.service.TeamRoleService;
@@ -19,8 +17,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.security.web.authentication.www.NonceExpiredException;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -32,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @ExtendWith(MockitoExtension.class)
 @ComponentScan("com.example.board")
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Transactional
 public class RoleCreateTest extends AbstractTestSupport {
     @Autowired
@@ -54,8 +55,7 @@ public class RoleCreateTest extends AbstractTestSupport {
     @Test
     void createRoleTest(){
         Set<TeamPermission> permissions = new HashSet<>(Arrays.asList(
-                CREATE_POST, DELETE_POST, MANAGE_ROLES, EDIT_POST, MANAGE_MEMBERS,
-                VIEW_POST
+                MANAGE_ROLES, MANAGE_MEMBERS
         ));
         var request = new CreateRoleRequest("testRole", permissions,"test create role");
         TeamRole createdRole = teamRoleService.createRole(team.getId(), request);
@@ -68,8 +68,7 @@ public class RoleCreateTest extends AbstractTestSupport {
     @Test
     void deleteRoleTest(){
         Set<TeamPermission> permissions = new HashSet<>(Arrays.asList(
-                CREATE_POST, DELETE_POST, MANAGE_ROLES, EDIT_POST, MANAGE_MEMBERS,
-                VIEW_POST
+                MANAGE_ROLES, MANAGE_MEMBERS
         ));
         var request = new CreateRoleRequest("testRole", permissions,"test create role");
         TeamRole createdRole = teamRoleService.createRole(team.getId(), request);

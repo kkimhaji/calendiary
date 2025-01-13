@@ -24,7 +24,8 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 import static com.example.board.permission.TeamPermission.*;
-import static com.example.board.permission.TeamPermission.VIEW_POST;
+import static com.example.board.permission.CategoryPermission.*;
+
 
 @Component
 @RequiredArgsConstructor
@@ -47,8 +48,7 @@ public class TestDataBuilder {
 
     public TeamRole createNewRole(Team team, String roleName){
         Set<TeamPermission> permissions = new HashSet<>(Arrays.asList(
-                CREATE_POST, DELETE_POST, MANAGE_ROLES, EDIT_POST, MANAGE_MEMBERS,
-                VIEW_POST, MANAGE_CATEGORIES
+                MANAGE_ROLES,MANAGE_MEMBERS
         ));
         var roleRequest = new CreateRoleRequest(roleName, permissions, "role for test");
         return teamRoleService.createRole(team.getId(), roleRequest);

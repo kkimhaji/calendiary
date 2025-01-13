@@ -16,8 +16,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class TestDataFactory {
     private final MemberRepository memberRepository;
-    private final TeamRepository teamRepository;
-    private final TeamRoleRepository teamRoleRepository;
     private final PasswordEncoder passwordEncoder;
 
     public Member createMember(String email, String nickname, String password){

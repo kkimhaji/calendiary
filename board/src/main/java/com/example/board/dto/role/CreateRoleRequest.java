@@ -13,9 +13,9 @@ public record CreateRoleRequest(String roleName, Set<TeamPermission> permissions
     public CreateRoleRequest{
         Objects.requireNonNull(roleName, "Role name must not be null");
         Objects.requireNonNull(permissions, "Permissions must not be null");
-        if (permissions.isEmpty()){
-            throw new IllegalArgumentException("At least one permission is required");
-        }
+//        if (permissions.isEmpty()){
+//            throw new IllegalArgumentException("At least one permission is required");
+//        }
     }
 
     public TeamRole toEntity(Team team){

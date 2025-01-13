@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
 
@@ -28,13 +29,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.example.board.permission.TeamPermission.*;
-import static com.example.board.permission.TeamPermission.VIEW_POST;
+import static com.example.board.permission.CategoryPermission.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @ExtendWith(MockitoExtension.class)
 @ComponentScan("com.example.board")
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public class CategoryServiceTest extends AbstractTestSupport {
 
     @Autowired

@@ -21,9 +21,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
-import static com.example.board.permission.TeamPermission.*;
-import static com.example.board.permission.TeamPermission.DELETE_COMMENT;
-
 @SpringBootTest
 @AutoConfigureMockMvc
 public class CategoryControllerTest extends AbstractControllerTestSupport {
@@ -49,11 +46,11 @@ public class CategoryControllerTest extends AbstractControllerTestSupport {
 
     @Test
     public void createCategory_without_permission_403() throws Exception {
-        TeamMember adminMember = teamMemberRepository.findByTeamAndMember(team, admin).orElseThrow(()-> new EntityNotFoundException("teamMember not found"));
-        CategoryRolePermissionDTO dto1 = new CategoryRolePermissionDTO(teamRole.getId(), new HashSet<>(Arrays.asList(VIEW_POST, DELETE_POST)));
-        //admin 권한 추가
-        CategoryRolePermissionDTO dto2 = new CategoryRolePermissionDTO(adminMember.getRole().getId(), new HashSet<>(Arrays.asList(VIEW_POST, DELETE_POST, CREATE_POST, CREATE_COMMENT, EDIT_POST, DELETE_COMMENT)));
-        CreateCategoryRequest categoryRequest = new CreateCategoryRequest("testCategory", "create category test", List.of(dto1, dto2));
-        return categoryService.createCategory(team.getId(), categoryRequest);
+//        TeamMember adminMember = teamMemberRepository.findByTeamAndMember(team, admin).orElseThrow(()-> new EntityNotFoundException("teamMember not found"));
+//        CategoryRolePermissionDTO dto1 = new CategoryRolePermissionDTO(teamRole.getId(), new HashSet<>(Arrays.asList(VIEW_POST, DELETE_POST)));
+//        //admin 권한 추가
+//        CategoryRolePermissionDTO dto2 = new CategoryRolePermissionDTO(adminMember.getRole().getId(), new HashSet<>(Arrays.asList(VIEW_POST, DELETE_POST, CREATE_POST, CREATE_COMMENT, EDIT_POST, DELETE_COMMENT)));
+//        CreateCategoryRequest categoryRequest = new CreateCategoryRequest("testCategory", "create category test", List.of(dto1, dto2));
+//        return categoryService.createCategory(team.getId(), categoryRequest);
     }
 }

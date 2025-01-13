@@ -6,6 +6,7 @@ import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.dto.role.AddMembersToRoleRequest;
 import com.example.board.dto.role.CreateRoleRequest;
 import com.example.board.permission.TeamPermission;
+import com.example.board.service.CategoryService;
 import com.example.board.service.TeamRoleService;
 import com.example.board.service.TeamService;
 import com.example.board.support.AbstractTestSupport;
@@ -17,18 +18,20 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
 
 import java.util.*;
 
 import static com.example.board.permission.TeamPermission.*;
-import static com.example.board.permission.TeamPermission.VIEW_POST;
+import static com.example.board.permission.CategoryPermission.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @ComponentScan("com.example.board")
 @ExtendWith(MockitoExtension.class)
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public class RoleServiceTest extends AbstractTestSupport {
 
     @Autowired
@@ -41,6 +44,8 @@ public class RoleServiceTest extends AbstractTestSupport {
     private TeamService teamService;
     @Autowired
     private TestDataBuilder testDataBuilder;
+    @Autowired
+    private CategoryService categoryService;
 
 
     @BeforeEach
@@ -65,8 +70,7 @@ public class RoleServiceTest extends AbstractTestSupport {
     @DisplayName("역할 권한 변경")
     void updateRolePermission(){
         Set<TeamPermission> permissions = new HashSet<>(Arrays.asList(
-                CREATE_POST, DELETE_POST, EDIT_POST, MANAGE_MEMBERS,
-                VIEW_POST
+                MANAGE_MEMBERS
         ));
         var updatedRole = teamRoleService.updateRolePermissions(teamRole.getId(), permissions);
 
@@ -76,7 +80,7 @@ public class RoleServiceTest extends AbstractTestSupport {
     @Test
     @DisplayName("역할 권한 확인")
     void checkPermissionOfRole(){
-        assertThat(teamRoleService.checkPermission(teamRole.getId(), VIEW_POST)).isTrue();
+        assertThat(teamRoleService.checkPermission(teamRole.getId(), MANAGE_MEMBERS)).isTrue();
         assertThat(teamRoleService.checkPermission(teamRole.getId(), MANAGE_CATEGORIES)).isFalse();
     }
 

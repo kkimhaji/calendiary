@@ -29,8 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.example.board.permission.TeamPermission.*;
-import static com.example.board.permission.TeamPermission.VIEW_POST;
+import static com.example.board.permission.CategoryPermission.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
