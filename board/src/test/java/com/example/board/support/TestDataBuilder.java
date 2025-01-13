@@ -68,4 +68,8 @@ public class TestDataBuilder {
         return categoryService.createCategory(team.getId(), categoryRequest);
     }
 
+    public TeamMember getAdminMember(Team team, Member admin){
+        return teamMemberRepository.findByTeamAndMember(team, admin).orElseThrow(() -> new EntityNotFoundException("admin member not found"));
+    }
+
 }
