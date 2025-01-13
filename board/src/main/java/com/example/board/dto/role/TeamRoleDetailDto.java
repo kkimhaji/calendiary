@@ -12,7 +12,7 @@ public record TeamRoleDetailDto(
         long memberCount
 ) {
     public static TeamRoleDetailDto of(Long id, String name, String permissionBits, long memberCount){
-        Set<TeamPermission> permissions = PermissionUtils.getPermissionsFromBits(permissionBits);
+        Set<TeamPermission> permissions = PermissionUtils.getPermissionsFromBits(permissionBits, TeamPermission.class);
         return new TeamRoleDetailDto(id, name, permissions, memberCount);
     }
 }

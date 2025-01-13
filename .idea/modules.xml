@@ -2,8 +2,6 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/board.main.iml" filepath="$PROJECT_DIR$/.idea/modules/board.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/board.test.iml" filepath="$PROJECT_DIR$/.idea/modules/board.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/calendiary.iml" filepath="$PROJECT_DIR$/.idea/calendiary.iml" />
     </modules>
   </component>

@@ -11,6 +11,7 @@ import com.example.board.domain.team.Team;
 import com.example.board.dto.comment.CommentResponse;
 import com.example.board.dto.comment.CreateCommentRequest;
 import com.example.board.dto.post.PostResponse;
+import com.example.board.permission.CategoryPermission;
 import com.example.board.permission.TeamPermission;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -31,7 +32,7 @@ public class CommentService {
     @Transactional
     public CommentResponse createComment(Member member, Long postId, Long teamId, CreateCommentRequest request) throws AccessDeniedException {
         Post post = postRepository.findById(postId).orElseThrow(()->new EntityNotFoundException("post not found"));
-        if (!categoryService.checkCategoryPermission(post.getCategory().getId(), member, TeamPermission.CREATE_COMMENT))
+        if (!categoryService.checkCategoryPermission(post.getCategory().getId(), member, CategoryPermission.CREATE_COMMENT))
             throw new AccessDeniedException("댓글을 작성할 권한이 없습니다.");
 
         //부모가 있을 때만 부모 댓글 조회
@@ -51,7 +52,7 @@ public class CommentService {
                 .orElseThrow(()->new EntityNotFoundException("Comment not found"));
 
         if (!comment.getAuthor().equals(member) &&
-                !categoryService.checkCategoryPermission(comment.getPost().getCategory().getId(), member, TeamPermission.DELETE_COMMENT)){
+                !categoryService.checkCategoryPermission(comment.getPost().getCategory().getId(), member, CategoryPermission.DELETE_COMMENT)){
             throw new AccessDeniedException("댓글을 삭제할 권한이 없습니다.");
         }
 

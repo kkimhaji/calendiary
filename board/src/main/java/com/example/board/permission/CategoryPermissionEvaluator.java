@@ -34,13 +34,12 @@ public class CategoryPermissionEvaluator implements CustomPermissionEvaluator{
 
     @Override
     public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {
-        if (authentication == null || targetDomainObject == null || !(permission instanceof CategoryPermission)) {
+        if (authentication == null || targetDomainObject == null || !(permission instanceof CategoryPermission categoryPermission)) {
             return false;
         }
 
         Member member = (Member) authentication.getPrincipal();
         TeamCategory category = (TeamCategory) targetDomainObject;
-        CategoryPermission categoryPermission = (CategoryPermission) permission;
 
         TeamRole role = teamRoleRepository.findByTeamAndMember(category.getTeam(), member)
                 .orElseThrow(() -> new EntityNotFoundException("팀 멤버를 찾을 수 없습니다."));

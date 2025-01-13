@@ -2,6 +2,7 @@ package com.example.board.domain.role;
 
 import com.example.board.domain.team.Team;
 import com.example.board.domain.team.TeamCategory;
+import com.example.board.permission.CategoryPermission;
 import com.example.board.permission.PermissionUtils;
 import com.example.board.permission.TeamPermission;
 import jakarta.persistence.*;
@@ -27,14 +28,14 @@ public class CategoryRolePermission {
 
     private String permissions = "0";
 
-    public boolean hasPermission(TeamPermission permission) {
+    public boolean hasPermission(CategoryPermission permission) {
         return PermissionUtils.hasPermission(this.permissions, permission);
     }
 
     public static CategoryRolePermission createPermission(
             TeamCategory category,
             TeamRole role,
-            Set<TeamPermission> permissions) {
+            Set<CategoryPermission> permissions) {
         CategoryRolePermission permission = new CategoryRolePermission();
         permission.category = category;
         permission.role = role;
@@ -42,13 +43,13 @@ public class CategoryRolePermission {
         return permission;
     }
 
-    public void addPermission(TeamPermission permission) {
+    public void addPermission(CategoryPermission permission) {
         this.permissions = PermissionUtils.addPermission(this.permissions, permission);
     }
 
-    public void setPermissions(Set<TeamPermission> permissions) {
+    public void setPermissions(Set<CategoryPermission> permissions) {
         String permissionBits = "0";
-        for (TeamPermission permission : permissions) {
+        for (CategoryPermission permission : permissions) {
             permissionBits = PermissionUtils.addPermission(permissionBits, permission);
         }
         this.permissions = permissionBits;
@@ -63,7 +64,7 @@ public class CategoryRolePermission {
     }
 
    @Builder
-    public CategoryRolePermission(TeamCategory category, TeamRole role, Set<TeamPermission> permissions) {
+    public CategoryRolePermission(TeamCategory category, TeamRole role, Set<CategoryPermission> permissions) {
         this.category = category;
         this.role = role;
         this.permissions = PermissionUtils.createPermissionBits(permissions);

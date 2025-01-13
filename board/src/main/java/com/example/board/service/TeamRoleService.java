@@ -51,6 +51,7 @@ public class TeamRoleService {
         return teamRoleRepository.save(role);
     }
 
+    //teamPermission 체크
     public boolean checkPermission(Long roleId, TeamPermission permission) {
         return teamRoleRepository.findById(roleId)
                 .map(role -> role.hasPermission(permission))
@@ -71,7 +72,7 @@ public class TeamRoleService {
     }
 
     public TeamRole createBasic(Team team){
-        return createRole(team.getId(), new CreateRoleRequest("Member", new HashSet<>(List.of(VIEW_POST)), "member of this team"));
+        return createRole(team.getId(), new CreateRoleRequest("Member", new HashSet<>(List.of()), "member of this team"));
     }
 
     @Transactional(rollbackFor = Exception.class)

@@ -29,13 +29,12 @@ public class TeamPermissionEvaluator implements CustomPermissionEvaluator {
 
     @Override
     public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {
-        if (authentication == null || targetDomainObject == null || !(permission instanceof TeamPermission)) {
+        if (authentication == null || targetDomainObject == null || !(permission instanceof TeamPermission teamPermission)) {
             return false;
         }
 
         Member member = (Member) authentication.getPrincipal();
         Long teamId = ((Team) targetDomainObject).getId();
-        TeamPermission teamPermission = (TeamPermission) permission;
 
         TeamMember teamMember = teamMemberRepository.findByTeamIdAndMember(teamId, member).orElseThrow(() -> new EntityNotFoundException("Team member not found"));
         return PermissionUtils.hasPermission(teamMember.getRole().getPermissions(), teamPermission);

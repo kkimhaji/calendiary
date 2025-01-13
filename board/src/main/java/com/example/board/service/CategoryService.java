@@ -10,7 +10,7 @@ import com.example.board.domain.team.Team;
 import com.example.board.domain.team.TeamCategory;
 import com.example.board.domain.team.TeamRepository;
 import com.example.board.dto.category.*;
-import com.example.board.permission.TeamPermission;
+import com.example.board.permission.CategoryPermission;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -73,7 +73,7 @@ public class CategoryService {
         return teamRoles;
     }
 
-    public boolean checkCategoryPermission(Long categoryId, Member member, TeamPermission permission) {
+    public boolean checkCategoryPermission(Long categoryId, Member member, CategoryPermission permission) {
         TeamCategory category = categoryRepository.findWithTeamById(categoryId).orElseThrow(() -> new EntityNotFoundException("category not found"));
         Long roleId = teamMemberService.getCurrentUserRole(category.getTeam().getId(), member).getId();
         return categoryRepository.findCategoryRolePermission(categoryId, roleId)
