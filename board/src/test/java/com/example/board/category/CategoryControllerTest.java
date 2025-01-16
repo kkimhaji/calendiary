@@ -24,6 +24,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.nio.file.attribute.UserPrincipal;
@@ -40,7 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
 @Transactional
 @ActiveProfiles("test")
@@ -71,18 +72,9 @@ public class CategoryControllerTest {
         return null;
     }
 
-//    @BeforeEach
-//    void init(){
-//        teamMember = testDataBuilder.addMemberToTeam(member2, team);
-//        TeamMember adminMember = testDataBuilder.getAdminMember(team, member1);
-//        teamRole = testDataBuilder.createNewRole(team, "test role");
-//        CategoryRolePermissionDTO dto = new CategoryRolePermissionDTO(adminMember.getRole().getId(), new HashSet<>(Arrays.asList(VIEW_POST, DELETE_POST, CREATE_POST, CREATE_COMMENT, EDIT_POST, DELETE_COMMENT)));
-//        request = new CreateCategoryRequest("testCategory", "create category authorize test", List.of(dto));
-//    }
-
     @Test
     @WithMockCustomUser
-    void createCategory_권한이_없는_경우_403() throws Exception {
+    void createCategory_권한이_있는_경우() throws Exception {
         // given
         Member testMember = getCurrentMember();
         team = testDataBuilder.createTeam(testMember);
@@ -97,27 +89,4 @@ public class CategoryControllerTest {
                 .andExpect(status().isOk());
     }
 
-//    @Test
-//    @WithMockUser(username = "test@test.com")
-//    void whenUserHasPermission_thenSuccess() throws Exception {
-//        // given
-//
-//        // when & then
-//        mockMvc.perform(get("/api/teams/{teamId}/members", team.getId())
-//                        .contentType(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isOk())
-//                .andDo(print());
-//    }
-//
-//    @Test
-//    @WithMockUser(username = "test@test.com")
-//    void whenUserDoesNotHavePermission_thenForbidden() throws Exception {
-//        // given
-//
-//        // when & then
-//        mockMvc.perform(get("/api/teams/{teamId}/members", team.getId())
-//                        .contentType(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isForbidden())
-//                .andDo(print());
-//    }
 }
