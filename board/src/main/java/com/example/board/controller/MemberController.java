@@ -1,5 +1,6 @@
 package com.example.board.controller;
 
+import com.example.board.auth.UserPrincipal;
 import com.example.board.domain.member.Member;
 import com.example.board.domain.teamMember.TeamMemberRepository;
 import com.example.board.dto.team.TeamListDTO;
@@ -24,13 +25,13 @@ public class MemberController {
     private final TeamMemberService teamMemberService;
 
     @GetMapping("/getprincipal")
-    public ResponseEntity<Member> getPrincipal(@AuthenticationPrincipal Member member){
+    public ResponseEntity<?> getPrincipal(@AuthenticationPrincipal UserPrincipal member){
         return ResponseEntity.ok(member);
     }
 
     @GetMapping("/get_teams")
-    public ResponseEntity<List<TeamListDTO>> getTeams(@AuthenticationPrincipal Member member){
-        return ResponseEntity.ok(teamMemberService.getTeams(member));
+    public ResponseEntity<List<TeamListDTO>> getTeams(@AuthenticationPrincipal UserPrincipal member){
+        return ResponseEntity.ok(teamMemberService.getTeams(member.getMember()));
     }
 
 }

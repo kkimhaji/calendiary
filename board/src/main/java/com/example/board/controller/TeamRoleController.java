@@ -1,5 +1,6 @@
 package com.example.board.controller;
 
+import com.example.board.auth.UserPrincipal;
 import com.example.board.domain.member.Member;
 import com.example.board.domain.role.TeamRole;
 import com.example.board.dto.role.*;
@@ -62,8 +63,8 @@ public class TeamRoleController {
     }
 
     @GetMapping("/getrole")
-    public ResponseEntity<TeamRoleResponse> getMembersRole(@PathVariable(name = "teamId") Long teamId, @AuthenticationPrincipal Member member){
-        return ResponseEntity.ok(teamRoleService.getMembersRole(teamId, member));
+    public ResponseEntity<TeamRoleResponse> getMembersRole(@PathVariable(name = "teamId") Long teamId, @AuthenticationPrincipal UserPrincipal member){
+        return ResponseEntity.ok(teamRoleService.getMembersRole(teamId, member.getMember()));
     }
 
 }

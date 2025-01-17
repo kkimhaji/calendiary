@@ -2,6 +2,7 @@ package com.example.board.service;
 
 import com.example.board.auth.AuthenticationResponse;
 import com.example.board.auth.JwtService;
+import com.example.board.auth.UserPrincipal;
 import com.example.board.domain.jwt.Token;
 import com.example.board.domain.jwt.TokenRepository;
 import com.example.board.domain.jwt.TokenType;
@@ -63,10 +64,10 @@ public class AuthenticationService {
             if (member.getVerificationCode().equals(dto.verificationCode())) {
                 member.setVerified();
                 memberRepository.save(member);
-
+                UserPrincipal user = new UserPrincipal(member);
                 var savedUser = memberRepository.save(member);
-                var jwtToken = jwtService.generateToken(member);
-                var refreshToken = jwtService.generateRefreshToken(member);
+                var jwtToken = jwtService.generateToken(user);
+                var refreshToken = jwtService.generateRefreshToken(user);
 
                 saveUserToken(savedUser, jwtToken);
 
@@ -83,10 +84,10 @@ public class AuthenticationService {
     public AuthenticationResponse authenticate(AuthenticationRequestDTO request) {
         //authenticationManager를 통해 검사를 모두 하고, 잘못된 경우 알아서 에러를 내고 끝내기 때문에 아래와 같은 모든 동작을 호출하는 것은 secure하다
         //authenticationManager를 통해서 이메일과 비밀번호가 일치하는지 확인
-        var user = memberRepository.findByEmail(request.email())
+        var member = memberRepository.findByEmail(request.email())
                 .orElseThrow();
 
-        if (!user.isEnabled()){
+        if (!member.isEnabled()){
             throw new RuntimeException("Account is not verified. Please verify your account first");
         }
 
@@ -95,12 +96,13 @@ public class AuthenticationService {
                         request.email(), request.password()
                 )
         );
+        UserPrincipal user = new UserPrincipal(member);
 
         var jwtToken = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
 
-        revokeToken(user);
-        saveUserToken(user, jwtToken);
+        revokeToken(member);
+        saveUserToken(member, jwtToken);
 
         return AuthenticationResponse.builder()
                 .accessToken(jwtToken)
@@ -137,12 +139,13 @@ public class AuthenticationService {
         userEmail = jwtService.extractUsername(refreshToken);
 
         if (userEmail != null) {
-            var user = this.memberRepository.findByEmail(userEmail).orElseThrow();
+            var member = this.memberRepository.findByEmail(userEmail).orElseThrow();
+            UserPrincipal user = new UserPrincipal(member);
 
             if (jwtService.isTokenValid(refreshToken, user)) {
                 var accessToken = jwtService.generateToken(user);
-                revokeToken(user);
-                saveUserToken(user, accessToken);
+                revokeToken(member);
+                saveUserToken(member, accessToken);
 
                 var authResponse = AuthenticationResponse.builder()
                         .accessToken(accessToken).refreshToken(refreshToken)

@@ -1,5 +1,6 @@
 package com.example.board.permission;
 
+import com.example.board.auth.UserPrincipal;
 import com.example.board.domain.member.Member;
 import com.example.board.domain.role.CategoryPermissionRepository;
 import com.example.board.domain.role.CategoryRolePermission;
@@ -19,7 +20,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
-import java.nio.file.attribute.UserPrincipal;
 
 @Component
 @RequiredArgsConstructor
@@ -29,29 +29,21 @@ public class TeamPermissionEvaluator implements CustomPermissionEvaluator {
     private final TeamMemberRepository teamMemberRepository;
     private final TeamRepository teamRepository;
 
-//    @Override
-//    public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {
-//        if (authentication == null || targetDomainObject == null || !(permission instanceof TeamPermission teamPermission)) {
-//            return false;
-//        }
-//
-//        Member member = (Member) authentication.getPrincipal();
-//        Long teamId = ((Team) targetDomainObject).getId();
-//
-//        TeamMember teamMember = teamMemberRepository.findByTeamIdAndMember(teamId, member).orElseThrow(() -> new EntityNotFoundException("Team member not found"));
-//        return PermissionUtils.hasPermission(teamMember.getRole().getPermissions(), teamPermission);
-//    }
-
     @Override
     public boolean hasPermission(Authentication authentication, Serializable targetId, String targetType, Object permission) {
+        log.debug("=== Permission Check Start ===");
+        log.debug("Authentication: {}", authentication);
+        log.debug("Principal type: {}", authentication != null ? authentication.getPrincipal().getClass() : "null");
+        log.debug("TargetId: {}, Type: {}, Permission: {}", targetId, targetType, permission);
         if (authentication == null || targetId == null || !(permission instanceof TeamPermission)) {
+            log.debug("Validation failed - Auth: {}, TargetId: {}", authentication, targetId);
             return false;
         }
 
         if (!((authentication.getPrincipal()) instanceof UserPrincipal))
             return false;
         try {
-            Member member = (Member) authentication.getPrincipal();
+            Member member = ((UserPrincipal) authentication.getPrincipal()).getMember();
             log.info("member: " + member.getMemberId());
             Long teamId = (Long) targetId;
             TeamPermission teamPermission = (TeamPermission) permission;

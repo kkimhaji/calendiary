@@ -7,6 +7,6 @@ public record AuthorDTO(
         String username
 ) {
     public static AuthorDTO from(Member member){
-        return new AuthorDTO(member.getMemberId(), member.getUsername());
+        return new AuthorDTO(member.getMemberId(), member.getNickname());
     }
 }

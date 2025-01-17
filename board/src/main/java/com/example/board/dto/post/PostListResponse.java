@@ -15,7 +15,7 @@ public record PostListResponse(
         return new PostListResponse(
                 post.getId(),
                 post.getTitle(),
-                post.getAuthor().getUsername(),
+                post.getAuthor().getNickname(),
                 post.getCategory().getName(),
                 post.getCreatedDate()
         );

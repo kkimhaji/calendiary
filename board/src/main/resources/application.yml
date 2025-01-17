@@ -41,3 +41,6 @@ logging:
     org:
       springframework:
         security: DEBUG
+    com:
+      example:
+        board: DEBUG
