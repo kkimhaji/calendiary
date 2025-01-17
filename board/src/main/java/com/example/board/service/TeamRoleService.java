@@ -32,6 +32,7 @@ public class TeamRoleService {
     private final TeamRoleRepository teamRoleRepository;
     private final TeamMemberRepository teamMemberRepository;
     private final CategoryPermissionRepository permissionRepository;
+    private final TeamMemberService teamMemberService;
 
     public TeamRole createRole(Long teamId, CreateRoleRequest request) {
         Team team = teamRepository.findById(teamId)
@@ -191,4 +192,8 @@ public class TeamRoleService {
         return teamRoleRepository.findTeamRoleInfo(teamId);
     }
 
+    public TeamRoleResponse getMembersRole(Long teamId, Member member){
+        TeamRole role = teamMemberService.getCurrentUserRole(teamId, member);
+        return TeamRoleResponse.from(role);
+    }
 }

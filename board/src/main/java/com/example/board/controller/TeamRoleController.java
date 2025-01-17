@@ -1,13 +1,16 @@
 package com.example.board.controller;
 
+import com.example.board.domain.member.Member;
 import com.example.board.domain.role.TeamRole;
 import com.example.board.dto.role.*;
 import com.example.board.permission.TeamPermission;
+import com.example.board.service.TeamMemberService;
 import com.example.board.service.TeamRoleService;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +22,7 @@ import java.util.Set;
 public class TeamRoleController {
 
     private final TeamRoleService teamRoleService;
+    private final TeamMemberService teamMemberService;
 
     @PostMapping("/manage/create")
     @PreAuthorize("hasPermission(@teamRepository.findById(#teamId).orElse(null), 'MANAGE_ROLES')")
@@ -28,7 +32,7 @@ public class TeamRoleController {
     }
 
     @GetMapping("/{roleId}/permissions")
-    public ResponseEntity<Set<TeamPermission>> getRolePermissions(@PathVariable(name="teamId") Long roleId){
+    public ResponseEntity<Set<TeamPermission>> getRolePermissions(@PathVariable(name="roleId") Long roleId){
         TeamRole role = teamRoleService.getRoleById(roleId);
         return ResponseEntity.ok(role.getPermissionSet());
     }
@@ -55,6 +59,11 @@ public class TeamRoleController {
     @GetMapping("/get_roles")
     public ResponseEntity<List<TeamRoleInfoDTO>> getRoles(@PathVariable(name="teamId") Long teamId){
         return ResponseEntity.ok(teamRoleService.getRolesInfo(teamId));
+    }
+
+    @GetMapping("/getrole")
+    public ResponseEntity<TeamRoleResponse> getMembersRole(@PathVariable(name = "teamId") Long teamId, @AuthenticationPrincipal Member member){
+        return ResponseEntity.ok(teamRoleService.getMembersRole(teamId, member));
     }
 
 }

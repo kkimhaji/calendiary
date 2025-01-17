@@ -1,5 +1,6 @@
 package com.example.board.dto.role;
 
+import com.example.board.domain.role.TeamRole;
 import com.example.board.permission.PermissionUtils;
 import com.example.board.permission.TeamPermission;
 
@@ -15,4 +16,5 @@ public record TeamRoleDetailDto(
         Set<TeamPermission> permissions = PermissionUtils.getPermissionsFromBits(permissionBits, TeamPermission.class);
         return new TeamRoleDetailDto(id, name, permissions, memberCount);
     }
+
 }
