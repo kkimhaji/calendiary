@@ -85,7 +85,7 @@ public class SecurityConfig {
         public boolean hasPermission(Authentication authentication, Serializable targetId, String targetType, Object permission) {
             if ("Team".equals(targetType)) {
                 return teamPermissionEvaluator.hasPermission(authentication, targetId, targetType, permission);
-            } else if ("Category".equals(targetType)) {
+            } else if ("TeamCategory".equals(targetType)) {
                 return categoryPermissionEvaluator.hasPermission(authentication, targetId, targetType, permission);
             }
             return false;

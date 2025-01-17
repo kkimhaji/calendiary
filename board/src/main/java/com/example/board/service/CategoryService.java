@@ -38,24 +38,36 @@ public class CategoryService {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new EntityNotFoundException("Team not found"));
         TeamCategory category = request.toEntity(team);
+
+
         Map<Long, TeamRole> teamRoles = getTeamRoles(team, request);
-        request.rolePermissions().forEach(rolePermDto -> {
-            TeamRole role = teamRoles.get(rolePermDto.roleId());
-            if (role == null) {
-                throw new EntityNotFoundException("Role not found: " + rolePermDto.roleId());
-            }
-            CategoryRolePermission permission = CategoryRolePermission.createPermission(
-                    category,
-                    role,
-                    rolePermDto.permissions()
-            );
-            category.addRolePermission(permission);
-        });
-        categoryRepository.save(category);
         List<CategoryRolePermission> categoryRolePermissions = request.toCategoryRolePermissions(category, teamRoles);
+
+        categoryRolePermissions.forEach(crp -> {
+            TeamRole role = crp.getRole();
+            if (role == null){
+                throw new EntityNotFoundException("Role not found: " + crp.getRole().getId());
+            }
+            category.addRolePermission(crp);
+        });
+
+//        request.rolePermissions().forEach(rolePermDto -> {
+//            TeamRole role = teamRoles.get(rolePermDto.roleId());
+//            if (role == null) {
+//                throw new EntityNotFoundException("Role not found: " + rolePermDto.roleId());
+//            }
+//            CategoryRolePermission permission = CategoryRolePermission.createPermission(
+//                    category,
+//                    role,
+//                    rolePermDto.permissions()
+//            );
+//            category.addRolePermission(permission);
+//        });
+
         categoryPermissionRepository.saveAll(categoryRolePermissions);
 
-        return category;
+
+        return categoryRepository.save(category);
     }
 
     private Map<Long, TeamRole> getTeamRoles(Team team, CreateCategoryRequest request){

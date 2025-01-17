@@ -21,20 +21,19 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @PostMapping("/create")
-    @PreAuthorize("hasPermission(@teamRepository.findById(#teamId).orElse(null), 'MANAGE_CATEGORIES')")
-    public ResponseEntity<CategoryResponse> createCategory(@PathVariable Long teamId, @RequestBody CreateCategoryRequest request) {
-        TeamCategory category = categoryService.createCategory(teamId, request);
-        return ResponseEntity.ok(CategoryResponse.from(category));
+    @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_CATEGORIES)")
+    public ResponseEntity<CategoryResponse> createCategory(@PathVariable(name="teamId") Long teamId, @RequestBody CreateCategoryRequest request) {
+        return ResponseEntity.ok(CategoryResponse.from(categoryService.createCategory(teamId, request)));
     }
 
     @PutMapping("/update/{categoryId}")
-    @PreAuthorize("hasPermissionForCategory(@teamRepository.findById(#teamId).orElse(null), 'MANAGE_CATEGORIES')")
-    public ResponseEntity<CategoryResponse> updateCategory(@PathVariable Long teamId, @PathVariable Long categoryId, @RequestBody UpdateCategoryRequest request){
+    @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_CATEGORIES)")
+    public ResponseEntity<CategoryResponse> updateCategory(@PathVariable(name="teamId") Long teamId, @PathVariable Long categoryId, @RequestBody UpdateCategoryRequest request){
         return ResponseEntity.ok(categoryService.updateCategory(teamId, categoryId, request));
     }
 
     @GetMapping
-    public ResponseEntity<List<CategoryListDTO>> getCategories(@PathVariable Long teamId){
+    public ResponseEntity<List<CategoryListDTO>> getCategories(@PathVariable(name="teamId") Long teamId){
         return ResponseEntity.ok(categoryService.getCategoryListByTeam(teamId));
     }
 }

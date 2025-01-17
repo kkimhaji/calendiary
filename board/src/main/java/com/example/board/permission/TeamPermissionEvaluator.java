@@ -13,6 +13,7 @@ import com.example.board.service.TeamMemberService;
 import com.example.board.service.TeamService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
@@ -22,23 +23,24 @@ import java.nio.file.attribute.UserPrincipal;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class TeamPermissionEvaluator implements CustomPermissionEvaluator {
 
     private final TeamMemberRepository teamMemberRepository;
     private final TeamRepository teamRepository;
 
-    @Override
-    public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {
-        if (authentication == null || targetDomainObject == null || !(permission instanceof TeamPermission teamPermission)) {
-            return false;
-        }
-
-        Member member = (Member) authentication.getPrincipal();
-        Long teamId = ((Team) targetDomainObject).getId();
-
-        TeamMember teamMember = teamMemberRepository.findByTeamIdAndMember(teamId, member).orElseThrow(() -> new EntityNotFoundException("Team member not found"));
-        return PermissionUtils.hasPermission(teamMember.getRole().getPermissions(), teamPermission);
-    }
+//    @Override
+//    public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {
+//        if (authentication == null || targetDomainObject == null || !(permission instanceof TeamPermission teamPermission)) {
+//            return false;
+//        }
+//
+//        Member member = (Member) authentication.getPrincipal();
+//        Long teamId = ((Team) targetDomainObject).getId();
+//
+//        TeamMember teamMember = teamMemberRepository.findByTeamIdAndMember(teamId, member).orElseThrow(() -> new EntityNotFoundException("Team member not found"));
+//        return PermissionUtils.hasPermission(teamMember.getRole().getPermissions(), teamPermission);
+//    }
 
     @Override
     public boolean hasPermission(Authentication authentication, Serializable targetId, String targetType, Object permission) {
@@ -46,8 +48,36 @@ public class TeamPermissionEvaluator implements CustomPermissionEvaluator {
             return false;
         }
 
-        Team team = teamRepository.findById((Long) targetId).orElseThrow(() -> new EntityNotFoundException("Team not found"));
-        return hasPermission(authentication, team, permission);
+        if (!((authentication.getPrincipal()) instanceof UserPrincipal))
+            return false;
+        try {
+            Member member = (Member) authentication.getPrincipal();
+            log.info("member: " + member.getMemberId());
+            Long teamId = (Long) targetId;
+            TeamPermission teamPermission = (TeamPermission) permission;
+
+            TeamMember teamMember = teamMemberRepository.findByTeamIdAndMember(teamId, member)
+                    .orElseThrow(() -> new EntityNotFoundException("Team member not found"));
+            boolean hasPermission =  PermissionUtils.hasPermission(teamMember.getRole().getPermissions(), teamPermission);
+
+                        // 디버깅을 위한 로그 추가
+            log.debug("Permission check - TeamId: {}, Member: {}, Permission: {}, Result: {}",
+                    teamId, member.getEmail(), teamPermission, hasPermission);
+
+            return PermissionUtils.hasPermission(teamMember.getRole().getPermissions(), teamPermission);
+        } catch (Exception e) {
+            log.error("ErrorChecking permission, ", e);
+            return false;
+        }
+    }
+
+    @Override
+    public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {
+        if (authentication == null || targetDomainObject == null || !(targetDomainObject instanceof Team)) {
+            return false;
+        }
+
+        return hasPermission(authentication, ((Team) targetDomainObject).getId(), "Team", permission);
     }
 
 //    @Override

@@ -29,7 +29,7 @@ public class PostController {
 
     @PostMapping("/category/{categoryId}/posts")
     @PreAuthorize("@teamPermissionEvaluator.hasPermissionForCategory(principal, #categoryId, 'CREATE_POST')")
-    public ResponseEntity<PostResponse> createPost(@PathVariable Long teamId, @PathVariable Long categoryId, @RequestBody CreatePostRequest request, @AuthenticationPrincipal Member member) throws FileUploadException {
+    public ResponseEntity<PostResponse> createPost(@PathVariable(name="teamId") Long teamId, @PathVariable(name="categoryId") Long categoryId, @RequestBody CreatePostRequest request, @AuthenticationPrincipal Member member) throws FileUploadException {
         Post post = postService.createPost(teamId, categoryId, request, member);
         return ResponseEntity.ok(PostResponse.from(post));
     }
@@ -38,7 +38,7 @@ public class PostController {
     @GetMapping("/category/{categoryId}/posts")
     @PreAuthorize("@teamPermissionEvaluator.hasPermissionForCategory(principal, #categoryId, 'VIEW_POST')")
     public ResponseEntity<Page<PostListResponse>> getPosts(
-            @PathVariable Long teamId, @PathVariable Long categoryId,
+            @PathVariable(name="teamId") Long teamId, @PathVariable(name="categoryId") Long categoryId,
             @AuthenticationPrincipal Member member,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
@@ -48,13 +48,13 @@ public class PostController {
 
     @GetMapping("/category/{categoryId}/posts/{postId}")
     @PreAuthorize("@hasPermissionForCategory(principal, #categoryId, 'VIEW_POST')")
-    public ResponseEntity<PostDetailDTO> getPost(@PathVariable Long postId) {
+    public ResponseEntity<PostDetailDTO> getPost(@PathVariable(name="postId") Long postId) {
         return ResponseEntity.ok(postService.getPostDetail(postId));
     }
 
     @PostMapping("/category/{categoryId}/posts/delete/{postId}")
     @PreAuthorize("@teamPermissionEvaluator.hasPermissionForCategory(principal, #categoryId, 'DELETE_POST')")
-    public void deletePost(@PathVariable Long teamId, @PathVariable Long categoryId, @PathVariable Long postId, @AuthenticationPrincipal Member member) {
+    public void deletePost(@PathVariable(name="teamId") Long teamId, @PathVariable(name="categoryId") Long categoryId, @PathVariable(name="postId") Long postId, @AuthenticationPrincipal Member member) {
         postService.deletePost(postId, member, categoryId, teamId);
     }
 
@@ -71,14 +71,14 @@ public class PostController {
     }
 
     @PutMapping("/category/{categoryId}/posts/{postId}")
-    public ResponseEntity<PostResponse> updatePost(@PathVariable Long postId, @PathVariable Long teamId, @PathVariable Long categoryId, @RequestBody UpdatePostRequestDTO request, @AuthenticationPrincipal Member member) throws FileUploadException {
+    public ResponseEntity<PostResponse> updatePost(@PathVariable(name="postId") Long postId, @PathVariable(name="teamId") Long teamId, @PathVariable(name="categoryId") Long categoryId, @RequestBody UpdatePostRequestDTO request, @AuthenticationPrincipal Member member) throws FileUploadException {
         return ResponseEntity.ok(postService.updatePost(teamId, categoryId, postId, member, request));
     }
 
     //팀의 최근 게시글 목록 조회
     @GetMapping("/recent")
     public ResponseEntity<List<PostSummaryDTO>> getRecentPosts(
-            @PathVariable Long teamId,
+            @PathVariable(name="teamId") Long teamId,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
         return ResponseEntity.ok(postService.getRecentPosts(teamId, pageable));
     }

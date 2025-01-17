@@ -22,38 +22,38 @@ public class TeamRoleController {
 
     @PostMapping("/manage/create")
     @PreAuthorize("hasPermission(@teamRepository.findById(#teamId).orElse(null), 'MANAGE_ROLES')")
-    public ResponseEntity<TeamRoleResponse> createRole(@PathVariable Long teamId, @RequestBody CreateRoleRequest request){
+    public ResponseEntity<TeamRoleResponse> createRole(@PathVariable(name="teamId") Long teamId, @RequestBody CreateRoleRequest request){
         TeamRole newRole = teamRoleService.createRole(teamId, request);
         return ResponseEntity.ok(TeamRoleResponse.from(newRole));
     }
 
     @GetMapping("/{roleId}/permissions")
-    public ResponseEntity<Set<TeamPermission>> getRolePermissions(@PathVariable Long roleId){
+    public ResponseEntity<Set<TeamPermission>> getRolePermissions(@PathVariable(name="teamId") Long roleId){
         TeamRole role = teamRoleService.getRoleById(roleId);
         return ResponseEntity.ok(role.getPermissionSet());
     }
 
     @PostMapping("/manage/delete/{roleId}")
     @PreAuthorize("hasPermission(@teamRepository.findById(#teamId).orElse(null), 'MANAGE_ROLES')")
-    public void deleteRole(@PathVariable Long teamId, @PathVariable Long roleId){
+    public void deleteRole(@PathVariable(name="teamId") Long teamId, @PathVariable Long roleId){
         teamRoleService.deleteRole(teamId, roleId);
     }
 
     //관리자 권한 넘기기
     //역할에 팀 멤버 추가하기
     @PostMapping("/manage/member")
-    public ResponseEntity<AddMembersToRoleResponse> addMembersToRole(@PathVariable Long teamId, @RequestBody AddMembersToRoleRequest request){
+    public ResponseEntity<AddMembersToRoleResponse> addMembersToRole(@PathVariable(name="teamId") Long teamId, @RequestBody AddMembersToRoleRequest request){
         return ResponseEntity.ok(teamRoleService.addMemberToRole(teamId, request));
     }
 
     @GetMapping("/get")
-    public ResponseEntity<List<TeamRoleDetailDto>> getRolesWithCount(@PathVariable Long teamId){
+    public ResponseEntity<List<TeamRoleDetailDto>> getRolesWithCount(@PathVariable(name="teamId") Long teamId){
         return ResponseEntity.ok(teamRoleService.getRolesByTeam(teamId));
     }
 
     //카테고리 생성 시 권한을 주기 위해
     @GetMapping("/get_roles")
-    public ResponseEntity<List<TeamRoleInfoDTO>> getRoles(@PathVariable Long teamId){
+    public ResponseEntity<List<TeamRoleInfoDTO>> getRoles(@PathVariable(name="teamId") Long teamId){
         return ResponseEntity.ok(teamRoleService.getRolesInfo(teamId));
     }
 
