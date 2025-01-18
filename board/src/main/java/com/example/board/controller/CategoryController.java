@@ -9,6 +9,7 @@ import com.example.board.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,13 +23,13 @@ public class CategoryController {
 
     @PostMapping("/create")
     @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_CATEGORIES)")
-    public ResponseEntity<CategoryResponse> createCategory(@PathVariable(name="teamId") Long teamId, @RequestBody CreateCategoryRequest request) {
+    public ResponseEntity<CategoryResponse> createCategory(@PathVariable(name="teamId") @P("teamId") Long teamId, @RequestBody CreateCategoryRequest request) {
         return ResponseEntity.ok(CategoryResponse.from(categoryService.createCategory(teamId, request)));
     }
 
     @PutMapping("/update/{categoryId}")
     @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_CATEGORIES)")
-    public ResponseEntity<CategoryResponse> updateCategory(@PathVariable(name="teamId") Long teamId, @PathVariable Long categoryId, @RequestBody UpdateCategoryRequest request){
+    public ResponseEntity<CategoryResponse> updateCategory(@PathVariable(name="teamId") @P("teamId") Long teamId, @PathVariable Long categoryId, @RequestBody UpdateCategoryRequest request){
         return ResponseEntity.ok(categoryService.updateCategory(teamId, categoryId, request));
     }
 
