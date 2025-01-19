@@ -1,5 +1,6 @@
 package com.example.board.controller;
 
+import com.example.board.auth.UserPrincipal;
 import com.example.board.domain.member.Member;
 import com.example.board.domain.post.Post;
 import com.example.board.dto.post.*;
@@ -14,6 +15,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -36,13 +38,13 @@ public class PostController {
 
     //카테고리의 글 조회
     @GetMapping("/category/{categoryId}/posts")
-    @PreAuthorize("@teamPermissionEvaluator.hasPermissionForCategory(principal, #categoryId, 'VIEW_POST')")
+    @PreAuthorize("hasPermission(#categoryId, 'Category', T(com.example.board.permission.CategoryPermission).VIEW_POST)")
     public ResponseEntity<Page<PostListResponse>> getPosts(
-            @PathVariable(name="teamId") Long teamId, @PathVariable(name="categoryId") Long categoryId,
-            @AuthenticationPrincipal Member member,
+            @PathVariable(name="teamId") Long teamId, @PathVariable(name="categoryId") @P("categoryId") Long categoryId,
+            @AuthenticationPrincipal UserPrincipal user,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Page<PostListResponse> posts = postService.getPostsByCategory(teamId, categoryId, member, pageable);
+        Page<PostListResponse> posts = postService.getPostsByCategory(teamId, categoryId, user.getMember(), pageable);
         return ResponseEntity.ok(posts);
     }
 
