@@ -37,7 +37,7 @@ public class PostController {
     }
 
     //카테고리의 글 조회
-    @GetMapping("/category/{categoryId}/posts")
+    @GetMapping("/category/{categoryId}/recent")
     @PreAuthorize("hasPermission(#categoryId, 'Category', T(com.example.board.permission.CategoryPermission).VIEW_POST)")
     public ResponseEntity<Page<PostListResponse>> getPosts(
             @PathVariable(name="teamId") Long teamId, @PathVariable(name="categoryId") @P("categoryId") Long categoryId,
