@@ -78,12 +78,12 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     );
 
     // 팀의 최근 게시글 목록 조회
-    @Query("SELECT new com.example.board.dto.post.PostSummaryDTO(" +
-            "p.id, p.title, p.author.nickname, p.createdDate) " +
+    @Query("SELECT new com.example.board.dto.post.PostListResponse(" +
+            "p.id, p.title, p.author.nickname, p.category.name, p.createdDate) " +
             "FROM Post p " +
             "WHERE p.team.id = :teamId " +
             "ORDER BY p.createdDate DESC")
-    Optional<List<PostSummaryDTO>> findRecentPostsByTeamId(
+    Optional<List<PostListResponse>> findRecentPostsByTeamId(
             @Param("teamId") Long teamId,
             Pageable pageable
     );

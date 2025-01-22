@@ -79,7 +79,7 @@ public class PostController {
 
     //팀의 최근 게시글 목록 조회
     @GetMapping("/recent")
-    public ResponseEntity<List<PostSummaryDTO>> getRecentPosts(
+    public ResponseEntity<List<PostListResponse>> getRecentPosts(
             @PathVariable(name="teamId") Long teamId,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
         return ResponseEntity.ok(postService.getRecentPosts(teamId, pageable));
