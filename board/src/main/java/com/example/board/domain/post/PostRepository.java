@@ -82,7 +82,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             "FROM Post p " +
             "WHERE p.team.id = :teamId " +
             "ORDER BY p.createdDate DESC")
-    Optional<List<PostListResponse>> findRecentPostsByTeamId(
+    Page<PostListResponse> findRecentPostsByTeamId(
             @Param("teamId") Long teamId,
             Pageable pageable
     );

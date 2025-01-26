@@ -195,8 +195,8 @@ public class PostService {
         }
     }
 
-    public List<PostListResponse> getRecentPosts(Long teamId, Pageable pageable){
-        return postRepository.findRecentPostsByTeamId(teamId, pageable).orElse(Collections.emptyList());
+    public Page<PostListResponse> getRecentPosts(Long teamId, Pageable pageable){
+        return postRepository.findRecentPostsByTeamId(teamId, pageable);
     }
 
 }
