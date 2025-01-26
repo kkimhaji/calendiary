@@ -79,8 +79,9 @@ public class PostService {
         if (!categoryService.checkCategoryPermission(categoryId, member, CategoryPermission.VIEW_POST)) {
             throw new AccessDeniedException("해당 카테고리를 조회할 권한이 없습니다.");
         }
-        return postRepository.findAllByTeamAndCategoryWithPaging(teamId, categoryId, pageable)
-                .map(PostListResponse::from);
+//        return postRepository.findAllByTeamAndCategoryWithPaging(teamId, categoryId, pageable)
+//                .map(PostListResponse::from);
+        return postRepository.findByTeamAndCategory(teamId, categoryId, pageable);
     }
 
     //게시글 목록 조회

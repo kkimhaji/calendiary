@@ -35,6 +35,7 @@ public class CategoryController {
 
     @GetMapping
     public ResponseEntity<List<CategoryListDTO>> getCategories(@PathVariable(name="teamId") Long teamId){
+
         return ResponseEntity.ok(categoryService.getCategoryListByTeam(teamId));
     }
 }

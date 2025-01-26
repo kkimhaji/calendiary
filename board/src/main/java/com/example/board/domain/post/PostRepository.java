@@ -4,7 +4,6 @@ import com.example.board.domain.member.Member;
 import com.example.board.domain.team.Team;
 import com.example.board.domain.team.TeamCategory;
 import com.example.board.dto.post.PostListResponse;
-import com.example.board.dto.post.PostResponse;
 import com.example.board.dto.post.PostSummaryDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -66,7 +65,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     // 팀의 카테고리별 게시글 조회
     @Query("SELECT new com.example.board.dto.post.PostListResponse(" +
             "p.id, p.title, p.author.nickname, " +
-            "p.category.name, p.createdDate) " +
+            "p.category.name, p.viewCount, p.createdDate) " +
             "FROM Post p " +
             "WHERE p.team.id = :teamId " +
             "AND p.category.id = :categoryId " +
@@ -79,7 +78,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     // 팀의 최근 게시글 목록 조회
     @Query("SELECT new com.example.board.dto.post.PostListResponse(" +
-            "p.id, p.title, p.author.nickname, p.category.name, p.createdDate) " +
+            "p.id, p.title, p.author.nickname, p.category.name, p.viewCount, p.createdDate) " +
             "FROM Post p " +
             "WHERE p.team.id = :teamId " +
             "ORDER BY p.createdDate DESC")
