@@ -4,6 +4,7 @@ import com.example.board.auth.UserPrincipal;
 import com.example.board.domain.member.Member;
 import com.example.board.domain.role.TeamRole;
 import com.example.board.dto.role.*;
+import com.example.board.permission.CategoryPermission;
 import com.example.board.permission.TeamPermission;
 import com.example.board.service.TeamMemberService;
 import com.example.board.service.TeamRoleService;
@@ -26,7 +27,7 @@ public class TeamRoleController {
     private final TeamMemberService teamMemberService;
 
     @PostMapping("/manage/create")
-    @PreAuthorize("hasPermission(@teamRepository.findById(#teamId).orElse(null), 'MANAGE_ROLES')")
+    @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_ROLES)")
     public ResponseEntity<TeamRoleResponse> createRole(@PathVariable(name="teamId") Long teamId, @RequestBody CreateRoleRequest request){
         TeamRole newRole = teamRoleService.createRole(teamId, request);
         return ResponseEntity.ok(TeamRoleResponse.from(newRole));
@@ -39,7 +40,7 @@ public class TeamRoleController {
     }
 
     @PostMapping("/manage/delete/{roleId}")
-    @PreAuthorize("hasPermission(@teamRepository.findById(#teamId).orElse(null), 'MANAGE_ROLES')")
+    @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_ROLES)")
     public void deleteRole(@PathVariable(name="teamId") Long teamId, @PathVariable Long roleId){
         teamRoleService.deleteRole(teamId, roleId);
     }
@@ -47,10 +48,13 @@ public class TeamRoleController {
     //관리자 권한 넘기기
     //역할에 팀 멤버 추가하기
     @PostMapping("/manage/member")
+    @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_ROLES)")
     public ResponseEntity<AddMembersToRoleResponse> addMembersToRole(@PathVariable(name="teamId") Long teamId, @RequestBody AddMembersToRoleRequest request){
         return ResponseEntity.ok(teamRoleService.addMemberToRole(teamId, request));
     }
 
+    // 팀 내의 역할들 가져오기
+    // 팀에서 역할, 멤버 등 수정할 때
     @GetMapping("/get")
     public ResponseEntity<List<TeamRoleDetailDto>> getRolesWithCount(@PathVariable(name="teamId") Long teamId){
         return ResponseEntity.ok(teamRoleService.getRolesByTeam(teamId));
@@ -62,9 +66,20 @@ public class TeamRoleController {
         return ResponseEntity.ok(teamRoleService.getRolesInfo(teamId));
     }
 
+    //현재 로그인한 사용자의 팀 내 역할 조회
     @GetMapping("/getrole")
     public ResponseEntity<TeamRoleResponse> getMembersRole(@PathVariable(name = "teamId") Long teamId, @AuthenticationPrincipal UserPrincipal member){
         return ResponseEntity.ok(teamRoleService.getMembersRole(teamId, member.getMember()));
+    }
+
+    @GetMapping("/team_permission")
+    public boolean teamPermissionCheck(@PathVariable(name = "teamId") Long teamId, TeamPermission permission){
+        return teamRoleService.hasTeamPermission(teamId, permission);
+    }
+
+    @GetMapping("/category_permission")
+    public boolean categoryPermissionCheck(@PathVariable(name = "teamId") Long teamId, Long categoryId, CategoryPermission permission){
+        return teamRoleService.hasCategoryPermission(categoryId, permission);
     }
 
 }

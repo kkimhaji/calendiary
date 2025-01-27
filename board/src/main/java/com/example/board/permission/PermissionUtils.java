@@ -42,38 +42,5 @@ public class PermissionUtils {
         }
         return permissions;
     }
-//    public static String addPermission(String current, TeamPermission permission) {
-//        StringBuilder binary = new StringBuilder(current);
-//        while (binary.length() <= permission.getPosition()) {
-//            binary.insert(0, "0");
-//        }
-//        binary.setCharAt(binary.length() - 1 - permission.getPosition(), '1');
-//        return binary.toString();
-//    }
-//
-//    public static boolean hasPermission(String permissions, TeamPermission permission) {
-//        if (permission.getPosition() >= permissions.length()) {
-//            return false;
-//        }
-//        return permissions.charAt(permissions.length() - 1 - permission.getPosition()) == '1';
-//    }
-//
-//    public static String createPermissionBits(Set<TeamPermission> permissions) {
-//        String bits = "0";
-//        for (TeamPermission permission : permissions) {
-//            bits = addPermission(bits, permission);
-//        }
-//        return bits;
-//    }
-//
-//    public static Set<TeamPermission> getPermissionsFromBits(String permissionBits) {
-//        Set<TeamPermission> permissions = new HashSet<>();
-//        for (TeamPermission permission : TeamPermission.values()) {
-//            if (hasPermission(permissionBits, permission)) {
-//                permissions.add(permission);
-//            }
-//        }
-//        return permissions;
-//    }
 
 }

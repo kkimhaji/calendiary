@@ -34,7 +34,6 @@ public class CategoryPermissionEvaluator implements CustomPermissionEvaluator {
 
         try {
             Member member = ((UserPrincipal) authentication.getPrincipal()).getMember();
-            Long categoryId = (Long) targetId;
             CategoryPermission categoryPermission = (CategoryPermission) permission;
 
             TeamCategory category = categoryRepository.findById((Long) targetId).orElseThrow(() -> new EntityNotFoundException("category not found"));

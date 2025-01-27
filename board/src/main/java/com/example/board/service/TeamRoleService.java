@@ -12,12 +12,14 @@ import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.teamMember.TeamMemberRepository;
 import com.example.board.dto.role.*;
 import com.example.board.exception.RoleDeletionException;
-import com.example.board.permission.PermissionUtils;
-import com.example.board.permission.TeamPermission;
+import com.example.board.permission.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +35,8 @@ public class TeamRoleService {
     private final TeamMemberRepository teamMemberRepository;
     private final CategoryPermissionRepository permissionRepository;
     private final TeamMemberService teamMemberService;
+    private final TeamPermissionEvaluator teamPermissionEvaluator;
+    private final CategoryPermissionEvaluator categoryPermissionEvaluator;
 
     public TeamRole createRole(Long teamId, CreateRoleRequest request) {
         Team team = teamRepository.findById(teamId)
@@ -196,4 +200,15 @@ public class TeamRoleService {
         TeamRole role = teamMemberService.getCurrentUserRole(teamId, member);
         return TeamRoleResponse.from(role);
     }
+
+    public boolean hasTeamPermission(Long teamId, TeamPermission permission) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return teamPermissionEvaluator.hasPermission(auth, teamId, "Team", permission);
+    }
+
+    public boolean hasCategoryPermission(Long categoryId, CategoryPermission permission) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return categoryPermissionEvaluator.hasPermission(auth, categoryId, "TeamCategory", permission);
+    }
+
 }
