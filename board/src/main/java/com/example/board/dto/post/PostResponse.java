@@ -11,8 +11,8 @@ public record PostResponse(
         String authorName,
         String categoryName,
         int viewCount,
-        LocalDateTime createdAt,
-        LocalDateTime modifiedAt
+        LocalDateTime createdDate,
+        LocalDateTime modifiedDate
 ) {
     public static PostResponse from(Post post){
         return new PostResponse(

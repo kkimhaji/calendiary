@@ -41,7 +41,7 @@ public class Post extends BaseTimeEntity {
     private Team team;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
-    @OrderBy("createdAt ASC")
+    @OrderBy("createdDate ASC")
     private List<Comment> comments = new ArrayList<>();
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)

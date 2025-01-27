@@ -49,14 +49,14 @@ public class PostController {
     }
 
     @GetMapping("/category/{categoryId}/posts/{postId}")
-    @PreAuthorize("@hasPermissionForCategory(principal, #categoryId, 'VIEW_POST')")
-    public ResponseEntity<PostDetailDTO> getPost(@PathVariable(name="postId") Long postId) {
+    @PreAuthorize("hasPermission(#categoryId, 'TeamCategory', T(com.example.board.permission.CategoryPermission).VIEW_POST)")
+    public ResponseEntity<PostDetailDTO> getPost(@PathVariable(name="postId") @P("categoryId") Long postId) {
         return ResponseEntity.ok(postService.getPostDetail(postId));
     }
 
     @PostMapping("/category/{categoryId}/posts/delete/{postId}")
     @PreAuthorize("hasPermission(#categoryId, 'TeamCategory', T(com.example.board.permission.CategoryPermission).DELETE_POST)")
-    public void deletePost(@PathVariable(name="teamId") Long teamId, @PathVariable(name="categoryId") Long categoryId, @PathVariable(name="postId") Long postId, @AuthenticationPrincipal UserPrincipal user) {
+    public void deletePost(@PathVariable(name="teamId") Long teamId, @PathVariable(name="categoryId") @P("categoryId") Long categoryId, @PathVariable(name="postId") Long postId, @AuthenticationPrincipal UserPrincipal user) {
         postService.deletePost(postId, user.getMember(), categoryId, teamId);
     }
 
@@ -81,7 +81,7 @@ public class PostController {
     @GetMapping("/recent")
     public ResponseEntity<Page<PostListResponse>> getRecentPosts(
             @PathVariable(name="teamId") Long teamId,
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
+            @PageableDefault(size = 20, sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable){
         return ResponseEntity.ok(postService.getRecentPosts(teamId, pageable));
     }
 }

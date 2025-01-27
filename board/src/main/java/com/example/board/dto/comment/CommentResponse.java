@@ -10,7 +10,7 @@ public record CommentResponse(
         Long id,
         String content,
         String authorName,
-        LocalDateTime createdAt,
+        LocalDateTime createdDate,
         boolean isDeleted,
         List<CommentResponse> replies
 ) {

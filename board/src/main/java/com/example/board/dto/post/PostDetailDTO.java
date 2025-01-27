@@ -15,7 +15,7 @@ public record PostDetailDTO(
         String content,
         AuthorDTO author,
         String categoryName,
-        LocalDateTime createdAt,
+        LocalDateTime createdDate,
         List<String> imageUrls,
         List<CommentResponse> comments
 ) {
