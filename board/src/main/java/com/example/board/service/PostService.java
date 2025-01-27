@@ -84,12 +84,6 @@ public class PostService {
         return postRepository.findByTeamAndCategory(teamId, categoryId, pageable);
     }
 
-    //게시글 목록 조회
-    @Transactional(readOnly = true)
-    public Page<PostSummaryDTO> getCategoryPosts(Long categoryId, Pageable pageable) {
-        return postRepository.findPostSummariesByCategoryId(categoryId, pageable);
-    }
-
     //게시글 상세 조회
     @Transactional(readOnly = true)
     public PostDetailDTO getPostDetail(Long postId) {
