@@ -218,7 +218,7 @@ public class TeamRoleService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         Member loginMember = ((UserPrincipal) auth.getPrincipal()).getMember();
         Member author = postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("post not found")).getAuthor();
-        if (author.equals(loginMember)){
+        if (author.getMemberId().equals(loginMember.getMemberId())){
             return PostPermissionResponse.of(true, true);
         }
         boolean canEdit = hasCategoryPermission(categoryId, CategoryPermission.EDIT_POST);
