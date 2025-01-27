@@ -1,7 +1,9 @@
 package com.example.board.service;
 
+import com.example.board.auth.UserPrincipal;
 import com.example.board.domain.member.Member;
 import com.example.board.domain.member.MemberRepository;
+import com.example.board.domain.post.PostRepository;
 import com.example.board.domain.role.CategoryPermissionRepository;
 import com.example.board.domain.team.CategoryRepository;
 import com.example.board.domain.team.Team;
@@ -37,6 +39,7 @@ public class TeamRoleService {
     private final TeamMemberService teamMemberService;
     private final TeamPermissionEvaluator teamPermissionEvaluator;
     private final CategoryPermissionEvaluator categoryPermissionEvaluator;
+    private final PostRepository postRepository;
 
     public TeamRole createRole(Long teamId, CreateRoleRequest request) {
         Team team = teamRepository.findById(teamId)
@@ -209,6 +212,19 @@ public class TeamRoleService {
     public boolean hasCategoryPermission(Long categoryId, CategoryPermission permission) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return categoryPermissionEvaluator.hasPermission(auth, categoryId, "TeamCategory", permission);
+    }
+
+    public PostPermissionResponse checkEditAndDeletePostPermission(Long categoryId, Long postId){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Member loginMember = ((UserPrincipal) auth.getPrincipal()).getMember();
+        Member author = postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("post not found")).getAuthor();
+        if (author.equals(loginMember)){
+            return PostPermissionResponse.of(true, true);
+        }
+        boolean canEdit = hasCategoryPermission(categoryId, CategoryPermission.EDIT_POST);
+        boolean canDelete = hasCategoryPermission(categoryId, CategoryPermission.DELETE_POST);
+
+        return PostPermissionResponse.of(canEdit, canDelete);
     }
 
 }
