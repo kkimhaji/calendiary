@@ -59,7 +59,7 @@ public class TeamRoleService {
         return teamRoleRepository.save(role);
     }
 
-    //teamPermission 체크
+    //teamPermission 체크 //test에서만 사용하므로 삭제할 것
     public boolean checkPermission(Long roleId, TeamPermission permission) {
         return teamRoleRepository.findById(roleId)
                 .map(role -> role.hasPermission(permission))
@@ -204,12 +204,12 @@ public class TeamRoleService {
         return TeamRoleResponse.from(role);
     }
 
-    public boolean hasTeamPermission(Long teamId, TeamPermission permission) {
+    private boolean hasTeamPermission(Long teamId, TeamPermission permission) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return teamPermissionEvaluator.hasPermission(auth, teamId, "Team", permission);
     }
 
-    public boolean hasCategoryPermission(Long categoryId, CategoryPermission permission) {
+    private boolean hasCategoryPermission(Long categoryId, CategoryPermission permission) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return categoryPermissionEvaluator.hasPermission(auth, categoryId, "TeamCategory", permission);
     }
@@ -225,6 +225,15 @@ public class TeamRoleService {
         boolean canDelete = hasCategoryPermission(categoryId, CategoryPermission.DELETE_POST);
 
         return PostPermissionResponse.of(canEdit, canDelete);
+    }
+
+    public boolean hasPermissionOrAuthor(Long categoryId, Long postId, CategoryPermission permission) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Member loginMember = ((UserPrincipal) auth.getPrincipal()).getMember();
+        Member author = postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("post not found")).getAuthor();
+
+        return hasCategoryPermission(categoryId, permission) || author.getMemberId().equals(loginMember.getMemberId());
+
     }
 
 }

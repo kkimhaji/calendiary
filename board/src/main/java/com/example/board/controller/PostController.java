@@ -41,10 +41,9 @@ public class PostController {
     @PreAuthorize("hasPermission(#categoryId, 'TeamCategory', T(com.example.board.permission.CategoryPermission).VIEW_POST)")
     public ResponseEntity<Page<PostListResponse>> getPosts(
             @PathVariable(name="teamId") Long teamId, @PathVariable(name="categoryId") @P("categoryId") Long categoryId,
-            @AuthenticationPrincipal UserPrincipal user,
             @PageableDefault(size = 20, sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Page<PostListResponse> posts = postService.getPostsByCategory(teamId, categoryId, user.getMember(), pageable);
+        Page<PostListResponse> posts = postService.getPostsByCategory(teamId, categoryId, pageable);
         return ResponseEntity.ok(posts);
     }
 
@@ -55,9 +54,8 @@ public class PostController {
     }
 
     @PostMapping("/category/{categoryId}/posts/delete/{postId}")
-    @PreAuthorize("hasPermission(#categoryId, 'TeamCategory', T(com.example.board.permission.CategoryPermission).DELETE_POST)")
     public void deletePost(@PathVariable(name="teamId") Long teamId, @PathVariable(name="categoryId") @P("categoryId") Long categoryId, @PathVariable(name="postId") Long postId, @AuthenticationPrincipal UserPrincipal user) {
-        postService.deletePost(postId, user.getMember(), categoryId, teamId);
+        postService.deletePost(postId, categoryId);
     }
 
     @PostMapping("/category/{categoryId}/posts/{postId}/images")
@@ -74,7 +72,7 @@ public class PostController {
 
     @PutMapping("/category/{categoryId}/posts/{postId}")
     public ResponseEntity<PostResponse> updatePost(@PathVariable(name="postId") Long postId, @PathVariable(name="teamId") Long teamId, @PathVariable(name="categoryId") Long categoryId, @RequestBody UpdatePostRequestDTO request, @AuthenticationPrincipal UserPrincipal user) throws FileUploadException {
-        return ResponseEntity.ok(postService.updatePost(teamId, categoryId, postId, user.getMember(), request));
+        return ResponseEntity.ok(postService.updatePost(categoryId, postId, request));
     }
 
     //팀의 최근 게시글 목록 조회
