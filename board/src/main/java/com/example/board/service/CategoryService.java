@@ -51,19 +51,6 @@ public class CategoryService {
             category.addRolePermission(crp);
         });
 
-//        request.rolePermissions().forEach(rolePermDto -> {
-//            TeamRole role = teamRoles.get(rolePermDto.roleId());
-//            if (role == null) {
-//                throw new EntityNotFoundException("Role not found: " + rolePermDto.roleId());
-//            }
-//            CategoryRolePermission permission = CategoryRolePermission.createPermission(
-//                    category,
-//                    role,
-//                    rolePermDto.permissions()
-//            );
-//            category.addRolePermission(permission);
-//        });
-
         categoryPermissionRepository.saveAll(categoryRolePermissions);
 
 

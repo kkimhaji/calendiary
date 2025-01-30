@@ -118,10 +118,9 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("there is no such post"));
 
-        if (teamRoleService.hasPermissionOrAuthor(categoryId, postId, CategoryPermission.DELETE_POST))
-            postRepository.deleteById(postId);
-
-        else throw new AccessDeniedException("게시글을 삭제할 권한이 없습니다.");
+        if (!teamRoleService.hasPermissionOrAuthor(categoryId, postId, CategoryPermission.DELETE_POST))
+            throw new AccessDeniedException("게시글을 삭제할 권한이 없습니다.");
+        postRepository.deleteById(postId);
     }
 
     public PostResponse updatePost(Long categoryId, Long postId,UpdatePostRequestDTO requestDTO) throws FileUploadException {

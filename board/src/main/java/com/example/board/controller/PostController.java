@@ -53,7 +53,7 @@ public class PostController {
         return ResponseEntity.ok(postService.getPostDetail(postId));
     }
 
-    @PostMapping("/category/{categoryId}/posts/delete/{postId}")
+    @DeleteMapping("/category/{categoryId}/posts/delete/{postId}")
     public void deletePost(@PathVariable(name="teamId") Long teamId, @PathVariable(name="categoryId") @P("categoryId") Long categoryId, @PathVariable(name="postId") Long postId, @AuthenticationPrincipal UserPrincipal user) {
         postService.deletePost(postId, categoryId);
     }

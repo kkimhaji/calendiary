@@ -72,16 +72,6 @@ public class TeamRoleController {
         return ResponseEntity.ok(teamRoleService.getMembersRole(teamId, member.getMember()));
     }
 
-    @GetMapping("/team_permission")
-    public boolean teamPermissionCheck(@PathVariable(name = "teamId") Long teamId, TeamPermission permission){
-        return teamRoleService.hasTeamPermission(teamId, permission);
-    }
-
-    @GetMapping("/category_permission")
-    public boolean categoryPermissionCheck(@PathVariable(name = "teamId") Long teamId, Long categoryId, CategoryPermission permission){
-        return teamRoleService.hasCategoryPermission(categoryId, permission);
-    }
-
     @GetMapping("/post_permission/check")
     public ResponseEntity<PostPermissionResponse> checkPostPermission(@PathVariable(name = "teamId") Long teamId, @RequestParam(name = "categoryId") Long categoryId, @RequestParam(name="postId") Long postId){
         return ResponseEntity.ok(teamRoleService.checkEditAndDeletePostPermission(categoryId, postId));
