@@ -8,10 +8,12 @@ import com.example.board.service.ImageService;
 import com.example.board.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,6 +21,7 @@ import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -28,6 +31,8 @@ public class PostController {
 
     private final PostService postService;
     private final ImageService imageService;
+    @Value("${file.upload.temp}")
+    private String uploadTempDir;
 
     @PostMapping("/category/{categoryId}/posts")
     @PreAuthorize("hasPermission(#categoryId, 'TeamCategory', T(com.example.board.permission.CategoryPermission).CREATE_POST)")
@@ -81,5 +86,27 @@ public class PostController {
             @PathVariable(name="teamId") Long teamId,
             @PageableDefault(size = 20, sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable){
         return ResponseEntity.ok(postService.getRecentPosts(teamId, pageable));
+    }
+
+    //이미지 임시 업로드
+    @PostMapping("/images/temp-upload")
+    public ResponseEntity<String> uploadTempImage(@RequestParam("file") MultipartFile file) {
+        try {
+            String imageUrl = imageService.uploadImage(file, true);
+            return ResponseEntity.ok(imageUrl);
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    //게시글을 저장할 때 임시 업로드 된 이미지를 이동
+    @PostMapping("/images/confirm")
+    public ResponseEntity<Void> confirmImage(@RequestBody String tempUrl) throws IOException {
+        try {
+            imageService.moveToPermanent(tempUrl);
+            return ResponseEntity.ok().build();
+        } catch (IOException e){
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

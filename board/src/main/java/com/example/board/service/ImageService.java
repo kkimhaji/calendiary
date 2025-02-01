@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,6 +15,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -26,6 +28,9 @@ public class ImageService {
 
     @Value("${file.upload.location}")
     private String uploadPath;
+    @Value("${file.upload.temp}")
+    private String uploadTempDir;
+
 
     public String saveFile(MultipartFile file) throws FileUploadException {
         if (file.isEmpty()) {
@@ -88,6 +93,28 @@ public class ImageService {
             log.error("Failed to delete file: {}", storedFileName, e);
             throw new FileDeleteException("파일 삭제 중 오류가 발생했습니다: "+storedFileName, e);
         }
+    }
+
+    public String uploadImage(MultipartFile file, boolean isTemporary) throws IOException {
+        String originalFileName = file.getOriginalFilename();
+        validateImage(originalFileName);
+
+        String fileName = createStoredFileName(originalFileName);
+        Path uploadDir = Paths.get(isTemporary ? uploadTempDir : uploadPath);
+        Files.createDirectories(uploadDir);
+
+        Path filePath = uploadDir.resolve(fileName);
+        file.transferTo(filePath);
+
+        return (isTemporary ? "/temp-images/" : "/perm-images/") + fileName;
+    }
+
+    public void moveToPermanent(String tempUrl) throws IOException {
+        String fileName = tempUrl.replace("/temp-images/", "");
+        Path source = Paths.get(uploadTempDir, fileName);
+        Path target = Paths.get(uploadPath, fileName);
+
+        Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
     }
 
 }

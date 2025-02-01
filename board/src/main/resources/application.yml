@@ -35,6 +35,7 @@ security:
 file:
   upload:
     location: ${FILE_LOCATION}
+    temp: ${FILE_UPLOAD_TEMP}
 
 logging:
   level:
@@ -44,3 +45,4 @@ logging:
     com:
       example:
         board: DEBUG
+

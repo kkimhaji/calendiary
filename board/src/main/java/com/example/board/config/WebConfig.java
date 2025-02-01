@@ -10,11 +10,17 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
     @Value("${file.upload.location}")
     private String uploadPath;
+    @Value("${file.upload.temp}")
+    private String tempUpload;
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/images/**")
                 .addResourceLocations("file:///" + uploadPath);
+
+        registry.addResourceHandler("/images/**")
+                .addResourceLocations("file:" + tempUpload)
+                .setCachePeriod(0);
     }
 
     @Override
