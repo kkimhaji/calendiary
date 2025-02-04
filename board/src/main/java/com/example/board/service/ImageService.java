@@ -1,5 +1,6 @@
 package com.example.board.service;
 
+import com.example.board.domain.post.PostImageRepository;
 import com.example.board.dto.post.ImageResponse;
 import com.example.board.exception.FileDeleteException;
 import com.example.board.exception.InvalidFileTypeException;
@@ -25,7 +26,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ImageService {
     private final List<String> ALLOWED_EXTENSIONS = Arrays.asList("jpg", "jpeg", "png", "gif");
-
+    private final PostImageRepository imageRepository;
     @Value("${file.upload.location}")
     private String uploadPath;
     @Value("${file.upload.temp}")

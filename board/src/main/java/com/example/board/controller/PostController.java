@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -34,9 +35,11 @@ public class PostController {
     @Value("${file.upload.temp}")
     private String uploadTempDir;
 
-    @PostMapping("/category/{categoryId}/posts")
+    //일반 게시글 작성 (이미지x)
+    @PostMapping(value = "/category/{categoryId}/posts", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasPermission(#categoryId, 'TeamCategory', T(com.example.board.permission.CategoryPermission).CREATE_POST)")
-    public ResponseEntity<PostResponse> createPost(@PathVariable(name="teamId") Long teamId, @PathVariable(name="categoryId") @P("categoryId") Long categoryId, @RequestBody CreatePostRequest request, @AuthenticationPrincipal UserPrincipal user) throws FileUploadException {
+    public ResponseEntity<PostResponse> createPost(@PathVariable(name="teamId") Long teamId, @PathVariable(name="categoryId") @P("categoryId") Long categoryId,
+                                                   @ModelAttribute CreatePostRequest request, @AuthenticationPrincipal UserPrincipal user) throws FileUploadException {
         Post post = postService.createPost(teamId, categoryId, request, user.getMember());
         return ResponseEntity.ok(PostResponse.from(post));
     }
@@ -59,7 +62,8 @@ public class PostController {
     }
 
     @DeleteMapping("/category/{categoryId}/posts/delete/{postId}")
-    public void deletePost(@PathVariable(name="teamId") Long teamId, @PathVariable(name="categoryId") @P("categoryId") Long categoryId, @PathVariable(name="postId") Long postId, @AuthenticationPrincipal UserPrincipal user) {
+    public void deletePost(@PathVariable(name="teamId") Long teamId, @PathVariable(name="categoryId") @P("categoryId") Long categoryId,
+                           @PathVariable(name="postId") Long postId, @AuthenticationPrincipal UserPrincipal user) {
         postService.deletePost(postId, categoryId);
     }
 
@@ -76,7 +80,9 @@ public class PostController {
     }
 
     @PutMapping("/category/{categoryId}/posts/{postId}")
-    public ResponseEntity<PostResponse> updatePost(@PathVariable(name="postId") Long postId, @PathVariable(name="teamId") Long teamId, @PathVariable(name="categoryId") Long categoryId, @RequestBody UpdatePostRequestDTO request, @AuthenticationPrincipal UserPrincipal user) throws FileUploadException {
+    public ResponseEntity<PostResponse> updatePost(@PathVariable(name="postId") Long postId, @PathVariable(name="teamId") Long teamId,
+                                                   @PathVariable(name="categoryId") Long categoryId, @RequestBody UpdatePostRequestDTO request,
+                                                   @AuthenticationPrincipal UserPrincipal user) throws FileUploadException {
         return ResponseEntity.ok(postService.updatePost(categoryId, postId, request));
     }
 

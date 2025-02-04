@@ -12,6 +12,14 @@ spring:
       ddl-auto: update
     show-sql: true
 
+  servlet:
+    multipart:
+      enabled: true
+      file-size-threshold: 2KB
+      max-file-size: 10MB
+      max-request-size: 15MB
+      location: ${FILE_UPLOAD_TEMP}
+
   mail:
     host: smtp.gmail.com
     port: 587

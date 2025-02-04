@@ -31,4 +31,13 @@ public class TestController {
         log.debug("Principal in Controller: {}", auth != null ? auth.getPrincipal() : "null");
         return ResponseEntity.ok("카테고리 관리 권한 인증 성공");
     }
+
+    @GetMapping("/preauth/test/category/{categoryId}")
+    @PreAuthorize("hasPermission(#categoryId, 'TeamCategory', T(com.example.board.permission.CategoryPermission).CREATE_POST)")
+    public ResponseEntity<String> createPostPreAuthorizeTest(@PathVariable(name="categoryId") @P("categoryId") Long categoryId){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        log.debug("Current Authentication in Controller: {}", authentication);
+        log.debug("Principal in Controller: {}", authentication != null ? authentication.getPrincipal() : "null");
+        return ResponseEntity.ok("카테고리 - 게시글 작성 권한 인증 성공");
+    }
 }

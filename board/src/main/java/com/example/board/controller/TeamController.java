@@ -1,5 +1,6 @@
 package com.example.board.controller;
 
+import com.example.board.auth.UserPrincipal;
 import com.example.board.domain.member.Member;
 import com.example.board.dto.team.AddMemberRequestDTO;
 import com.example.board.dto.team.TeamCreateRequestDTO;
@@ -22,15 +23,15 @@ public class TeamController {
     private final MemberService memberService;
 
     @PostMapping("/create")
-    public ResponseEntity<TeamCreateResponse> createTeam(@AuthenticationPrincipal Member member, @RequestBody TeamCreateRequestDTO dto){
+    public ResponseEntity<TeamCreateResponse> createTeam(@AuthenticationPrincipal UserPrincipal user, @RequestBody TeamCreateRequestDTO dto){
 //        var loginMember = memberService.getMember(request)
 //                .orElseThrow(() ->new IllegalArgumentException("no user"));
-        return ResponseEntity.ok(TeamCreateResponse.fromEntity(teamService.createTeam(member, dto)));
+        return ResponseEntity.ok(TeamCreateResponse.fromEntity(teamService.createTeam(user.getMember(), dto)));
     }
 
     @PostMapping("/addmember")
     @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_MEMBERS)")
-    public ResponseEntity<?> addMember(@AuthenticationPrincipal Member member, @RequestBody AddMemberRequestDTO dto){
+    public ResponseEntity<?> addMember(@AuthenticationPrincipal UserPrincipal user, @RequestBody AddMemberRequestDTO dto){
         return ResponseEntity.ok(teamService.addMember(dto));
     }
 

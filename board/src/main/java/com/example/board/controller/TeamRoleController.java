@@ -68,8 +68,8 @@ public class TeamRoleController {
 
     //현재 로그인한 사용자의 팀 내 역할 조회
     @GetMapping("/getrole")
-    public ResponseEntity<TeamRoleResponse> getMembersRole(@PathVariable(name = "teamId") Long teamId, @AuthenticationPrincipal UserPrincipal member){
-        return ResponseEntity.ok(teamRoleService.getMembersRole(teamId, member.getMember()));
+    public ResponseEntity<TeamRoleResponse> getMembersRole(@PathVariable(name = "teamId") Long teamId, @AuthenticationPrincipal UserPrincipal user){
+        return ResponseEntity.ok(teamRoleService.getMembersRole(teamId, user.getMember()));
     }
 
     @GetMapping("/post_permission/check")

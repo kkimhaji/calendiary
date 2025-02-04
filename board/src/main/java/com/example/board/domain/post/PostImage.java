@@ -19,7 +19,7 @@ public class PostImage {
     private String originalFileName;
     private String storedFileName;
 
-//    private String fileUrl;
+    private String fileUrl;
 
     @Builder
     public PostImage(Post post, String originalFileName, String storedFileName) {

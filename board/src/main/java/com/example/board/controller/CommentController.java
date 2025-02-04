@@ -1,5 +1,6 @@
 package com.example.board.controller;
 
+import com.example.board.auth.UserPrincipal;
 import com.example.board.domain.member.Member;
 import com.example.board.dto.comment.CommentResponse;
 import com.example.board.dto.comment.CreateCommentRequest;
@@ -17,12 +18,12 @@ public class CommentController {
     private final CommentService commentService;
 
     @PostMapping
-    public ResponseEntity<CommentResponse> createComment(@PathVariable Long teamId, @PathVariable Long postId, @RequestBody CreateCommentRequest request, @AuthenticationPrincipal Member member){
-        return ResponseEntity.ok(commentService.createComment(member, postId, teamId, request));
+    public ResponseEntity<CommentResponse> createComment(@PathVariable Long teamId, @PathVariable Long postId, @RequestBody CreateCommentRequest request, @AuthenticationPrincipal UserPrincipal user){
+        return ResponseEntity.ok(commentService.createComment(user.getMember(), postId, teamId, request));
     }
 
     @DeleteMapping("/{commentId}")
-    public void deleteComment(@PathVariable Long teamId, @PathVariable Long postId, @PathVariable Long commentId,@AuthenticationPrincipal Member member){
-        commentService.deleteComment(teamId, commentId, member);
+    public void deleteComment(@PathVariable Long teamId, @PathVariable Long postId, @PathVariable Long commentId,@AuthenticationPrincipal UserPrincipal user){
+        commentService.deleteComment(teamId, commentId, user.getMember());
     }
 }
