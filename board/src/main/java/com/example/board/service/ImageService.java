@@ -17,9 +17,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Service
@@ -79,6 +82,7 @@ public class ImageService {
 
     public void deleteImage(String storedFileName) {
         try {
+
             Path filePath = Paths.get(uploadPath)
                     .resolve(storedFileName)
                     .normalize()
@@ -116,6 +120,29 @@ public class ImageService {
         Path target = Paths.get(uploadPath, fileName);
 
         Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    public List<String> extractImageUrlsFromContent(String content){
+        List<String> urls = new ArrayList<>();
+        Pattern pattern = Pattern.compile("src=\"(.*?)\"");
+        Matcher matcher = pattern.matcher(content);
+        while (matcher.find()){
+            urls.add(matcher.group(1));
+        }
+        return urls;
+    }
+
+    //임시->영구 이동 및 url 변환
+    public String processContentImages(String content) throws IOException {
+        List<String> tempUrls = extractImageUrlsFromContent(content);
+        for (String tempUrl:tempUrls){
+            if (tempUrl.contains("/temp-images/")) {
+                moveToPermanent(tempUrl);
+                String permUrl = tempUrl.replace("/temp-images/", "/perm-images/");
+                content = content.replace(tempUrl, permUrl);
+            }
+        }
+        return content;
     }
 
 }

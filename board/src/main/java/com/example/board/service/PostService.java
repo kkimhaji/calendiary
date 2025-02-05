@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -44,25 +45,30 @@ public class PostService {
     private final PostImageRepository postImageRepository;
     private final TeamRoleService teamRoleService;
 
-    public Post createPost(Long teamId, Long categoryId, CreatePostRequest request, Member author) throws AccessDeniedException, FileUploadException {
+    public Post createPost(Long teamId, Long categoryId, CreatePostRequest request, Member author) throws AccessDeniedException, IOException {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new EntityNotFoundException("Team not found"));
         TeamCategory category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new EntityNotFoundException("Category not found"));
+        //이미지 처리
+        String processedContent = imageService.processContentImages(htmlSanitizer.sanitize(request.content()));
 
-        Post post = request.toEntity(htmlSanitizer.sanitize(request.content()), team, category, author);
-        if (request.images()!= null && !request.images().isEmpty()){
-            for (MultipartFile image : request.images()) {
-                String storedFileName = imageService.saveFile(image);
 
-                PostImage postImage = PostImage.builder()
-                        .post(post)
-                        .originalFileName(image.getOriginalFilename())
-                        .storedFileName(storedFileName)
-                        .build();
-                post.addImage(postImage);
-            }
+        Post post = request.toEntity(processedContent, team, category, author);
+
+        List<String> permUrls = imageService.extractImageUrlsFromContent(processedContent).stream()
+                .filter(url -> url.contains("/perm-images/")).toList();
+
+        for (String permUrl: permUrls){
+            String fileName = permUrl.replace("/perm-images/", "");
+            PostImage postImage = PostImage.builder()
+                    .post(post)
+                    .originalFileName(fileName)
+                    .storedFileName(fileName)
+                    .build();
+            post.addImage(postImage);
         }
+
         return postRepository.save(post);
     }
 
