@@ -28,6 +28,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -45,9 +46,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req->
-                        req.requestMatchers("/auth/**", "team/**", "/api/test").permitAll()
+                        req.requestMatchers("/auth/**", "team/**", "/api/test", "/temp-images/**", "/perm-images/**").permitAll()
                                 .anyRequest()
                                 .authenticated()
                 )
@@ -69,6 +71,19 @@ public class SecurityConfig {
                 new DefaultMethodSecurityExpressionHandler();
         expressionHandler.setPermissionEvaluator(new DelegatingPermissionEvaluator(teamPermissionEvaluator, categoryPermissionEvaluator));
         return expressionHandler;
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource(){
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowCredentials(true);
+        config.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(Arrays.asList("*"));
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 
 }

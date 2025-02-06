@@ -35,11 +35,10 @@ public class PostController {
     @Value("${file.upload.temp}")
     private String uploadTempDir;
 
-    //일반 게시글 작성 (이미지x)
     @PostMapping(value = "/category/{categoryId}/posts", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasPermission(#categoryId, 'TeamCategory', T(com.example.board.permission.CategoryPermission).CREATE_POST)")
     public ResponseEntity<PostResponse> createPost(@PathVariable(name="teamId") Long teamId, @PathVariable(name="categoryId") @P("categoryId") Long categoryId,
-                                                   @ModelAttribute CreatePostRequest request, @AuthenticationPrincipal UserPrincipal user) throws FileUploadException {
+                                                   @ModelAttribute CreatePostRequest request, @AuthenticationPrincipal UserPrincipal user) throws IOException {
         Post post = postService.createPost(teamId, categoryId, request, user.getMember());
         return ResponseEntity.ok(PostResponse.from(post));
     }
@@ -98,7 +97,7 @@ public class PostController {
     @PostMapping("/images/temp-upload")
     public ResponseEntity<String> uploadTempImage(@RequestParam("file") MultipartFile file) {
         try {
-            String imageUrl = imageService.uploadImage(file, true);
+            String imageUrl = imageService.uploadTempImage(file);
             return ResponseEntity.ok(imageUrl);
         } catch (IOException e) {
             return ResponseEntity.internalServerError().build();

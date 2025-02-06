@@ -53,7 +53,6 @@ public class PostService {
         //이미지 처리
         String processedContent = imageService.processContentImages(htmlSanitizer.sanitize(request.content()));
 
-
         Post post = request.toEntity(processedContent, team, category, author);
 
         List<String> permUrls = imageService.extractImageUrlsFromContent(processedContent).stream()

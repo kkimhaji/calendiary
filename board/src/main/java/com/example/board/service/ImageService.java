@@ -100,26 +100,25 @@ public class ImageService {
         }
     }
 
-    public String uploadImage(MultipartFile file, boolean isTemporary) throws IOException {
+    public String uploadTempImage(MultipartFile file) throws IOException {
         String originalFileName = file.getOriginalFilename();
         validateImage(originalFileName);
 
         String fileName = createStoredFileName(originalFileName);
-        Path uploadDir = Paths.get(isTemporary ? uploadTempDir : uploadPath);
-        Files.createDirectories(uploadDir);
+        Path tempPath = Paths.get(uploadTempDir, fileName);
+        Files.createDirectories(tempPath.getParent());
+        Files.copy(file.getInputStream(), tempPath, StandardCopyOption.REPLACE_EXISTING);
 
-        Path filePath = uploadDir.resolve(fileName);
-        file.transferTo(filePath);
-
-        return (isTemporary ? "/temp-images/" : "/perm-images/") + fileName;
+        return "/temp-images/" + fileName;
     }
 
-    public void moveToPermanent(String tempUrl) throws IOException {
-        String fileName = tempUrl.replace("/temp-images/", "");
+    public String moveToPermanent(String tempUrl) throws IOException {
+        String fileName = tempUrl.substring(tempUrl.lastIndexOf("/") + 1);
         Path source = Paths.get(uploadTempDir, fileName);
         Path target = Paths.get(uploadPath, fileName);
 
         Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
+        return "/perm-images/" + fileName;
     }
 
     public List<String> extractImageUrlsFromContent(String content){
@@ -144,5 +143,23 @@ public class ImageService {
         }
         return content;
     }
+//------
+//    public String convertImageUrls(String content) {
+//        return content.replaceAll("/temp-images/", "/perm-images/");
+//    }
+
+//    private void validateFile(MultipartFile file) {
+//        if (file.isEmpty()) throw new IllegalArgumentException("Empty file");
+//
+//        String extension = getFileExtension(file.getOriginalFilename());
+//        if (!ALLOWED_EXTENSIONS.contains(extension.toLowerCase())) {
+//            throw new IllegalArgumentException("Invalid file type");
+//        }
+//    }
+//
+//    private String generateUniqueFileName(String originalName) {
+//        String ext = getFileExtension(originalName);
+//        return UUID.randomUUID() + "." + ext;
+//    }
 
 }

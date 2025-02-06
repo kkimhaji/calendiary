@@ -15,11 +15,11 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/images/**")
-                .addResourceLocations("file:///" + uploadPath);
+        registry.addResourceHandler("/perm-images/**")
+                .addResourceLocations("file:" + uploadPath +"/");
 
-        registry.addResourceHandler("/images/**")
-                .addResourceLocations("file:" + tempUpload)
+        registry.addResourceHandler("/temp-images/**")
+                .addResourceLocations("file:" + tempUpload + "/")
                 .setCachePeriod(0);
     }
 
