@@ -58,13 +58,15 @@ public class Post extends BaseTimeEntity {
         this.category = category;
     }
 
-    public void update(String title, String content){
+    public void update(String title, String content, TeamCategory category){
         this.title = title;
         this.content = content;
+        this.category = category;
     }
 
     public void removeImage(PostImage image){
         this.images.remove(image);
+        image.setPost(null);
     }
 
     public void increaseViewCount(){

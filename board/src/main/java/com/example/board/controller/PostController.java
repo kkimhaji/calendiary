@@ -57,7 +57,7 @@ public class PostController {
     @GetMapping("/category/{categoryId}/posts/{postId}")
     @PreAuthorize("hasPermission(#categoryId, 'TeamCategory', T(com.example.board.permission.CategoryPermission).VIEW_POST)")
     public ResponseEntity<PostDetailDTO> getPost(@PathVariable(name="postId") Long postId,
-                                                 @PathVariable(name = "categoryId") @P("categoryId") Long categoryId) {
+                                                 @PathVariable(name = "categoryId") @P("categoryId") Long categoryId, @PathVariable(name="teamId") Long teamId) {
         return ResponseEntity.ok(postService.getPostDetail(postId));
     }
 
@@ -81,8 +81,8 @@ public class PostController {
 
     @PutMapping("/category/{categoryId}/posts/{postId}")
     public ResponseEntity<PostResponse> updatePost(@PathVariable(name="postId") Long postId, @PathVariable(name="teamId") Long teamId,
-                                                   @PathVariable(name="categoryId") Long categoryId, @RequestBody UpdatePostRequestDTO request,
-                                                   @AuthenticationPrincipal UserPrincipal user) throws FileUploadException {
+                                                   @PathVariable(name="categoryId") Long categoryId, @ModelAttribute UpdatePostRequestDTO request,
+                                                   @AuthenticationPrincipal UserPrincipal user) throws IOException {
         return ResponseEntity.ok(postService.updatePost(categoryId, postId, request));
     }
 

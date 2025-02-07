@@ -128,23 +128,39 @@ public class PostService {
         postRepository.deleteById(postId);
     }
 
-    public PostResponse updatePost(Long categoryId, Long postId,UpdatePostRequestDTO requestDTO) throws FileUploadException {
+    public PostResponse updatePost(Long categoryId, Long postId,UpdatePostRequestDTO requestDTO) throws IOException {
         Post post = postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("post not found"));
+        TeamCategory category = categoryRepository.findById(categoryId).orElseThrow(() -> new EntityNotFoundException("category not found"));
 
         if (!teamRoleService.hasPermissionOrAuthor(categoryId, postId, CategoryPermission.EDIT_POST)){
             throw new AccessDeniedException("게시글을 수정할 권한이 없습니다.");
         }
 
+        //이미지 처리
         String sanitizedContent = htmlSanitizer.sanitize(requestDTO.content());
-        post.update(requestDTO.title(), sanitizedContent);
+        String processedContent = imageService.processContentImages(sanitizedContent);
 
-        if (requestDTO.deleteImageIds() != null && !requestDTO.deleteImageIds().isEmpty())
+
+        //기존 이미지 중 삭제 대상 처리
+        if (requestDTO.deleteImageIds() != null && !requestDTO.deleteImageIds().isEmpty()){
             deleteImages(post, requestDTO.deleteImageIds());
+        }
+        Post updatedPost = requestDTO.toEntity(post, category, processedContent);
 
-        if (requestDTO.images() != null && !requestDTO.images().isEmpty())
-            addNewImages(post, requestDTO.images());
+        List<String> newImageUrls = imageService.extractImageUrlsFromContent(processedContent).stream()
+                        .filter(url -> !post.getImages().stream()
+                                .anyMatch(img -> url.contains(img.getStoredFileName())))
+                        .toList();
 
-        return PostResponse.from(post);
+        for (String url: newImageUrls){
+            String fileName = url.replace("/perm-images/", "");
+            PostImage postImage = PostImage.builder()
+                    .post(updatedPost).originalFileName(fileName)
+                    .storedFileName(fileName).build();
+            updatedPost.addImage(postImage);
+        }
+
+        return PostResponse.from(postRepository.save(updatedPost));
     }
 
     private void deleteImages(Post post, List<Long> imageIds) {
@@ -152,7 +168,7 @@ public class PostService {
 
         for (PostImage image : imagesToDelete) {
             // 이미지가 해당 게시글의 것인지 확인
-            if (!image.getPost().equals(post)) {
+            if (!image.getPost().getId().equals(post.getId())) {
                 throw new IllegalArgumentException("잘못된 이미지 ID입니다.");
             }
 
