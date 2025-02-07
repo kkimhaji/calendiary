@@ -119,12 +119,15 @@ public class PostService {
         });
     }
 
-    public void deletePost(Long postId, Long categoryId){
+    public void deletePost(Long postId, Long categoryId) throws IOException {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("there is no such post"));
 
         if (!teamRoleService.hasPermissionOrAuthor(categoryId, postId, CategoryPermission.DELETE_POST))
             throw new AccessDeniedException("게시글을 삭제할 권한이 없습니다.");
+
+        deleteAllPostImages(post);
+
         postRepository.deleteById(postId);
     }
 
@@ -181,6 +184,17 @@ public class PostService {
             // DB에서 이미지 정보 삭제
             postImageRepository.delete(image);
         }
+    }
+    private void deleteAllPostImages(Post post) throws IOException {
+        List<PostImage> images = post.getImages();
+
+        // 4-1. 파일 시스템에서 이미지 삭제
+        for (PostImage image : images) {
+            imageService.deleteImage(image.getStoredFileName());
+        }
+
+        // 4-2. DB에서 이미지 레코드 삭제 (CASCADE 설정 시 자동)
+        post.clearImages();
     }
 
     private void addNewImages(Post post, List<MultipartFile> newImages) throws FileUploadException {

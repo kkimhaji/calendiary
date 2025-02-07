@@ -86,4 +86,9 @@ public class Post extends BaseTimeEntity {
             image.setPost(this);
     }
 
+    public void clearImages(){
+        images.forEach(image -> image.setPost(null));
+        images.clear();
+    }
+
 }

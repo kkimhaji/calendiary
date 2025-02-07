@@ -82,11 +82,7 @@ public class ImageService {
 
     public void deleteImage(String storedFileName) {
         try {
-
-            Path filePath = Paths.get(uploadPath)
-                    .resolve(storedFileName)
-                    .normalize()
-                    .toAbsolutePath();
+            Path filePath = Paths.get(uploadPath, storedFileName);
 
             if (Files.exists(filePath)){
                 Files.delete(filePath);

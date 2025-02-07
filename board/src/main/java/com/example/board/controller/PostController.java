@@ -63,7 +63,7 @@ public class PostController {
 
     @DeleteMapping("/category/{categoryId}/posts/delete/{postId}")
     public void deletePost(@PathVariable(name="teamId") Long teamId, @PathVariable(name="categoryId") @P("categoryId") Long categoryId,
-                           @PathVariable(name="postId") Long postId, @AuthenticationPrincipal UserPrincipal user) {
+                           @PathVariable(name="postId") Long postId, @AuthenticationPrincipal UserPrincipal user) throws IOException {
         postService.deletePost(postId, categoryId);
     }
 
