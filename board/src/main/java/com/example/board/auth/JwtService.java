@@ -91,4 +91,8 @@ public class JwtService {
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(SECRET_KEY));
     }
+
+    public long getRefreshTokenExpiration(){
+        return refreshTokenExpiration;
+    }
 }

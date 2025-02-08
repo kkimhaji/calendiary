@@ -53,7 +53,7 @@ public class AuthenticationController {
         return ResponseEntity.ok(authService.authenticate(dto));
     }
 
-    @PostMapping("/refresh-token")
+    @PostMapping("/reissue")
     public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
         authService.refreshToken(request, response);
     }

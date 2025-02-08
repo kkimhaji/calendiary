@@ -3,9 +3,7 @@ package com.example.board.service;
 import com.example.board.auth.AuthenticationResponse;
 import com.example.board.auth.JwtService;
 import com.example.board.auth.UserPrincipal;
-import com.example.board.domain.jwt.Token;
-import com.example.board.domain.jwt.TokenRepository;
-import com.example.board.domain.jwt.TokenType;
+import com.example.board.domain.jwt.*;
 import com.example.board.domain.member.Member;
 import com.example.board.domain.member.MemberRepository;
 import com.example.board.dto.member.AuthenticationRequestDTO;
@@ -18,11 +16,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.http.HttpHeaders;
 
 import java.io.IOException;
+import java.nio.file.attribute.UserPrincipalNotFoundException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -36,6 +36,7 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final TokenRepository tokenRepository;
     private final EmailService emailService;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     // save to the database and return the generated token
     public MemberRegisterResponseDTO register(RegisterRequestDTO request) {
@@ -129,30 +130,116 @@ public class AuthenticationService {
     }
 
     //refresh token을 기반으로 새로 access token 발행
-    public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public AuthenticationResponse refreshToken(HttpServletRequest request, HttpServletResponse response, boolean rememberMe) throws IOException {
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         final String refreshToken;
         final String userEmail;
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) return;
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) throw new RuntimeException("Invalid Header");
 
         refreshToken = authHeader.substring(7);
         userEmail = jwtService.extractUsername(refreshToken);
+        if (userEmail == null) throw new UsernameNotFoundException("이메일에 해당하는 사용자를 찾을 수 없습니다.");
 
-        if (userEmail != null) {
-            var member = this.memberRepository.findByEmail(userEmail).orElseThrow();
-            UserPrincipal user = new UserPrincipal(member);
+//        if (userEmail != null) {
+//            var member = this.memberRepository.findByEmail(userEmail).orElseThrow();
+//            UserPrincipal user = new UserPrincipal(member);
+//
+//            if (jwtService.isTokenValid(refreshToken, user)) {
+//                var accessToken = jwtService.generateToken(user);
+//                revokeToken(member);
+//                saveUserToken(member, accessToken);
+//
+//                var authResponse = AuthenticationResponse.builder()
+//                        .accessToken(accessToken).refreshToken(refreshToken)
+//                        .build();
+//
+//                new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
+//            }
+//        }
 
-            if (jwtService.isTokenValid(refreshToken, user)) {
-                var accessToken = jwtService.generateToken(user);
-                revokeToken(member);
-                saveUserToken(member, accessToken);
+        RefreshToken storedToken = refreshTokenRepository.findByToken(refreshToken)
+                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
 
-                var authResponse = AuthenticationResponse.builder()
-                        .accessToken(accessToken).refreshToken(refreshToken)
-                        .build();
-
-                new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
-            }
+        if (storedToken.isRevoked() || storedToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Refresh token expired or revoked");
         }
+
+        Member member = storedToken.getMember();
+        UserPrincipal user = new UserPrincipal(member);
+
+        // 1. 새로운 토큰 생성
+        String newAccessToken = jwtService.generateToken(user);
+        String newRefreshToken = jwtService.generateRefreshToken(user);
+
+        // 2. 기존 토큰 폐기
+        storedToken.revoke();
+        refreshTokenRepository.save(storedToken);
+
+        // 3. 새로운 토큰 저장
+        saveRefreshToken(member, newRefreshToken);
+        saveUserToken(member, newAccessToken);
+
+        return AuthenticationResponse.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken)
+                .build();
+    }
+//
+//    private void sendError(HttpServletResponse response, String message) throws IOException {
+//        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+//        response.getWriter().write(message);
+//    }
+//
+//
+//    private void processTokenRefresh(
+//            Member member,
+//            String oldRefreshToken,
+//            boolean rememberMe,
+//            HttpServletResponse response
+//    ) throws IOException {
+//        UserPrincipal user = new UserPrincipal(member);
+//
+//        if (!jwtService.isTokenValid(oldRefreshToken, user)) {
+//            sendError(response, "Invalid refresh token");
+//            return;
+//        }
+//
+//        // 새로운 토큰 생성
+//        String newAccessToken = jwtService.generateToken(user);
+//        String newRefreshToken = rememberMe ? jwtService.generateRefreshToken(user) : oldRefreshToken;
+//
+//        // 기존 토큰 폐기
+//        revokeToken(member);
+//
+//        // 새 토큰 저장
+//        saveUserToken(member, newAccessToken);
+//        if (rememberMe) {
+//            saveRefreshToken(member, newRefreshToken);
+//        }
+//
+//        // 응답 생성
+//        sendTokenResponse(response, newAccessToken, newRefreshToken);
+//    }
+//
+//    private void sendTokenResponse(HttpServletResponse response, String accessToken, String refreshToken) {
+//        try {
+//            AuthenticationResponse authResponse = AuthenticationResponse.builder()
+//                    .accessToken(accessToken)
+//                    .refreshToken(refreshToken)
+//                    .build();
+//
+//            new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
+//        } catch (IOException e) {
+//            throw new RuntimeException("Response write failed", e);
+//        }
+//    }
+
+    private void saveRefreshToken(Member member, String refreshToken) {
+        RefreshToken newToken = new RefreshToken(
+                refreshToken,
+                member,
+                jwtService.getRefreshTokenExpiration()
+        );
+        refreshTokenRepository.save(newToken);
     }
 }
