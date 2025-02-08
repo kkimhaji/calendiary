@@ -54,8 +54,8 @@ public class AuthenticationController {
     }
 
     @PostMapping("/reissue")
-    public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        authService.refreshToken(request, response);
+    public void refreshToken(HttpServletRequest request, HttpServletResponse response, boolean rememberMe) throws IOException {
+        authService.refreshToken(request, response, rememberMe);
     }
 
 }
