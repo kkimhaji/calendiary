@@ -72,10 +72,9 @@ public class AuthenticationService {
 
                 saveUserToken(savedUser, jwtToken);
 
-                return AuthenticationResponse.builder()
-                        .accessToken(jwtToken)
-                        .refreshToken(refreshToken)
-                        .build();
+                return new AuthenticationResponse(
+                        jwtToken, refreshToken
+                );
             } else throw new RuntimeException("Invalid code");
 
         } else throw new RuntimeException("User not found");
@@ -105,10 +104,7 @@ public class AuthenticationService {
         revokeToken(member);
         saveUserToken(member, jwtToken);
 
-        return AuthenticationResponse.builder()
-                .accessToken(jwtToken)
-                .refreshToken(refreshToken)
-                .build();
+        return new AuthenticationResponse(jwtToken, refreshToken);
     }
 
     private void saveUserToken(Member member, String jwtToken) {
@@ -130,7 +126,7 @@ public class AuthenticationService {
     }
 
     //refresh token을 기반으로 새로 access token 발행
-    public AuthenticationResponse refreshToken(HttpServletRequest request, HttpServletResponse response, boolean rememberMe) throws IOException {
+    public AuthenticationResponse refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         final String refreshToken;
         final String userEmail;
@@ -179,60 +175,8 @@ public class AuthenticationService {
         saveRefreshToken(member, newRefreshToken);
         saveUserToken(member, newAccessToken);
 
-        return AuthenticationResponse.builder()
-                .accessToken(newAccessToken)
-                .refreshToken(newRefreshToken)
-                .build();
+        return new AuthenticationResponse(newAccessToken, newRefreshToken);
     }
-//
-//    private void sendError(HttpServletResponse response, String message) throws IOException {
-//        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-//        response.getWriter().write(message);
-//    }
-//
-//
-//    private void processTokenRefresh(
-//            Member member,
-//            String oldRefreshToken,
-//            boolean rememberMe,
-//            HttpServletResponse response
-//    ) throws IOException {
-//        UserPrincipal user = new UserPrincipal(member);
-//
-//        if (!jwtService.isTokenValid(oldRefreshToken, user)) {
-//            sendError(response, "Invalid refresh token");
-//            return;
-//        }
-//
-//        // 새로운 토큰 생성
-//        String newAccessToken = jwtService.generateToken(user);
-//        String newRefreshToken = rememberMe ? jwtService.generateRefreshToken(user) : oldRefreshToken;
-//
-//        // 기존 토큰 폐기
-//        revokeToken(member);
-//
-//        // 새 토큰 저장
-//        saveUserToken(member, newAccessToken);
-//        if (rememberMe) {
-//            saveRefreshToken(member, newRefreshToken);
-//        }
-//
-//        // 응답 생성
-//        sendTokenResponse(response, newAccessToken, newRefreshToken);
-//    }
-//
-//    private void sendTokenResponse(HttpServletResponse response, String accessToken, String refreshToken) {
-//        try {
-//            AuthenticationResponse authResponse = AuthenticationResponse.builder()
-//                    .accessToken(accessToken)
-//                    .refreshToken(refreshToken)
-//                    .build();
-//
-//            new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
-//        } catch (IOException e) {
-//            throw new RuntimeException("Response write failed", e);
-//        }
-//    }
 
     private void saveRefreshToken(Member member, String refreshToken) {
         RefreshToken newToken = new RefreshToken(
