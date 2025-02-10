@@ -1,6 +1,7 @@
 package com.example.board.controller;
 
 import com.example.board.auth.AuthenticationResponse;
+import com.example.board.auth.JwtService;
 import com.example.board.domain.member.Member;
 import com.example.board.dto.member.AuthenticationRequestDTO;
 import com.example.board.dto.member.MemberRegisterResponseDTO;
@@ -12,6 +13,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -23,6 +26,7 @@ public class AuthenticationController {
 
     private final AuthenticationService authService;
     private final EmailService emailService;
+    private final JwtService jwtService;
 
     @PostMapping("/register")
     public ResponseEntity<MemberRegisterResponseDTO> register(@RequestBody RegisterRequestDTO dto){
@@ -56,6 +60,11 @@ public class AuthenticationController {
     @PostMapping("/reissue")
     public void refreshToken(HttpServletRequest request, HttpServletResponse response, boolean rememberMe) throws IOException {
         authService.refreshToken(request, response);
+    }
+
+    @GetMapping("/validate")
+    public ResponseEntity<Boolean> validateToken(@RequestHeader("Authorization") String authHeader){
+        return ResponseEntity.ok(authService.validateToken(authHeader));
     }
 
 }

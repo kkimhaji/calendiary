@@ -11,11 +11,14 @@ import com.example.board.dto.member.MemberRegisterResponseDTO;
 import com.example.board.dto.member.RegisterRequestDTO;
 import com.example.board.dto.member.VerifyUserDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.MalformedJwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -37,6 +40,8 @@ public class AuthenticationService {
     private final TokenRepository tokenRepository;
     private final EmailService emailService;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final CustomUserDetailsService userDetailsService;
+
 
     // save to the database and return the generated token
     public MemberRegisterResponseDTO register(RegisterRequestDTO request) {
@@ -125,6 +130,18 @@ public class AuthenticationService {
         tokenRepository.saveAll(validUserTokens);
     }
 
+    private void revokeRefreshToken(Member member){
+        var validRefreshTokens = refreshTokenRepository.findAllByMemberId(member.getMemberId());
+        if (validRefreshTokens.isEmpty()) return;
+
+        validRefreshTokens.forEach(RefreshToken::setTokenExpired);
+        refreshTokenRepository.saveAll(validRefreshTokens);
+    }
+
+    public void revokeAllTokens(Member member){
+        revokeToken(member);
+        revokeRefreshToken(member);
+    }
     //refresh token을 기반으로 새로 access token 발행
     public AuthenticationResponse refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
@@ -185,5 +202,23 @@ public class AuthenticationService {
                 jwtService.getRefreshTokenExpiration()
         );
         refreshTokenRepository.save(newToken);
+    }
+
+    public boolean validateToken(String authHeader){
+        String token = authHeader.substring(7);
+        try{
+
+            String username = jwtService.extractUsername(token);
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+            if (!jwtService.isTokenValid(token, userDetails)){
+                throw new MalformedJwtException("token is not valid");
+            }
+
+            return true;
+//            if (!jwtService.isTokenRevoked())
+        } catch (JwtException | UsernameNotFoundException e) {
+            throw new RuntimeException();
+        }
     }
 }

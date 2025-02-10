@@ -4,11 +4,13 @@ import com.example.board.domain.member.Member;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 @Getter
+@Setter
 @Entity
 @NoArgsConstructor
 public class RefreshToken {
@@ -25,6 +27,8 @@ public class RefreshToken {
 
     private LocalDateTime expiryDate;
     private boolean revoked;
+    private boolean expired;
+
 
     public RefreshToken(String token, Member member, long expirationMs) {
         this.token = token;
@@ -34,6 +38,11 @@ public class RefreshToken {
     }
 
     public void revoke() {
+        this.revoked = true;
+    }
+
+    public void setTokenExpired(){
+        this.expired = true;
         this.revoked = true;
     }
 }
