@@ -18,6 +18,8 @@ import jakarta.transaction.Transactional;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -36,6 +38,7 @@ public class CommentService {
         if (!categoryService.checkCategoryPermission(post.getCategory().getId(), member, CategoryPermission.CREATE_COMMENT))
             throw new AccessDeniedException("댓글을 작성할 권한이 없습니다.");
 
+        System.out.println("member id: " + member.getMemberId() + ", nickname: " + member.getNickname());
         //부모가 있을 때만 부모 댓글 조회
         Comment parent = request.parentCommentId().map(id -> commentRepository.findById(id))
                 .orElseThrow(() -> new EntityNotFoundException("Parent comment not found"))

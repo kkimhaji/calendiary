@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/teams/{teamId}/posts/{postId}/comments")
+@RequestMapping("/posts/{postId}/comments")
 public class CommentController {
     private final CommentService commentService;
 
