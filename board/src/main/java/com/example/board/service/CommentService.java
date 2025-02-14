@@ -44,7 +44,7 @@ public class CommentService {
         int depth = parent != null ? parent.getDepth() + 1 : 0;
         if (depth>MAX_DEPTH) throw new IllegalArgumentException("최대 답글 깊이를 초과했습니다.");
 
-        Comment comment = request.toEntity(post, member, parent, depth);
+        Comment comment = request.toEntity(post, member, parent);
         post.addComment(comment);
 
         return CommentResponse.from(commentRepository.save(comment));

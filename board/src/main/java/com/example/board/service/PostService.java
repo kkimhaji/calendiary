@@ -7,6 +7,7 @@ import com.example.board.domain.team.CategoryRepository;
 import com.example.board.domain.team.Team;
 import com.example.board.domain.team.TeamCategory;
 import com.example.board.domain.team.TeamRepository;
+import com.example.board.dto.comment.CommentResponse;
 import com.example.board.dto.post.*;
 import com.example.board.permission.CategoryPermission;
 import com.example.board.permission.TeamPermission;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -71,13 +73,6 @@ public class PostService {
         return postRepository.save(post);
     }
 
-    @Transactional(readOnly = true)
-    @Cacheable(value = "teamPosts", key = "#teamId + '_' + #categoryId")
-    public Page<PostListResponse> getPostsByCategory(Long teamId, Long categoryId,Pageable pageable) {
-
-        return postRepository.findByTeamAndCategory(teamId, categoryId, pageable);
-    }
-
     //게시글 상세 조회
     @Transactional(readOnly = true)
     public PostDetailDTO getPostDetail(Long postId) {
@@ -85,10 +80,19 @@ public class PostService {
                 .orElseThrow(() -> new EntityNotFoundException("Post not found"));
         //조회수 증가: 비동기로 처리
         increaseViewCount(postId);
-
-        List<Comment> comments = commentRepository.findAllByPostIdWithReplies(postId);
+        List<CommentResponse> comments = commentRepository.findAllByPostIdWithReplies(postId).stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
 
         return PostDetailDTO.from(post, comments);
+    }
+
+    private CommentResponse convertToResponse(Comment comment) {
+        List<CommentResponse> replies = comment.getReplies().stream()
+                .map(this::convertToResponse) // 재귀적으로 대댓글 처리
+                .collect(Collectors.toList());
+
+        return CommentResponse.from(comment, replies);
     }
 
     //최근 게시글 조회
@@ -96,6 +100,16 @@ public class PostService {
     @Cacheable(value = "recentPosts", key = "#categoryId")
     public List<PostSummaryDTO> getRecentCategoryPosts(Long categoryId, int limit) {
         return postRepository.findRecentPostsByCategoryId(categoryId, PageRequest.of(0, limit));
+    }
+
+    public Page<PostListResponse> getRecentPosts(Long teamId, Pageable pageable) {
+        return postRepository.findRecentPostsByTeamId(teamId, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    @Cacheable(key = "{#teamId, #categoryId, #pageable.pageNumber, #pageable.pageSize}") // 캐시 키 설정
+    public Page<PostListResponse> getPostsByCategory(Long teamId, Long categoryId,Pageable pageable) {
+        return postRepository.findByTeamAndCategory(teamId, categoryId, pageable);
     }
 
     @Async
@@ -211,7 +225,4 @@ public class PostService {
         }
     }
 
-    public Page<PostListResponse> getRecentPosts(Long teamId, Pageable pageable) {
-        return postRepository.findRecentPostsByTeamId(teamId, pageable);
-    }
 }

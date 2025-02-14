@@ -1,5 +1,6 @@
 package com.example.board.domain.post;
 
+import com.example.board.dto.comment.CommentResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,6 +17,16 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
             "AND c.parent IS NULL " +
             "ORDER BY c.createdDate ASC")
     List<Comment> findAllByPostIdWithReplies(@Param("postId") Long postId);
+
+    @Query("SELECT new com.example.board.dto.comment.CommentResponse(c.id, c.content, c.author.nickname, c.createdDate, c.isDeleted) " +
+            "FROM Comment c " +
+            "LEFT JOIN c.replies r " +
+            "JOIN c.author " +
+            "WHERE c.post.id = :postId " +
+            "AND c.parent IS NULL " +
+            "ORDER BY c.createdDate ASC")
+    List<CommentResponse> findAllByPostIdWithRepliesAsDto(@Param("postId") Long postId);
+
 
     @Query("SELECT COUNT(c) FROM Comment c " +
             "WHERE c.post.id = :postId")

@@ -12,7 +12,7 @@ public record PostListResponse(
         Long categoryId,
         int viewCount,
         LocalDateTime createdDate,
-        int commentCount
+        long commentCount
 ) {
     public static PostListResponse from(Post post){
         return new PostListResponse(

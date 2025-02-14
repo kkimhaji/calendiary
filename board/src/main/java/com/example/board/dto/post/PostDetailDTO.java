@@ -21,19 +21,7 @@ public record PostDetailDTO(
         List<String> imageUrls,
         List<CommentResponse> comments
 ) {
-    public static PostDetailDTO from(Post post){
-        List<Comment> allComments = post.getComments();
-
-        // 최상위 댓글만 필터링
-        List<Comment> rootComments = allComments.stream()
-                .filter(comment -> comment.getParent() == null)
-                .collect(Collectors.toList());
-
-        // 계층 구조 생성
-        List<CommentResponse> commentResponses = rootComments.stream()
-                .map(comment -> convertToResponse(comment, allComments))
-                .collect(Collectors.toList());
-
+    public static PostDetailDTO from(Post post, List<CommentResponse> comments){
 
         return new PostDetailDTO(
                 post.getId(),
@@ -49,7 +37,7 @@ public record PostDetailDTO(
 //                        .filter(comment -> comment.getParent() == null)
 //                        .map(CommentResponse::from)
 //                        .collect(Collectors.toList())
-                commentResponses
+                comments
         );
     }
 }
