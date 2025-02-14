@@ -28,6 +28,7 @@ public class CommentService {
     private final TeamService teamService;
     private final CategoryService categoryService;
     private final TeamMemberService teamMemberService;
+    private static final int MAX_DEPTH = 2;
 
     @Transactional
     public CommentResponse createComment(Member member, Long postId, Long teamId, CreateCommentRequest request) throws AccessDeniedException {
@@ -40,7 +41,10 @@ public class CommentService {
                 .orElseThrow(() -> new EntityNotFoundException("Parent comment not found"))
                 .orElse(null);
 
-        Comment comment = request.toEntity(post, member, parent);
+        int depth = parent != null ? parent.getDepth() + 1 : 0;
+        if (depth>MAX_DEPTH) throw new IllegalArgumentException("최대 답글 깊이를 초과했습니다.");
+
+        Comment comment = request.toEntity(post, member, parent, depth);
         post.addComment(comment);
 
         return CommentResponse.from(commentRepository.save(comment));

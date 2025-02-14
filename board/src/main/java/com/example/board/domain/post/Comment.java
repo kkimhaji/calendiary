@@ -34,17 +34,20 @@ public class Comment extends BaseTimeEntity {
     @JoinColumn(name = "parent_id")
     private Comment parent;
 
+    private int depth;
+
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
     private List<Comment> replies = new ArrayList<>();
 
     private boolean isDeleted = false;
 
     @Builder
-    public Comment(String content, Post post, Member author, Comment parent) {
+    public Comment(String content, Post post, Member author, Comment parent, int depth) {
         this.content = content;
         this.post = post;
         this.author = author;
         this.parent = parent;
+        this.depth = depth;
     }
 
     public void deleteByAuthor(){

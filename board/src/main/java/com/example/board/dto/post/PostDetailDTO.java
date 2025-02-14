@@ -9,6 +9,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.example.board.dto.comment.CommentResponse.convertToResponse;
+
 public record PostDetailDTO(
         Long id,
         String title,
@@ -19,7 +21,20 @@ public record PostDetailDTO(
         List<String> imageUrls,
         List<CommentResponse> comments
 ) {
-    public static PostDetailDTO from(Post post, List<Comment> comments){
+    public static PostDetailDTO from(Post post){
+        List<Comment> allComments = post.getComments();
+
+        // 최상위 댓글만 필터링
+        List<Comment> rootComments = allComments.stream()
+                .filter(comment -> comment.getParent() == null)
+                .collect(Collectors.toList());
+
+        // 계층 구조 생성
+        List<CommentResponse> commentResponses = rootComments.stream()
+                .map(comment -> convertToResponse(comment, allComments))
+                .collect(Collectors.toList());
+
+
         return new PostDetailDTO(
                 post.getId(),
                 post.getTitle(),
@@ -30,10 +45,11 @@ public record PostDetailDTO(
                 post.getImages().stream()
                                 .map(PostImage::getImageUrl)
                                         .collect(Collectors.toList()),
-                post.getComments().stream()
-                        .filter(comment -> comment.getParent() == null)
-                        .map(CommentResponse::from)
-                        .collect(Collectors.toList())
+//                post.getComments().stream()
+//                        .filter(comment -> comment.getParent() == null)
+//                        .map(CommentResponse::from)
+//                        .collect(Collectors.toList())
+                commentResponses
         );
     }
 }

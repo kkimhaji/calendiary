@@ -217,7 +217,9 @@ public class TeamRoleService {
     public PostPermissionResponse checkEditAndDeletePostPermission(Long categoryId, Long postId){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         Member loginMember = ((UserPrincipal) auth.getPrincipal()).getMember();
+        System.out.println("login member id: " + loginMember.getMemberId());
         Member author = postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("post not found")).getAuthor();
+        System.out.println("author id: " + author.getMemberId());
         if (author.getMemberId().equals(loginMember.getMemberId())){
             return PostPermissionResponse.of(true, true);
         }

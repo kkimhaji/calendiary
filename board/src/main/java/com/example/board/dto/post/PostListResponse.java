@@ -11,7 +11,8 @@ public record PostListResponse(
         String categoryName,
         Long categoryId,
         int viewCount,
-        LocalDateTime createdDate
+        LocalDateTime createdDate,
+        int commentCount
 ) {
     public static PostListResponse from(Post post){
         return new PostListResponse(
@@ -21,7 +22,8 @@ public record PostListResponse(
                 post.getCategory().getName(),
                 post.getCategory().getId(),
                 post.getViewCount(),
-                post.getCreatedDate()
+                post.getCreatedDate(),
+                post.getComments().size()
         );
     }
 }
