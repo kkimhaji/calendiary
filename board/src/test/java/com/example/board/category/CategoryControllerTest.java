@@ -80,7 +80,7 @@ public class CategoryControllerTest {
         team = testDataBuilder.createTeam(testMember);
         Long teamId = team.getId();
         TeamRole role = teamMemberService.getCurrentUserRole(teamId, testMember);
-        CategoryRolePermissionDTO request = new CategoryRolePermissionDTO(role.getId(), new HashSet<>(Arrays.asList(VIEW_POST, DELETE_POST, CREATE_POST, CREATE_COMMENT, EDIT_POST, DELETE_COMMENT)));
+        CategoryRolePermissionDTO request = new CategoryRolePermissionDTO(role.getId(), new HashSet<>(Arrays.asList(VIEW_POST, DELETE_POST, CREATE_POST, CREATE_COMMENT, DELETE_COMMENT)));
 
         // when & then
         mockMvc.perform(post("/teams/{teamId}/categories/create", teamId)

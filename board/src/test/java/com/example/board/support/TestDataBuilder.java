@@ -78,7 +78,7 @@ public class TestDataBuilder {
         TeamMember adminMember = teamMemberRepository.findByTeamAndMember(team, admin).orElseThrow(()-> new EntityNotFoundException("teamMember not found"));
         CategoryRolePermissionDTO dto1 = new CategoryRolePermissionDTO(teamRole.getId(), new HashSet<>(Arrays.asList(VIEW_POST, DELETE_POST)));
         //admin 권한 추가
-        CategoryRolePermissionDTO dto2 = new CategoryRolePermissionDTO(adminMember.getRole().getId(), new HashSet<>(Arrays.asList(VIEW_POST, DELETE_POST, CREATE_POST, CREATE_COMMENT, EDIT_POST, DELETE_COMMENT)));
+        CategoryRolePermissionDTO dto2 = new CategoryRolePermissionDTO(adminMember.getRole().getId(), new HashSet<>(Arrays.asList(VIEW_POST, DELETE_POST, CREATE_POST, CREATE_COMMENT, DELETE_COMMENT)));
         CreateCategoryRequest categoryRequest = new CreateCategoryRequest("testCategory", "create category test", List.of(dto1, dto2));
         return categoryService.createCategory(team.getId(), categoryRequest);
     }

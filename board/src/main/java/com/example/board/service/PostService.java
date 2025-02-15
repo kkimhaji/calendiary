@@ -149,10 +149,6 @@ public class PostService {
         Post post = postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("post not found"));
         TeamCategory category = categoryRepository.findById(categoryId).orElseThrow(() -> new EntityNotFoundException("category not found"));
 
-        if (!teamRoleService.hasPermissionOrAuthor(categoryId, postId, CategoryPermission.EDIT_POST)){
-            throw new AccessDeniedException("게시글을 수정할 권한이 없습니다.");
-        }
-
         //이미지 처리
         String sanitizedContent = htmlSanitizer.sanitize(requestDTO.content());
         String processedContent = imageService.processContentImages(sanitizedContent);
