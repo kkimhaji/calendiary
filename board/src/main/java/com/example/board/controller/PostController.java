@@ -46,12 +46,11 @@ public class PostController {
     //카테고리의 글 조회
     @GetMapping("/category/{categoryId}/recent")
     @PreAuthorize("hasPermission(#categoryId, 'TeamCategory', T(com.example.board.permission.CategoryPermission).VIEW_POST)")
-    public ResponseEntity<Page<PostListResponse>> getPosts(
+    public ResponseEntity<CategoryRecentPostsResponse> getPosts(
             @PathVariable(name="teamId") Long teamId, @PathVariable(name="categoryId") @P("categoryId") Long categoryId,
             @PageableDefault(size = 20, sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Page<PostListResponse> posts = postService.getPostsByCategory(teamId, categoryId, pageable);
-        return ResponseEntity.ok(posts);
+        return ResponseEntity.ok(postService.getPostsByCategory(teamId, categoryId, pageable));
     }
 
     @GetMapping("/category/{categoryId}/posts/{postId}")
@@ -88,7 +87,7 @@ public class PostController {
 
     //팀의 최근 게시글 목록 조회
     @GetMapping("/recent")
-    public ResponseEntity<Page<PostListResponse>> getRecentPosts(
+    public ResponseEntity<TeamRecentPostsResponse> getRecentPosts(
             @PathVariable(name="teamId") Long teamId,
             @PageableDefault(size = 20, sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable){
         return ResponseEntity.ok(postService.getRecentPosts(teamId, pageable));

@@ -102,14 +102,19 @@ public class PostService {
         return postRepository.findRecentPostsByCategoryId(categoryId, PageRequest.of(0, limit));
     }
 
-    public Page<PostListResponse> getRecentPosts(Long teamId, Pageable pageable) {
-        return postRepository.findRecentPostsByTeamId(teamId, pageable);
+    public TeamRecentPostsResponse getRecentPosts(Long teamId, Pageable pageable) {
+        String teamName = teamRepository.findById(teamId).orElseThrow(()->new EntityNotFoundException("team not found")).getName();
+        Page<PostListResponse> posts = postRepository.findRecentPostsByTeamId(teamId, pageable);
+
+        return new TeamRecentPostsResponse(teamName, posts);
     }
 
     @Transactional(readOnly = true)
     @Cacheable(key = "{#teamId, #categoryId, #pageable.pageNumber, #pageable.pageSize}") // 캐시 키 설정
-    public Page<PostListResponse> getPostsByCategory(Long teamId, Long categoryId,Pageable pageable) {
-        return postRepository.findByTeamAndCategory(teamId, categoryId, pageable);
+    public CategoryRecentPostsResponse getPostsByCategory(Long teamId, Long categoryId,Pageable pageable) {
+        String categoryName = categoryRepository.findById(categoryId).orElseThrow(() -> new EntityNotFoundException("category not found")).getName();
+        Page<PostListResponse> posts = postRepository.findByTeamAndCategory(teamId, categoryId, pageable);
+        return new CategoryRecentPostsResponse(categoryName, posts);
     }
 
     @Async
