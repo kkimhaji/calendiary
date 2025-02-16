@@ -232,7 +232,10 @@ public class TeamRoleService {
         Member author = postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("post not found")).getAuthor();
 
         return hasCategoryPermission(categoryId, permission) || author.getMemberId().equals(loginMember.getMemberId());
+    }
 
+    public boolean checkCreatePostPermission(Long categoryId){
+        return hasCategoryPermission(categoryId, CategoryPermission.CREATE_POST);
     }
 
 }
