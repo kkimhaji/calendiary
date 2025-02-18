@@ -33,7 +33,7 @@ public class CommentService {
     private static final int MAX_DEPTH = 2;
 
     @Transactional
-    public CommentResponse createComment(Member member, Long postId, Long teamId, CreateCommentRequest request) throws AccessDeniedException {
+    public CommentResponse createComment(Member member, Long postId, CreateCommentRequest request) throws AccessDeniedException {
         Post post = postRepository.findById(postId).orElseThrow(()->new EntityNotFoundException("post not found"));
         if (!categoryService.checkCategoryPermission(post.getCategory().getId(), member, CategoryPermission.CREATE_COMMENT))
             throw new AccessDeniedException("댓글을 작성할 권한이 없습니다.");

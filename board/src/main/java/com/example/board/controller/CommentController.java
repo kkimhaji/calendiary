@@ -18,8 +18,8 @@ public class CommentController {
     private final CommentService commentService;
 
     @PostMapping
-    public ResponseEntity<CommentResponse> createComment(@PathVariable Long teamId, @PathVariable Long postId, @RequestBody CreateCommentRequest request, @AuthenticationPrincipal UserPrincipal user){
-        return ResponseEntity.ok(commentService.createComment(user.getMember(), postId, teamId, request));
+    public ResponseEntity<CommentResponse> createComment(@PathVariable("postId") Long postId, @RequestBody CreateCommentRequest request, @AuthenticationPrincipal UserPrincipal user){
+        return ResponseEntity.ok(commentService.createComment(user.getMember(), postId, request));
     }
 
     @DeleteMapping("/{commentId}")

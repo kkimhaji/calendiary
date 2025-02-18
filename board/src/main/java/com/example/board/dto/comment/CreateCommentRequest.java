@@ -9,6 +9,7 @@ import java.util.Optional;
 public record CreateCommentRequest(
         String content,
         Optional<Long> parentCommentId //대댓글인 경우
+//        int depth
 ) {
     public Comment toEntity(Post post, Member author, Comment parent){
         return Comment.builder()
@@ -16,6 +17,7 @@ public record CreateCommentRequest(
                 .post(post)
                 .author(author)
                 .parent(parent)
+//                .depth(depth)
                 .build();
     }
 }
