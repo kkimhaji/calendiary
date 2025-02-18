@@ -6,6 +6,7 @@ import com.example.board.domain.team.TeamCategory;
 import com.example.board.permission.CategoryPermissionEvaluator;
 import com.example.board.permission.DelegatingPermissionEvaluator;
 import com.example.board.permission.TeamPermissionEvaluator;
+import com.example.board.service.LogoutService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,6 +43,7 @@ public class SecurityConfig {
     private final LogoutHandler logoutHandler;
     private final TeamPermissionEvaluator teamPermissionEvaluator;
     private final CategoryPermissionEvaluator categoryPermissionEvaluator;
+    private final LogoutService logoutService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -57,8 +59,8 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .logout(logout->
-                        logout.logoutUrl("user/logout")
-                                .addLogoutHandler(logoutHandler)
+                        logout.logoutUrl("auth/logout")
+                                .addLogoutHandler(logoutService)
                                 .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext()))
         ;
         return http.build();

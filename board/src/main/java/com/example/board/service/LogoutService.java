@@ -1,6 +1,7 @@
 package com.example.board.service;
 
 import com.example.board.domain.jwt.TokenRepository;
+import io.jsonwebtoken.io.IOException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -16,18 +17,28 @@ public class LogoutService implements LogoutHandler {
 
     @Override
     public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
-        final String authHeader = request.getHeader("Authorization");
-        final String jwt;
+        String authHeader = request.getHeader("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer "))
             return;
 
-        jwt = authHeader.substring(7);
-        var storedToken = tokenRepository.findByToken(jwt).orElse(null);
+        String accessToken = authHeader.substring(7);
+        tokenRepository.findByToken(accessToken).ifPresent(token -> {
+            token.setTokenExpired();
+            tokenRepository.save(token);
+        });
 
-        if (storedToken != null){
-            storedToken.setTokenExpired();
-            tokenRepository.save(storedToken);
+        try {
+            String refreshToken = request.getParameter("refreshToken");
+            if (refreshToken != null) {
+                tokenRepository.findByToken(refreshToken)
+                        .ifPresent(token -> {
+                            token.setTokenExpired();
+                            tokenRepository.save(token);
+                        });
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Refresh token parsing failed");
         }
     }
 }
