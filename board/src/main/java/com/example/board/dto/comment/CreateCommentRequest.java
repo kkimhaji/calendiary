@@ -3,12 +3,13 @@ package com.example.board.dto.comment;
 import com.example.board.domain.member.Member;
 import com.example.board.domain.post.Comment;
 import com.example.board.domain.post.Post;
+import jakarta.annotation.Nullable;
 
 import java.util.Optional;
 
 public record CreateCommentRequest(
         String content,
-        Optional<Long> parentCommentId //대댓글인 경우
+        @Nullable Long parentCommentId //대댓글인 경우
 //        int depth
 ) {
     public Comment toEntity(Post post, Member author, Comment parent){

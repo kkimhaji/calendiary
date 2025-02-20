@@ -38,14 +38,17 @@ public class CommentService {
         if (!categoryService.checkCategoryPermission(post.getCategory().getId(), member, CategoryPermission.CREATE_COMMENT))
             throw new AccessDeniedException("댓글을 작성할 권한이 없습니다.");
 
-        System.out.println("member id: " + member.getMemberId() + ", nickname: " + member.getNickname());
+        Comment parent = null;
         //부모가 있을 때만 부모 댓글 조회
-        Comment parent = request.parentCommentId().map(id -> commentRepository.findById(id))
-                .orElseThrow(() -> new EntityNotFoundException("Parent comment not found"))
-                .orElse(null);
+        if (request.parentCommentId()!=null) {
+            Long parentId = request.parentCommentId();
 
-        int depth = parent != null ? parent.getDepth() + 1 : 0;
-        if (depth>MAX_DEPTH) throw new IllegalArgumentException("최대 답글 깊이를 초과했습니다.");
+            parent = commentRepository.findById(parentId)
+                    .orElseThrow(() -> new EntityNotFoundException("Parent comment not found"));
+
+        }
+//        int depth = parent != null ? parent.getDepth() + 1 : 0;
+//        if (depth>MAX_DEPTH) throw new IllegalArgumentException("최대 답글 깊이를 초과했습니다.");
 
         Comment comment = request.toEntity(post, member, parent);
         post.addComment(comment);
