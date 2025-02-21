@@ -1,7 +1,6 @@
 package com.example.board.controller;
 
 import com.example.board.auth.UserPrincipal;
-import com.example.board.domain.member.Member;
 import com.example.board.domain.role.TeamRole;
 import com.example.board.dto.role.*;
 import com.example.board.permission.CategoryPermission;
@@ -9,7 +8,6 @@ import com.example.board.permission.TeamPermission;
 import com.example.board.service.TeamMemberService;
 import com.example.board.service.TeamRoleService;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -73,13 +71,19 @@ public class TeamRoleController {
     }
 
     @GetMapping("/post-edit-delete/check")
-    public ResponseEntity<PostPermissionResponse> checkPostPermission(@PathVariable(name = "teamId") Long teamId, @RequestParam(name = "categoryId") Long categoryId, @RequestParam(name="postId") Long postId){
-        return ResponseEntity.ok(teamRoleService.checkEditAndDeletePostPermission(categoryId, postId));
+    public ResponseEntity<EditAndDeletePermissionResponse> checkPostPermission(@PathVariable(name = "teamId") Long teamId, @RequestParam(name = "categoryId") Long categoryId, @RequestParam(name="postId") Long postId){
+        return ResponseEntity.ok(teamRoleService.checkEditAndDeletePermission(categoryId, postId, CategoryPermission.DELETE_POST));
     }
 
     @GetMapping("/post-create/check")
     public ResponseEntity<Boolean> checkCreatePermission(@PathVariable(name="teamId") Long teamId,
                                                          @PathVariable(name="categoryId") Long categoryId){
         return ResponseEntity.ok(teamRoleService.checkCreatePostPermission(categoryId));
+    }
+
+    @GetMapping("/comment-edit-delete/check")
+    public ResponseEntity<EditAndDeletePermissionResponse> checkCommentPermission(@PathVariable(name = "teamId") Long teamId, @RequestParam(name = "categoryId") Long categoryId,
+                                                                                  @RequestParam(name="postId") Long postId, @RequestParam Long commentId){
+        return ResponseEntity.ok(teamRoleService.checkEditAndDeletePermission(categoryId, postId, CategoryPermission.DELETE_COMMENT));
     }
 }

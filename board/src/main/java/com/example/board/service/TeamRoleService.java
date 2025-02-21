@@ -2,10 +2,8 @@ package com.example.board.service;
 
 import com.example.board.auth.UserPrincipal;
 import com.example.board.domain.member.Member;
-import com.example.board.domain.member.MemberRepository;
 import com.example.board.domain.post.PostRepository;
 import com.example.board.domain.role.CategoryPermissionRepository;
-import com.example.board.domain.team.CategoryRepository;
 import com.example.board.domain.team.Team;
 import com.example.board.domain.team.TeamRepository;
 import com.example.board.domain.role.TeamRole;
@@ -18,16 +16,12 @@ import com.example.board.permission.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.PermissionEvaluator;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-
-import static com.example.board.permission.TeamPermission.*;
 
 @Service
 @RequiredArgsConstructor
@@ -214,16 +208,16 @@ public class TeamRoleService {
         return categoryPermissionEvaluator.hasPermission(auth, categoryId, "TeamCategory", permission);
     }
 
-    public PostPermissionResponse checkEditAndDeletePostPermission(Long categoryId, Long postId){
+    public EditAndDeletePermissionResponse checkEditAndDeletePermission(Long categoryId, Long postId, CategoryPermission permission){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         Member loginMember = ((UserPrincipal) auth.getPrincipal()).getMember();
         Member author = postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("post not found")).getAuthor();
         if (author.getMemberId().equals(loginMember.getMemberId())){
-            return PostPermissionResponse.of(true, true);
+            return EditAndDeletePermissionResponse.of(true, true);
         }
-        boolean canDelete = hasCategoryPermission(categoryId, CategoryPermission.DELETE_POST);
+        boolean canDelete = hasCategoryPermission(categoryId, permission);
 
-        return PostPermissionResponse.of(false, canDelete);
+        return EditAndDeletePermissionResponse.of(false, canDelete);
     }
 
     public boolean hasPermissionOrAuthor(Long categoryId, Long postId, CategoryPermission permission) {
