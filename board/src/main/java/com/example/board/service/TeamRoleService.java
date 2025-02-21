@@ -2,6 +2,7 @@ package com.example.board.service;
 
 import com.example.board.auth.UserPrincipal;
 import com.example.board.domain.member.Member;
+import com.example.board.domain.post.CommentRepository;
 import com.example.board.domain.post.PostRepository;
 import com.example.board.domain.role.CategoryPermissionRepository;
 import com.example.board.domain.team.Team;
@@ -34,6 +35,7 @@ public class TeamRoleService {
     private final TeamPermissionEvaluator teamPermissionEvaluator;
     private final CategoryPermissionEvaluator categoryPermissionEvaluator;
     private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
 
     public TeamRole createRole(Long teamId, CreateRoleRequest request) {
         Team team = teamRepository.findById(teamId)
@@ -208,14 +210,14 @@ public class TeamRoleService {
         return categoryPermissionEvaluator.hasPermission(auth, categoryId, "TeamCategory", permission);
     }
 
-    public EditAndDeletePermissionResponse checkEditAndDeletePermission(Long categoryId, Long postId, CategoryPermission permission){
+    public EditAndDeletePermissionResponse checkEditAndDeletePostPermission(Long categoryId, Long postId){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         Member loginMember = ((UserPrincipal) auth.getPrincipal()).getMember();
         Member author = postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("post not found")).getAuthor();
         if (author.getMemberId().equals(loginMember.getMemberId())){
             return EditAndDeletePermissionResponse.of(true, true);
         }
-        boolean canDelete = hasCategoryPermission(categoryId, permission);
+        boolean canDelete = hasCategoryPermission(categoryId, CategoryPermission.DELETE_POST);
 
         return EditAndDeletePermissionResponse.of(false, canDelete);
     }
@@ -230,6 +232,18 @@ public class TeamRoleService {
 
     public boolean checkCreatePostPermission(Long categoryId){
         return hasCategoryPermission(categoryId, CategoryPermission.CREATE_POST);
+    }
+
+    public EditAndDeletePermissionResponse checkEditAndDeleteCommentPermission(Long categoryId, Long commentId){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Member loginMember = ((UserPrincipal) auth.getPrincipal()).getMember();
+        Member author = commentRepository.findById(commentId).orElseThrow(() -> new EntityNotFoundException("comment not found")).getAuthor();
+        if (author.getMemberId().equals(loginMember.getMemberId())){
+            return EditAndDeletePermissionResponse.of(true, true);
+        }
+        boolean canDelete = hasCategoryPermission(categoryId, CategoryPermission.DELETE_COMMENT);
+
+        return EditAndDeletePermissionResponse.of(false, canDelete);
     }
 
 }
