@@ -18,10 +18,9 @@ public record PostDetailDTO(
         AuthorDTO author,
         String categoryName,
         LocalDateTime createdDate,
-        List<String> imageUrls,
-        List<CommentResponse> comments
+        List<String> imageUrls
 ) {
-    public static PostDetailDTO from(Post post, List<CommentResponse> comments){
+    public static PostDetailDTO from(Post post){
 
         return new PostDetailDTO(
                 post.getId(),
@@ -32,12 +31,7 @@ public record PostDetailDTO(
                 post.getCreatedDate(),
                 post.getImages().stream()
                                 .map(PostImage::getImageUrl)
-                                        .collect(Collectors.toList()),
-//                post.getComments().stream()
-//                        .filter(comment -> comment.getParent() == null)
-//                        .map(CommentResponse::from)
-//                        .collect(Collectors.toList())
-                comments
+                                        .collect(Collectors.toList())
         );
     }
 }

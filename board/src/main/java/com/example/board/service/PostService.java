@@ -80,11 +80,8 @@ public class PostService {
                 .orElseThrow(() -> new EntityNotFoundException("Post not found"));
         //조회수 증가: 비동기로 처리
         increaseViewCount(postId);
-        List<CommentResponse> comments = commentRepository.findAllByPostIdWithReplies(postId).stream()
-                .map(this::convertToResponse)
-                .collect(Collectors.toList());
 
-        return PostDetailDTO.from(post, comments);
+        return PostDetailDTO.from(post);
     }
 
     private CommentResponse convertToResponse(Comment comment) {

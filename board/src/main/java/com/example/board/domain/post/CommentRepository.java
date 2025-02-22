@@ -34,4 +34,13 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     long countByPostId(@Param("postId") Long postId);
 
     Optional<Comment> findById(Long id);
+
+    // 부모 댓글 없는 최상위 댓글만
+    List<Comment> findByPostIdAndParentIsNull(Long postId);
+
+    @Query("SELECT c FROM Comment c " +
+            "LEFT JOIN FETCH c.author " +
+            "LEFT JOIN FETCH c.replies " +
+            "WHERE c.post.id = :postId AND c.parent IS NULL")
+    List<Comment> findByPostIdWithAuthorAndReplies(@Param("postId") Long postId);
 }

@@ -5,22 +5,16 @@ import com.example.board.domain.post.Comment;
 import com.example.board.domain.post.CommentRepository;
 import com.example.board.domain.post.Post;
 import com.example.board.domain.post.PostRepository;
-import com.example.board.domain.role.TeamRole;
-import com.example.board.domain.role.TeamRoleRepository;
-import com.example.board.domain.team.Team;
 import com.example.board.dto.comment.CommentResponse;
 import com.example.board.dto.comment.CreateCommentRequest;
-import com.example.board.dto.post.PostResponse;
 import com.example.board.permission.CategoryPermission;
-import com.example.board.permission.TeamPermission;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -72,6 +66,13 @@ public class CommentService {
 
         else
             comment.delete();
+    }
+
+    @Transactional(readOnly = true)
+    public List<CommentResponse> getCommentsInPost(Long postId){
+        postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("post not found"));
+        return commentRepository.findByPostIdAndParentIsNull(postId).stream()
+                .map(CommentResponse::from).toList();
     }
 
 }

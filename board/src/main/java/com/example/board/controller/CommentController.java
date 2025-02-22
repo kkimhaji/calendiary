@@ -6,10 +6,13 @@ import com.example.board.dto.comment.CommentResponse;
 import com.example.board.dto.comment.CreateCommentRequest;
 import com.example.board.service.CommentService;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,5 +28,10 @@ public class CommentController {
     @DeleteMapping("/{commentId}")
     public void deleteComment(@PathVariable Long teamId, @PathVariable Long postId, @PathVariable Long commentId,@AuthenticationPrincipal UserPrincipal user){
         commentService.deleteComment(teamId, commentId, user.getMember());
+    }
+
+    @GetMapping
+    public ResponseEntity<List<CommentResponse>> getCommentsInPost(@PathVariable Long postId){
+        return ResponseEntity.ok(commentService.getCommentsInPost(postId));
     }
 }
