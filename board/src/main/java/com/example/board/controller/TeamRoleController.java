@@ -18,26 +18,26 @@ import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/teams/{teamId}/roles")
+@RequestMapping("/roles")
 public class TeamRoleController {
 
     private final TeamRoleService teamRoleService;
     private final TeamMemberService teamMemberService;
 
-    @PostMapping("/manage/create")
+    @PostMapping("teams/{teamId}/manage/create")
     @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_ROLES)")
     public ResponseEntity<TeamRoleResponse> createRole(@PathVariable(name="teamId") Long teamId, @RequestBody CreateRoleRequest request){
         TeamRole newRole = teamRoleService.createRole(teamId, request);
         return ResponseEntity.ok(TeamRoleResponse.from(newRole));
     }
 
-    @GetMapping("/{roleId}/permissions")
+    @GetMapping("teams/{teamId}/{roleId}/permissions")
     public ResponseEntity<Set<TeamPermission>> getRolePermissions(@PathVariable(name="roleId") Long roleId){
         TeamRole role = teamRoleService.getRoleById(roleId);
         return ResponseEntity.ok(role.getPermissionSet());
     }
 
-    @PostMapping("/manage/delete/{roleId}")
+    @PostMapping("teams/{teamId}/manage/delete/{roleId}")
     @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_ROLES)")
     public void deleteRole(@PathVariable(name="teamId") Long teamId, @PathVariable Long roleId){
         teamRoleService.deleteRole(teamId, roleId);
@@ -45,7 +45,7 @@ public class TeamRoleController {
 
     //관리자 권한 넘기기
     //역할에 팀 멤버 추가하기
-    @PostMapping("/manage/member")
+    @PostMapping("teams/{teamId}/manage/member")
     @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_ROLES)")
     public ResponseEntity<AddMembersToRoleResponse> addMembersToRole(@PathVariable(name="teamId") Long teamId, @RequestBody AddMembersToRoleRequest request){
         return ResponseEntity.ok(teamRoleService.addMemberToRole(teamId, request));
@@ -53,37 +53,35 @@ public class TeamRoleController {
 
     // 팀 내의 역할들 가져오기
     // 팀에서 역할, 멤버 등 수정할 때
-    @GetMapping("/get")
+    @GetMapping("teams/{teamId}/get")
     public ResponseEntity<List<TeamRoleDetailDto>> getRolesWithCount(@PathVariable(name="teamId") Long teamId){
         return ResponseEntity.ok(teamRoleService.getRolesByTeam(teamId));
     }
 
     //카테고리 생성 시 권한을 주기 위해
-    @GetMapping("/get_roles")
+    @GetMapping("teams/{teamId}/get_roles")
     public ResponseEntity<List<TeamRoleInfoDTO>> getRoles(@PathVariable(name="teamId") Long teamId){
         return ResponseEntity.ok(teamRoleService.getRolesInfo(teamId));
     }
 
     //현재 로그인한 사용자의 팀 내 역할 조회
-    @GetMapping("/getrole")
+    @GetMapping("teams/{teamId}/getrole")
     public ResponseEntity<TeamRoleResponse> getMembersRole(@PathVariable(name = "teamId") Long teamId, @AuthenticationPrincipal UserPrincipal user){
         return ResponseEntity.ok(teamRoleService.getMembersRole(teamId, user.getMember()));
     }
 
     @GetMapping("/post-edit-delete/check")
-    public ResponseEntity<EditAndDeletePermissionResponse> checkPostPermission(@PathVariable(name = "teamId") Long teamId, @RequestParam(name = "categoryId") Long categoryId, @RequestParam(name="postId") Long postId){
-        return ResponseEntity.ok(teamRoleService.checkEditAndDeletePostPermission(categoryId, postId));
+    public ResponseEntity<EditAndDeletePermissionResponse> checkPostPermission(@RequestParam(name="postId") Long postId){
+        return ResponseEntity.ok(teamRoleService.checkEditAndDeletePostPermission(postId));
     }
 
     @GetMapping("/post-create/check")
-    public ResponseEntity<Boolean> checkCreatePermission(@PathVariable(name="teamId") Long teamId,
-                                                         @PathVariable(name="categoryId") Long categoryId){
+    public ResponseEntity<Boolean> checkCreatePermission(@RequestParam(name="categoryId") Long categoryId){
         return ResponseEntity.ok(teamRoleService.checkCreatePostPermission(categoryId));
     }
 
     @GetMapping("/comment-edit-delete/check")
-    public ResponseEntity<EditAndDeletePermissionResponse> checkCommentPermission(@PathVariable(name = "teamId") Long teamId, @RequestParam(name = "categoryId") Long categoryId,
-                                                                                  @RequestParam Long commentId){
-        return ResponseEntity.ok(teamRoleService.checkEditAndDeleteCommentPermission(categoryId, commentId));
+    public ResponseEntity<EditAndDeletePermissionResponse> checkCommentPermission(@RequestParam(name="commentId") Long commentId){
+        return ResponseEntity.ok(teamRoleService.checkEditAndDeleteCommentPermission(commentId));
     }
 }
