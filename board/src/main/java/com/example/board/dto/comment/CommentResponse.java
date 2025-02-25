@@ -5,6 +5,13 @@ import com.example.board.domain.post.Comment;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+package com.example.board.dto.comment;
+
+import com.example.board.domain.post.Comment;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public record CommentResponse(
         Long id,
@@ -14,18 +21,6 @@ public record CommentResponse(
         boolean isDeleted,
         List<CommentResponse> replies
 ) {
-//    public static CommentResponse from(Comment comment){
-//        return new CommentResponse(
-//                comment.getId(),
-//                comment.getContent(),
-//                comment.getAuthor().getNickname(),
-//                comment.getCreatedDate(),
-//                comment.isDeleted(),
-//                comment.getReplies().stream()
-//                        .map(CommentResponse::from)
-//                        .collect(Collectors.toList())
-//        );
-//    }
 
     // 기존 from 메서드 (단일 댓글 변환)
     public static CommentResponse from(Comment comment) {
@@ -35,7 +30,6 @@ public record CommentResponse(
                         .collect(Collectors.toList())))
                 .collect(Collectors.toList()));
     }
-
 
     // 새로운 from 메서드 (계층 구조 생성을 위한 오버로딩)
     public static CommentResponse from(Comment comment, List<CommentResponse> replies) {
