@@ -5,13 +5,6 @@ import com.example.board.domain.post.Comment;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
-package com.example.board.dto.comment;
-
-import com.example.board.domain.post.Comment;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public record CommentResponse(
         Long id,
