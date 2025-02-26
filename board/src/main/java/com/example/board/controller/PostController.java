@@ -37,10 +37,10 @@ public class PostController {
 
     @PostMapping(value = "/category/{categoryId}/posts", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasPermission(#categoryId, 'TeamCategory', T(com.example.board.permission.CategoryPermission).CREATE_POST)")
-    public ResponseEntity<PostResponse> createPost(@PathVariable(name="teamId") Long teamId, @PathVariable(name="categoryId") @P("categoryId") Long categoryId,
+    public ResponseEntity<Long> createPost(@PathVariable(name="teamId") Long teamId, @PathVariable(name="categoryId") @P("categoryId") Long categoryId,
                                                    @ModelAttribute CreatePostRequest request, @AuthenticationPrincipal UserPrincipal user) throws IOException {
         Post post = postService.createPost(teamId, categoryId, request, user.getMember());
-        return ResponseEntity.ok(PostResponse.from(post));
+        return ResponseEntity.ok(post.getId());
     }
 
     //카테고리의 글 조회
