@@ -54,7 +54,7 @@ public class TeamRoleController {
     // 팀 내의 역할들 가져오기
     // 팀에서 역할, 멤버 등 수정할 때
     @GetMapping("teams/{teamId}/get")
-    public ResponseEntity<List<TeamRoleDetailDto>> getRolesWithCount(@PathVariable(name="teamId") Long teamId){
+    public ResponseEntity<List<TeamRoleDetailResponse>> getRolesWithCount(@PathVariable(name="teamId") Long teamId){
         return ResponseEntity.ok(teamRoleService.getRolesByTeam(teamId));
     }
 

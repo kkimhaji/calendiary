@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -189,10 +190,24 @@ public class TeamRoleService {
         teamRoleRepository.deleteAll(roles);
     }
 
-    public List<TeamRoleDetailDto> getRolesByTeam(Long teamId){
-        return teamRoleRepository.findTeamRoleDetailsWithMemberCount(teamId);
+    public List<TeamRoleDetailResponse> getRolesByTeam(Long teamId){
+        List<TeamRoleDetailDto> teamDetailDtos = teamRoleRepository.findTeamRoleDetailsWithMemberCount(teamId);
+        return teamDetailDtos.stream().map(this::convertToResponse)
+            .toList();
     }
 
+    private TeamRoleDetailResponse convertToResponse(TeamRoleDetailDto dto) {
+        Set<TeamPermission> permissions = PermissionUtils.getPermissionsFromBits(
+                dto.permissionBits(),
+                TeamPermission.class
+        );
+        return new TeamRoleDetailResponse(
+                dto.id(),
+                dto.name(),
+                permissions,
+                dto.memberCount()
+        );
+    }
     public List<TeamRoleInfoDTO> getRolesInfo(Long teamId){
         return teamRoleRepository.findTeamRoleInfo(teamId);
     }
