@@ -5,7 +5,8 @@ import lombok.RequiredArgsConstructor;
 public enum TeamPermission implements PermissionType{
     MANAGE_MEMBERS(0),
     MANAGE_ROLES(1),
-    MANAGE_CATEGORIES(2);
+    MANAGE_CATEGORIES(2),
+    MANAGE_TEAM(3);
 
     private final int position;
 
