@@ -5,7 +5,7 @@ import com.example.board.domain.role.TeamRoleRepository;
 import com.example.board.domain.team.Team;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.dto.role.CreateRoleRequest;
-import com.example.board.permission.PermissionUtils;
+import com.example.board.permission.utils.PermissionUtils;
 import com.example.board.permission.TeamPermission;
 import com.example.board.service.TeamRoleService;
 import com.example.board.service.TeamService;
@@ -20,7 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.security.web.authentication.www.NonceExpiredException;
 
 import java.util.Arrays;
 import java.util.HashSet;
