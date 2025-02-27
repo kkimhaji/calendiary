@@ -2,7 +2,7 @@ package com.example.board.domain.role;
 
 import com.example.board.domain.team.Team;
 import com.example.board.domain.teamMember.TeamMember;
-import com.example.board.permission.PermissionUtils;
+import com.example.board.permission.utils.PermissionUtils;
 import com.example.board.permission.TeamPermission;
 import jakarta.persistence.*;
 import lombok.*;

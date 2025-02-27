@@ -1,7 +1,8 @@
-package com.example.board.permission;
+package com.example.board.permission.evaluator;
 
 import com.example.board.domain.team.Team;
 import com.example.board.domain.team.TeamCategory;
+import com.example.board.permission.PermissionType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
@@ -35,4 +36,5 @@ public class DelegatingPermissionEvaluator implements PermissionEvaluator {
         }
         return false;
     }
+
 }

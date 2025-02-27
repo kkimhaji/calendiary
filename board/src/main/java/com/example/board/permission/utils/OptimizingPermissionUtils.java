@@ -1,4 +1,4 @@
-package com.example.board.permission;
+package com.example.board.permission.utils;
 
 import org.springframework.cache.annotation.Cacheable;
 

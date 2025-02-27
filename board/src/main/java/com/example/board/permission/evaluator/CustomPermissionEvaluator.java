@@ -1,4 +1,4 @@
-package com.example.board.permission;
+package com.example.board.permission.evaluator;
 
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;

@@ -1,6 +1,10 @@
 package com.example.board.permission;
 
-import lombok.RequiredArgsConstructor;
+import com.example.board.permission.evaluator.CategoryPermissionEvaluator;
+import com.example.board.permission.evaluator.CustomPermissionEvaluator;
+import com.example.board.permission.evaluator.TeamPermissionEvaluator;
+
+import java.util.Arrays;
 
 public enum TeamPermission implements PermissionType{
     MANAGE_MEMBERS(0),
@@ -16,6 +20,15 @@ public enum TeamPermission implements PermissionType{
 
     public int getPosition() {
         return position;
+    }
+
+
+    //프론트에서 문자열로 파라미터를 넘겼을 때 Enum으로 변환 (대소문자 구분x)
+    public static TeamPermission fromCode(String value) {
+        return Arrays.stream(TeamPermission.values())
+                .filter(e -> e.name().equalsIgnoreCase(value))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Invalid permission"));
     }
 
 }

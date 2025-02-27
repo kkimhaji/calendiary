@@ -1,15 +1,13 @@
-package com.example.board.permission;
+package com.example.board.permission.evaluator;
 
 import com.example.board.auth.UserPrincipal;
 import com.example.board.domain.member.Member;
-import com.example.board.domain.role.TeamRole;
-import com.example.board.domain.role.TeamRoleRepository;
 import com.example.board.domain.team.CategoryRepository;
 import com.example.board.domain.team.TeamCategory;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.teamMember.TeamMemberRepository;
-import com.example.board.service.CategoryService;
-import com.example.board.service.TeamMemberService;
+import com.example.board.permission.CategoryPermission;
+import com.example.board.permission.utils.PermissionUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;

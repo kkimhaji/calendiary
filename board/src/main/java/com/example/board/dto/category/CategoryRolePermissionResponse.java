@@ -2,7 +2,7 @@ package com.example.board.dto.category;
 
 import com.example.board.domain.role.CategoryRolePermission;
 import com.example.board.permission.CategoryPermission;
-import com.example.board.permission.PermissionUtils;
+import com.example.board.permission.utils.PermissionUtils;
 
 import java.util.Set;
 

@@ -1,10 +1,8 @@
 package com.example.board.domain.role;
 
-import com.example.board.domain.team.Team;
 import com.example.board.domain.team.TeamCategory;
 import com.example.board.permission.CategoryPermission;
-import com.example.board.permission.PermissionUtils;
-import com.example.board.permission.TeamPermission;
+import com.example.board.permission.utils.PermissionUtils;
 import jakarta.persistence.*;
 import lombok.*;
 

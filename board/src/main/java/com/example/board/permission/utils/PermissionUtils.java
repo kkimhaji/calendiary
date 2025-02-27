@@ -1,5 +1,6 @@
-package com.example.board.permission;
+package com.example.board.permission.utils;
 
+import com.example.board.permission.PermissionType;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;

@@ -16,6 +16,9 @@ import com.example.board.domain.teamMember.TeamMemberRepository;
 import com.example.board.dto.role.*;
 import com.example.board.exception.RoleDeletionException;
 import com.example.board.permission.*;
+import com.example.board.permission.evaluator.CategoryPermissionEvaluator;
+import com.example.board.permission.evaluator.TeamPermissionEvaluator;
+import com.example.board.permission.utils.PermissionUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -25,7 +28,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
