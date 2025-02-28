@@ -2,10 +2,7 @@ package com.example.board.controller;
 
 import com.example.board.auth.UserPrincipal;
 import com.example.board.domain.member.Member;
-import com.example.board.dto.team.AddMemberRequestDTO;
-import com.example.board.dto.team.TeamCreateRequestDTO;
-import com.example.board.dto.team.TeamCreateResponse;
-import com.example.board.dto.team.TeamInfoDTO;
+import com.example.board.dto.team.*;
 import com.example.board.service.MemberService;
 import com.example.board.service.TeamService;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +21,6 @@ public class TeamController {
 
     @PostMapping("/create")
     public ResponseEntity<TeamCreateResponse> createTeam(@AuthenticationPrincipal UserPrincipal user, @RequestBody TeamCreateRequestDTO dto){
-//        var loginMember = memberService.getMember(request)
-//                .orElseThrow(() ->new IllegalArgumentException("no user"));
         return ResponseEntity.ok(TeamCreateResponse.fromEntity(teamService.createTeam(user.getMember(), dto)));
     }
 
@@ -45,5 +40,11 @@ public class TeamController {
     @GetMapping("/{teamId}")
     public ResponseEntity<TeamInfoDTO> getTeamInfo(@PathVariable(name="teamId") Long teamId){
         return ResponseEntity.ok(teamService.getTeamInfo(teamId));
+    }
+
+    @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_TEAM)")
+    @PutMapping("/{teamId}")
+    public ResponseEntity<Long> updateTeamInfo(@PathVariable(name = "teamId") Long teamId, @RequestBody TeamUpdateRequestDTO dto){
+        return ResponseEntity.ok(teamService.updateTeamInfo(teamId, dto));
     }
 }

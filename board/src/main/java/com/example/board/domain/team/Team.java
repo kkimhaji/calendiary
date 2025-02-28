@@ -42,4 +42,13 @@ public class Team {
         this.createdAt = createdAt;
         this.basicRoleId = basicRoleId;
     }
+
+    public void updateName(String name){
+        if (name != null && !name.isBlank())
+            this.name = name;
+    }
+
+    public void updateDescription(String description){
+        this.description = description;
+    }
 }

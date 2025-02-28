@@ -8,10 +8,7 @@ import com.example.board.domain.team.Team;
 import com.example.board.domain.team.TeamRepository;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.teamMember.TeamMemberRepository;
-import com.example.board.dto.team.AddMemberRequestDTO;
-import com.example.board.dto.team.TeamCreateRequestDTO;
-import com.example.board.dto.team.TeamCreateResponse;
-import com.example.board.dto.team.TeamInfoDTO;
+import com.example.board.dto.team.*;
 import com.example.board.permission.TeamPermission;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -78,5 +75,16 @@ public class TeamService {
 
         //team의 role 삭제
         teamRoleService.deleteRole(team);
+    }
+
+    public long updateTeamInfo(long teamId, TeamUpdateRequestDTO dto){
+        Team targetTeam = teamRepository.findById(teamId).orElseThrow(() -> new EntityNotFoundException("team not found"));
+        if (dto.teamName() != null && !dto.teamName().isBlank()) {
+            targetTeam.updateName(dto.teamName());
+        }
+        if (dto.description() != null) {
+            targetTeam.updateDescription(dto.description());
+        }
+        return targetTeam.getId();
     }
 }
