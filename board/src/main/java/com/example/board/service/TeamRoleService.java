@@ -223,21 +223,4 @@ public class TeamRoleService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return teamPermissionEvaluator.hasPermission(auth, teamId, "Team", permission);
     }
-
-    private boolean hasCategoryPermission(Long categoryId, CategoryPermission permission) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return categoryPermissionEvaluator.hasPermission(auth, categoryId, "TeamCategory", permission);
-    }
-
-    public boolean hasPermissionOrAuthor(Long categoryId, Long postId, CategoryPermission permission) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        Member loginMember = ((UserPrincipal) auth.getPrincipal()).getMember();
-        Member author = postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("post not found")).getAuthor();
-
-        return hasCategoryPermission(categoryId, permission) || author.getMemberId().equals(loginMember.getMemberId());
-    }
-
-    public boolean checkCreatePostPermission(Long categoryId){
-        return hasCategoryPermission(categoryId, CategoryPermission.CREATE_POST);
-    }
 }

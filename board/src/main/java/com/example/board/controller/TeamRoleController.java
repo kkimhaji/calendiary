@@ -69,9 +69,4 @@ public class TeamRoleController {
     public ResponseEntity<TeamRoleResponse> getMembersRole(@PathVariable(name = "teamId") Long teamId, @AuthenticationPrincipal UserPrincipal user){
         return ResponseEntity.ok(teamRoleService.getMembersRole(teamId, user.getMember()));
     }
-
-    @GetMapping("/post-create/check")
-    public ResponseEntity<Boolean> checkCreatePermission(@RequestParam(name="categoryId") Long categoryId){
-        return ResponseEntity.ok(teamRoleService.checkCreatePostPermission(categoryId));
-    }
 }

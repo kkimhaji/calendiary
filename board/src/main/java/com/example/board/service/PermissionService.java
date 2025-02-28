@@ -10,6 +10,7 @@ import com.example.board.dto.role.EditAndDeletePermissionResponse;
 import com.example.board.permission.CategoryPermission;
 import com.example.board.permission.PermissionType;
 import com.example.board.permission.TeamPermission;
+import com.example.board.permission.evaluator.CategoryPermissionEvaluator;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.PermissionEvaluator;
@@ -34,39 +35,6 @@ public class PermissionService {
         return permissionEvaluator.hasPermission(auth, targetId, targetType, permission);
     }
 
-    private String getTargetType(PermissionType permission) {
-        if (permission instanceof TeamPermission) return "Team";
-        if (permission instanceof CategoryPermission) return "TeamCategory";
-        throw new IllegalArgumentException("Unsupported permission type");
-    }
-
-    private <T> EditAndDeletePermissionResponse checkEditAndDeletePermission(
-            Supplier<T> entitySupplier,
-            Function<T, Member> authorExtractor,
-            Function<T, Long> categoryIdExtractor,
-            PermissionType requiredPermission
-    ) {
-        try {
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            Member loginMember = ((UserPrincipal) auth.getPrincipal()).getMember();
-            T entity = entitySupplier.get();
-            Member author = authorExtractor.apply(entity);
-
-            // 1. 작성자 본인인 경우
-            if (loginMember.getMemberId().equals(author.getMemberId())) {
-                return EditAndDeletePermissionResponse.of(true, true);
-            }
-
-            // 2. 권한 검사: 기존 `hasCategoryPermission` → `checkPermission` 호출
-            Long categoryId = categoryIdExtractor.apply(entity);
-            boolean canDelete = checkPermission(categoryId, requiredPermission);
-            return EditAndDeletePermissionResponse.of(false, canDelete);
-
-        } catch (EntityNotFoundException e) {
-            return EditAndDeletePermissionResponse.of(false, false);
-        }
-    }
-
     // 게시글 권한 검사
     public EditAndDeletePermissionResponse checkEditAndDeletePostPermission(Long postId) {
         return checkEditAndDeletePermission(
@@ -88,4 +56,48 @@ public class PermissionService {
                 CategoryPermission.DELETE_COMMENT // ✅ PermissionType으로 전달
         );
     }
+
+    public boolean hasPermissionOrAuthor(Long categoryId, Long postId, CategoryPermission permission) {
+        Member author = postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("post not found")).getAuthor();
+        return checkPermission(categoryId, permission) || author.getMemberId().equals(getLoginMember().getMemberId());
+    }
+
+    private Member getLoginMember(){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return ((UserPrincipal) auth.getPrincipal()).getMember();
+    }
+
+    private String getTargetType(PermissionType permission) {
+        if (permission instanceof TeamPermission) return "Team";
+        if (permission instanceof CategoryPermission) return "TeamCategory";
+        throw new IllegalArgumentException("Unsupported permission type");
+    }
+
+    private <T> EditAndDeletePermissionResponse checkEditAndDeletePermission(
+            Supplier<T> entitySupplier,
+            Function<T, Member> authorExtractor,
+            Function<T, Long> categoryIdExtractor,
+            PermissionType requiredPermission
+    ) {
+        try {
+            Member loginMember = getLoginMember();
+            T entity = entitySupplier.get();
+            Member author = authorExtractor.apply(entity);
+
+            // 1. 작성자 본인인 경우
+            if (loginMember.getMemberId().equals(author.getMemberId())) {
+                return EditAndDeletePermissionResponse.of(true, true);
+            }
+
+            // 2. 권한 검사: 기존 `hasCategoryPermission` → `checkPermission` 호출
+            Long categoryId = categoryIdExtractor.apply(entity);
+            boolean canDelete = checkPermission(categoryId, requiredPermission);
+            return EditAndDeletePermissionResponse.of(false, canDelete);
+
+        } catch (EntityNotFoundException e) {
+            return EditAndDeletePermissionResponse.of(false, false);
+        }
+    }
+
+
 }

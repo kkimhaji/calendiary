@@ -46,6 +46,7 @@ public class PostService {
     private final HtmlSanitizer htmlSanitizer;
     private final PostImageRepository postImageRepository;
     private final TeamRoleService teamRoleService;
+    private final PermissionService permissionService;
 
     public Post createPost(Long teamId, Long categoryId, CreatePostRequest request, Member author) throws AccessDeniedException, IOException {
         Team team = teamRepository.findById(teamId)
@@ -139,7 +140,7 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("there is no such post"));
 
-        if (!teamRoleService.hasPermissionOrAuthor(categoryId, postId, CategoryPermission.DELETE_POST))
+        if (!permissionService.hasPermissionOrAuthor(categoryId, postId, CategoryPermission.DELETE_POST))
             throw new AccessDeniedException("게시글을 삭제할 권한이 없습니다.");
 
         deleteAllPostImages(post);
