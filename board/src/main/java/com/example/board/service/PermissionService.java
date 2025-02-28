@@ -10,10 +10,9 @@ import com.example.board.dto.role.EditAndDeletePermissionResponse;
 import com.example.board.permission.CategoryPermission;
 import com.example.board.permission.PermissionType;
 import com.example.board.permission.TeamPermission;
-import com.example.board.permission.evaluator.CategoryPermissionEvaluator;
+import com.example.board.permission.evaluator.DelegatingPermissionEvaluator;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -25,7 +24,7 @@ import java.util.function.Supplier;
 @RequiredArgsConstructor
 public class PermissionService {
     //permission check 관련 메서드 옮길 것
-    private final PermissionEvaluator permissionEvaluator;
+    private final DelegatingPermissionEvaluator permissionEvaluator;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
 

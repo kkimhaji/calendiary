@@ -4,6 +4,7 @@ import com.example.board.domain.team.Team;
 import com.example.board.domain.team.TeamCategory;
 import com.example.board.permission.PermissionType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
