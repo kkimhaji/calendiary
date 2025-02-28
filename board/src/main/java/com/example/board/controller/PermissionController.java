@@ -15,18 +15,18 @@ public class PermissionController {
     private final PermissionService permissionService;
 
     @GetMapping("/permission-check")
-    public ResponseEntity<Boolean> checkPermission(@RequestParam PermissionType permission,
-                                                   @RequestParam Long targetId){ //targetId: 팀 또는 카테고리 id
+    public ResponseEntity<Boolean> checkPermission(@RequestParam("permission") PermissionType permission,
+                                                   @RequestParam("targetId") Long targetId){ //targetId: 팀 또는 카테고리 id
         return ResponseEntity.ok(permissionService.checkPermission(targetId, permission));
     }
 
     @GetMapping("/edit-delete-check/post")
-    public ResponseEntity<EditAndDeletePermissionResponse> checkPostPermission(@RequestParam Long postId){
+    public ResponseEntity<EditAndDeletePermissionResponse> checkPostPermission(@RequestParam("postId") Long postId){
         return ResponseEntity.ok(permissionService.checkEditAndDeletePostPermission(postId));
     }
 
     @GetMapping("/edit-delete-check/comment")
-    public ResponseEntity<EditAndDeletePermissionResponse> checkCommentPermission(@RequestParam Long commentId){
+    public ResponseEntity<EditAndDeletePermissionResponse> checkCommentPermission(@RequestParam("commentId") Long commentId){
         return ResponseEntity.ok(permissionService.checkEditAndDeleteCommentPermission(commentId));
     }
 }
