@@ -70,18 +70,8 @@ public class TeamRoleController {
         return ResponseEntity.ok(teamRoleService.getMembersRole(teamId, user.getMember()));
     }
 
-    @GetMapping("/post-edit-delete/check")
-    public ResponseEntity<EditAndDeletePermissionResponse> checkPostPermission(@RequestParam(name="postId") Long postId){
-        return ResponseEntity.ok(teamRoleService.checkEditAndDeletePostPermission(postId));
-    }
-
     @GetMapping("/post-create/check")
     public ResponseEntity<Boolean> checkCreatePermission(@RequestParam(name="categoryId") Long categoryId){
         return ResponseEntity.ok(teamRoleService.checkCreatePostPermission(categoryId));
-    }
-
-    @GetMapping("/comment-edit-delete/check")
-    public ResponseEntity<EditAndDeletePermissionResponse> checkCommentPermission(@RequestParam(name="commentId") Long commentId){
-        return ResponseEntity.ok(teamRoleService.checkEditAndDeleteCommentPermission(commentId));
     }
 }

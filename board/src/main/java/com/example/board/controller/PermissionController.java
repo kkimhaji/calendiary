@@ -1,5 +1,6 @@
 package com.example.board.controller;
 
+import com.example.board.dto.role.EditAndDeletePermissionResponse;
 import com.example.board.permission.PermissionType;
 import com.example.board.service.PermissionService;
 import lombok.RequiredArgsConstructor;
@@ -17,5 +18,15 @@ public class PermissionController {
     public ResponseEntity<Boolean> checkPermission(@RequestParam PermissionType permission,
                                                    @RequestParam Long targetId){ //targetId: 팀 또는 카테고리 id
         return ResponseEntity.ok(permissionService.checkPermission(targetId, permission));
+    }
+
+    @GetMapping("/edit-delete-check/post")
+    public ResponseEntity<EditAndDeletePermissionResponse> checkPostPermission(@RequestParam Long postId){
+        return ResponseEntity.ok(permissionService.checkEditAndDeletePostPermission(postId));
+    }
+
+    @GetMapping("/edit-delete-check/comment")
+    public ResponseEntity<EditAndDeletePermissionResponse> checkCommentPermission(@RequestParam Long commentId){
+        return ResponseEntity.ok(permissionService.checkEditAndDeleteCommentPermission(commentId));
     }
 }

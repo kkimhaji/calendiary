@@ -229,20 +229,6 @@ public class TeamRoleService {
         return categoryPermissionEvaluator.hasPermission(auth, categoryId, "TeamCategory", permission);
     }
 
-    public EditAndDeletePermissionResponse checkEditAndDeletePostPermission(Long postId){
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        Member loginMember = ((UserPrincipal) auth.getPrincipal()).getMember();
-        Post post = postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("post not found"));
-        Member author = post.getAuthor();
-        if (author.getMemberId().equals(loginMember.getMemberId())){
-            return EditAndDeletePermissionResponse.of(true, true);
-        }
-        Long categoryId = post.getCategory().getId();
-        boolean canDelete = hasCategoryPermission(categoryId, CategoryPermission.DELETE_POST);
-
-        return EditAndDeletePermissionResponse.of(false, canDelete);
-    }
-
     public boolean hasPermissionOrAuthor(Long categoryId, Long postId, CategoryPermission permission) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         Member loginMember = ((UserPrincipal) auth.getPrincipal()).getMember();
@@ -254,19 +240,4 @@ public class TeamRoleService {
     public boolean checkCreatePostPermission(Long categoryId){
         return hasCategoryPermission(categoryId, CategoryPermission.CREATE_POST);
     }
-
-    public EditAndDeletePermissionResponse checkEditAndDeleteCommentPermission(Long commentId){
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        Member loginMember = ((UserPrincipal) auth.getPrincipal()).getMember();
-        Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new EntityNotFoundException("comment not found"));
-        Member author = comment.getAuthor();
-        if (author.getMemberId().equals(loginMember.getMemberId())){
-            return EditAndDeletePermissionResponse.of(true, true);
-        }
-        Long categoryId = comment.getPost().getCategory().getId();
-        boolean canDelete = hasCategoryPermission(categoryId, CategoryPermission.DELETE_COMMENT);
-
-        return EditAndDeletePermissionResponse.of(false, canDelete);
-    }
-
 }
