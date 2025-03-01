@@ -132,4 +132,9 @@ public class CategoryService {
     public List<CategoryListDTO> getCategoryListByTeam(Long teamId){
         return categoryRepository.findCategoryListByTeamId(teamId);
     }
+
+    public CategoryResponse getCategoryInfo(Long categoryId){
+        TeamCategory category = categoryRepository.findById(categoryId).orElseThrow(() -> new EntityNotFoundException("category not found"));
+        return CategoryResponse.from(category);
+    }
 }

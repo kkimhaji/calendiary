@@ -33,9 +33,15 @@ public class CategoryController {
         return ResponseEntity.ok(categoryService.updateCategory(teamId, categoryId, request));
     }
 
+    //팀의 카테고리 리스트 받아오기
     @GetMapping
     public ResponseEntity<List<CategoryListDTO>> getCategories(@PathVariable(name="teamId") Long teamId){
-
         return ResponseEntity.ok(categoryService.getCategoryListByTeam(teamId));
+    }
+
+    //카테고리 정보 받아오기
+    @GetMapping("/{categoryId}")
+    public ResponseEntity<CategoryResponse> getCategoryInfo(@PathVariable(name = "teamId") Long teamId, @PathVariable(name="categoryId") Long categoryId){
+        return ResponseEntity.ok(categoryService.getCategoryInfo(categoryId));
     }
 }
