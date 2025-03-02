@@ -13,6 +13,7 @@ import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.role.TeamRoleRepository;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.teamMember.TeamMemberRepository;
+import com.example.board.dto.member.TeamMemberDTO;
 import com.example.board.dto.role.*;
 import com.example.board.exception.RoleDeletionException;
 import com.example.board.permission.*;
@@ -28,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -210,6 +212,7 @@ public class TeamRoleService {
                 dto.memberCount()
         );
     }
+
     public List<TeamRoleInfoDTO> getRolesInfo(Long teamId){
         return teamRoleRepository.findTeamRoleInfo(teamId);
     }
@@ -218,9 +221,28 @@ public class TeamRoleService {
         TeamRole role = teamMemberService.getCurrentUserRole(teamId, member);
         return TeamRoleResponse.from(role);
     }
-
+    
     private boolean hasTeamPermission(Long teamId, TeamPermission permission) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return teamPermissionEvaluator.hasPermission(auth, teamId, "Team", permission);
+    }
+
+    //team에서 역할 수정
+    @Transactional(readOnly = true)
+    public RoleDetailsWithMemberListDTO getRoleDetails(Long teamId, Long roleId) {
+        TeamRole role = teamRoleRepository.findWithDetails(teamId, roleId)
+                .orElseThrow(() -> new EntityNotFoundException("Role not found"));
+        return new RoleDetailsWithMemberListDTO(
+                role.getId(),
+                role.getRoleName(),
+                role.getDescription(),
+                role.getPermissionSet(),
+                role.getMembers().stream()
+                        .map(tm -> new TeamMemberDTO(
+                                tm.getMember().getMemberId(),
+                                tm.getTeamNickname()
+                        ))
+                        .collect(Collectors.toList())
+        );
     }
 }
