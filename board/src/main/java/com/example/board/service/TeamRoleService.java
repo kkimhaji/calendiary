@@ -232,11 +232,15 @@ public class TeamRoleService {
     public RoleDetailsWithMemberListDTO getRoleDetails(Long teamId, Long roleId) {
         TeamRole role = teamRoleRepository.findWithDetails(teamId, roleId)
                 .orElseThrow(() -> new EntityNotFoundException("Role not found"));
+
+        Set<TeamPermission> teamPermissions = role.getPermissionSet();
+        Set<PermissionType> permissions = new HashSet<>(teamPermissions);
+
         return new RoleDetailsWithMemberListDTO(
                 role.getId(),
                 role.getRoleName(),
                 role.getDescription(),
-                role.getPermissionSet(),
+                permissions,
                 role.getMembers().stream()
                         .map(tm -> new TeamMemberDTO(
                                 tm.getMember().getMemberId(),
