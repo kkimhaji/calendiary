@@ -69,4 +69,9 @@ public class TeamRoleController {
     public ResponseEntity<TeamRoleResponse> getMembersRole(@PathVariable(name = "teamId") Long teamId, @AuthenticationPrincipal UserPrincipal user){
         return ResponseEntity.ok(teamRoleService.getMembersRole(teamId, user.getMember()));
     }
+
+    @GetMapping("/teams/{teamId}/{roleId}")
+    public ResponseEntity<RoleDetailsWithMemberListDTO> getRolesDetailsWithMembers(@PathVariable(name="teamId") Long teamId, @PathVariable(name="roleId") Long roleId){
+        return ResponseEntity.ok(teamRoleService.getRoleDetails(teamId, roleId));
+    }
 }

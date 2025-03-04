@@ -221,7 +221,7 @@ public class TeamRoleService {
         TeamRole role = teamMemberService.getCurrentUserRole(teamId, member);
         return TeamRoleResponse.from(role);
     }
-    
+
     private boolean hasTeamPermission(Long teamId, TeamPermission permission) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return teamPermissionEvaluator.hasPermission(auth, teamId, "Team", permission);

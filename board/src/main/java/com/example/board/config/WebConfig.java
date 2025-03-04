@@ -1,5 +1,6 @@
 package com.example.board.config;
 
+import com.example.board.permission.utils.PermissionToStringConverter;
 import com.example.board.permission.utils.StringToPermissionConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -37,5 +38,6 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addFormatters(FormatterRegistry registry) {
         registry.addConverter(new StringToPermissionConverter());
+        registry.addConverter(new PermissionToStringConverter());
     }
 }
