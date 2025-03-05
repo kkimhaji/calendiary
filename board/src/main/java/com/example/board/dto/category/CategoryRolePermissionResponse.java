@@ -7,7 +7,7 @@ import com.example.board.permission.utils.PermissionUtils;
 import java.util.Set;
 
 public record CategoryRolePermissionResponse(
-        Long id,
+        Long roleId,
         String roleName,
         Set<CategoryPermission> permissions //or Set<String>으로 권한 이름 전달
 ) {

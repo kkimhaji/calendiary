@@ -29,7 +29,7 @@ public class CategoryController {
 
     @PutMapping("/{categoryId}/update")
     @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_CATEGORIES)")
-    public ResponseEntity<CategoryResponse> updateCategory(@PathVariable(name="teamId") @P("teamId") Long teamId, @PathVariable Long categoryId, @RequestBody UpdateCategoryRequest request){
+    public ResponseEntity<CategoryResponse> updateCategory(@PathVariable(name="teamId") @P("teamId") Long teamId, @PathVariable(name="categoryId") Long categoryId, @RequestBody UpdateCategoryRequest request){
         return ResponseEntity.ok(categoryService.updateCategory(teamId, categoryId, request));
     }
 

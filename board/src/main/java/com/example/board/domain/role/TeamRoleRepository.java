@@ -50,4 +50,9 @@ public interface TeamRoleRepository extends JpaRepository<TeamRole, Long> {
             "WHERE r.team.id = :teamId AND r.id = :roleId")
     Optional<TeamRole> findWithDetails(@Param("teamId") Long teamId,
                                        @Param("roleId") Long roleId);
+
+//    @Query("SELECT r FROM TeamRole r LEFT JOIN FETCH r.permissions WHERE r.team = :team")
+    @Query("SELECT r FROM TeamRole r WHERE r.team = :team")
+    List<TeamRole> findAllByTeamWithPermissions(@Param("team") Team team);
+
 }

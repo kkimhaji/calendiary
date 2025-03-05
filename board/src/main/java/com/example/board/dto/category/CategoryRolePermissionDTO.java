@@ -5,6 +5,7 @@ import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.team.TeamCategory;
 import com.example.board.permission.CategoryPermission;
 import com.example.board.permission.TeamPermission;
+import com.example.board.permission.utils.PermissionUtils;
 
 import java.util.Set;
 
@@ -13,6 +14,10 @@ public record CategoryRolePermissionDTO(
         Set<CategoryPermission> permissions
 ) {
     public CategoryRolePermission toEntity(TeamCategory category, TeamRole role) {
+        if (role == null) {
+            throw new IllegalArgumentException("Role not found for ID: " + roleId);
+        }
+
         return CategoryRolePermission.builder()
                 .category(category)
                 .role(role)

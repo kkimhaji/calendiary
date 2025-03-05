@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -117,16 +118,30 @@ public class CategoryService {
 
     private void updateCategoryPermissions(TeamCategory category, UpdateCategoryRequest request, Long teamId) {
         Team team = teamRepository.findById(teamId).orElseThrow();
-        Map<Long, TeamRole> teamRoles = roleRepository.findAllByTeam(team)
-                .stream().collect(Collectors.toMap(TeamRole::getId, role -> role));
+//        Map<Long, TeamRole> teamRoles = roleRepository.findAllByTeam(team)
+//                .stream().collect(Collectors.toMap(TeamRole::getId, role -> role));
+        List<TeamRole> teamRoles = roleRepository.findAllByTeamWithPermissions(team);
+        Map<Long, TeamRole> roleMap = teamRoles.stream()
+                .collect(Collectors.toMap(TeamRole::getId, Function.identity()));
 
-        //기존 권한 삭제
+        // 기존 권한 삭제
         category.clearRolePermissions();
         categoryPermissionRepository.deleteAllByCategoryId(category.getId());
 
-        List<CategoryRolePermission> newPermissions = request.toCategoryRolePermissions(category, teamRoles);
+        // ✅ 유효한 역할 ID 검증
+        request.rolePermissions().ifPresent(permissions -> {
+            permissions.forEach(perm -> {
+                if (!roleMap.containsKey(perm.roleId())) {
+                    throw new IllegalArgumentException("Invalid role ID: " + perm.roleId());
+                }
+            });
 
-        categoryPermissionRepository.saveAll(newPermissions);
+            List<CategoryRolePermission> newPermissions = permissions.stream()
+                    .map(perm -> perm.toEntity(category, roleMap.get(perm.roleId())))
+                    .collect(Collectors.toList());
+
+            categoryPermissionRepository.saveAll(newPermissions);
+        });
     }
 
     public List<CategoryListDTO> getCategoryListByTeam(Long teamId){
