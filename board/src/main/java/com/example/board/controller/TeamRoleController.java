@@ -79,4 +79,12 @@ public class TeamRoleController {
     public void updateRoleInfo(@PathVariable(name="teamId") Long teamId, @PathVariable(name = "roleId") Long roleId, @RequestBody RoleUpdateRequest request){
         teamRoleService.updateRole(teamId, roleId, request);
     }
+
+    @GetMapping("/category/{categoryId}")
+    public ResponseEntity<List<CategoryRolePermissionDTO>> getRolesWithPermissions(
+            @PathVariable Long teamId,
+            @PathVariable Long categoryId
+    ) {
+        return ResponseEntity.ok(teamRoleService.getRolesWithPermissions(teamId, categoryId));
+    }
 }

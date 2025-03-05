@@ -19,4 +19,12 @@ public interface CategoryPermissionRepository extends JpaRepository<CategoryRole
     @Query("DELETE FROM CategoryRolePermission tcr WHERE tcr.role.id = :roleId")
     void deleteAllByRoleId(@Param("roleId") Long roleId);
 
+    @Query("SELECT crp FROM CategoryRolePermission crp " +
+            "WHERE crp.category.id = :categoryId")
+    List<CategoryRolePermission> findAllByCategoryId(@Param("categoryId") Long categoryId);
+
+    @Query("SELECT crp FROM CategoryRolePermission crp " +
+            "JOIN FETCH crp.role " +
+            "WHERE crp.category.id = :categoryId")
+    List<CategoryRolePermission> findAllWithRoleByCategoryId(@Param("categoryId") Long categoryId);
 }

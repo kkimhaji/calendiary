@@ -1,12 +1,8 @@
 package com.example.board.service;
 
-import com.example.board.auth.UserPrincipal;
 import com.example.board.domain.member.Member;
-import com.example.board.domain.post.Comment;
-import com.example.board.domain.post.CommentRepository;
-import com.example.board.domain.post.Post;
-import com.example.board.domain.post.PostRepository;
 import com.example.board.domain.role.CategoryPermissionRepository;
+import com.example.board.domain.role.CategoryRolePermission;
 import com.example.board.domain.team.Team;
 import com.example.board.domain.team.TeamRepository;
 import com.example.board.domain.role.TeamRole;
@@ -17,7 +13,6 @@ import com.example.board.dto.member.TeamMemberDTO;
 import com.example.board.dto.role.*;
 import com.example.board.exception.RoleDeletionException;
 import com.example.board.permission.*;
-import com.example.board.permission.evaluator.CategoryPermissionEvaluator;
 import com.example.board.permission.evaluator.TeamPermissionEvaluator;
 import com.example.board.permission.utils.PermissionUtils;
 import jakarta.persistence.EntityNotFoundException;
@@ -29,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,12 +33,9 @@ public class TeamRoleService {
     private final TeamRepository teamRepository;
     private final TeamRoleRepository teamRoleRepository;
     private final TeamMemberRepository teamMemberRepository;
-    private final CategoryPermissionRepository permissionRepository;
+    private final CategoryPermissionRepository categoryPermissionRepository;
     private final TeamMemberService teamMemberService;
     private final TeamPermissionEvaluator teamPermissionEvaluator;
-    private final CategoryPermissionEvaluator categoryPermissionEvaluator;
-    private final PostRepository postRepository;
-    private final CommentRepository commentRepository;
 
     public TeamRole createRole(Long teamId, CreateRoleRequest request) {
         Team team = teamRepository.findById(teamId)
@@ -122,7 +115,7 @@ public class TeamRoleService {
     }
 
     private void deleteCategoryPermissions(Long roleId){
-        permissionRepository.deleteAllByRoleId(roleId);
+        categoryPermissionRepository.deleteAllByRoleId(roleId);
     }
 
     @Transactional
@@ -194,6 +187,7 @@ public class TeamRoleService {
         teamRoleRepository.deleteAll(roles);
     }
 
+    //팀 정보 페이지에서 - TeamPermission을 가져옴
     public List<TeamRoleDetailResponse> getRolesByTeam(Long teamId){
         List<TeamRoleDetailDto> teamDetailDtos = teamRoleRepository.findTeamRoleDetailsWithMemberCount(teamId);
         return teamDetailDtos.stream().map(this::convertToResponse)
@@ -266,5 +260,38 @@ public class TeamRoleService {
         );
 
         teamRoleRepository.save(role);
+    }
+
+    //카테고리 정보 수정 시 역할 목록 받아올 때 사용
+    public List<CategoryRolePermissionDTO> getRolesWithPermissions(Long teamId, Long categoryId) {
+        // 1. 팀의 모든 역할 조회
+        List<TeamRole> teamRoles = teamRoleRepository.findAllByTeamId(teamId);
+
+        // 2. 카테고리-역할 권한 조회
+        Map<Long, CategoryRolePermission> existingPermissions = categoryPermissionRepository
+                .findAllWithRoleByCategoryId(categoryId)
+                .stream()
+                .collect(Collectors.toMap(
+                        crp -> crp.getRole().getId(),
+                        Function.identity()
+                ));
+
+        // 3. DTO 변환
+        return teamRoles.stream()
+                .map(role -> {
+                    Set<CategoryPermission> permissions = existingPermissions.containsKey(role.getId())
+                            ? PermissionUtils.getPermissionsFromBits(
+                            existingPermissions.get(role.getId()).getPermissions(),
+                            CategoryPermission.class
+                    )
+                            : Collections.emptySet();
+
+                    return new CategoryRolePermissionDTO(
+                            role.getId(),
+                            role.getRoleName(),
+                            permissions
+                    );
+                })
+                .collect(Collectors.toList());
     }
 }
