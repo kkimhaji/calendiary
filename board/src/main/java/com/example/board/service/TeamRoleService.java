@@ -227,7 +227,7 @@ public class TeamRoleService {
         return teamPermissionEvaluator.hasPermission(auth, teamId, "Team", permission);
     }
 
-    //team에서 역할 수정
+    //team 정보 페이지에서 역할 수정 페이지로 넘어갔을 때 사용
     @Transactional(readOnly = true)
     public RoleDetailsWithMemberListDTO getRoleDetails(Long teamId, Long roleId) {
         TeamRole role = teamRoleRepository.findWithDetails(teamId, roleId)
@@ -248,5 +248,23 @@ public class TeamRoleService {
                         ))
                         .collect(Collectors.toList())
         );
+    }
+
+    @Transactional
+    public void updateRole(Long teamId, Long roleId, RoleUpdateRequest request){
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new EntityNotFoundException("Team not found"));
+        TeamRole role = teamRoleRepository.findById(roleId)
+                .orElseThrow(() -> new EntityNotFoundException("Role not found"));
+
+        String permissionBits = PermissionUtils.createPermissionBits(request.permissions());
+
+        role.update(
+                request.roleName(),
+                request.description(),
+                permissionBits
+        );
+
+        teamRoleRepository.save(role);
     }
 }

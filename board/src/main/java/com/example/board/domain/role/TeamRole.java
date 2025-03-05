@@ -31,26 +31,6 @@ public class TeamRole {
     @OneToMany(mappedBy = "role")
     private Set<TeamMember> members = new HashSet<>();
 
-//    public boolean hasPermission(TeamPermission permission) {
-//        return PermissionUtils.hasPermission(this.permissions, permission.getValue());
-//    }
-
-    //    public void addPermission(int position) {
-//        StringBuilder binary = new StringBuilder(permissions);
-//        // 길이가 부족하면 확장
-//        while (binary.length() <= position) {
-//            binary.insert(0, "0");
-//        }
-//        binary.setCharAt(binary.length() - 1 - position, '1');
-//        this.permissions = binary.toString();
-//    }
-//
-//    public boolean hasPermission(int position) {
-//        if (position >= permissions.length()) {
-//            return false;
-//        }
-//        return permissions.charAt(permissions.length() - 1 - position) == '1';
-//    }
     public boolean hasPermission(TeamPermission permission) {
         return PermissionUtils.hasPermission(this.permissions, permission);
     }
@@ -65,6 +45,12 @@ public class TeamRole {
 
     public Set<TeamPermission> getPermissionSet() {
         return PermissionUtils.getPermissionsFromBits(this.permissions, TeamPermission.class);
+    }
+
+    public void update(String roleName, String description, String permissions) {
+        this.roleName = roleName;
+        this.description = description;
+        this.permissions = permissions;
     }
 
     @Builder

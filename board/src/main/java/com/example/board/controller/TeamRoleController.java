@@ -37,7 +37,7 @@ public class TeamRoleController {
         return ResponseEntity.ok(role.getPermissionSet());
     }
 
-    @PostMapping("/manage/delete/{roleId}")
+    @DeleteMapping("/manage/delete/{roleId}")
     @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_ROLES)")
     public void deleteRole(@PathVariable(name="teamId") Long teamId, @PathVariable Long roleId){
         teamRoleService.deleteRole(teamId, roleId);
@@ -73,5 +73,10 @@ public class TeamRoleController {
     @GetMapping("/{roleId}")
     public ResponseEntity<RoleDetailsWithMemberListDTO> getRolesDetailsWithMembers(@PathVariable(name="teamId") Long teamId, @PathVariable(name="roleId") Long roleId){
         return ResponseEntity.ok(teamRoleService.getRoleDetails(teamId, roleId));
+    }
+
+    @PutMapping("/{roleId}/update")
+    public void updateRoleInfo(@PathVariable(name="teamId") Long teamId, @PathVariable(name = "roleId") Long roleId, @RequestBody RoleUpdateRequest request){
+        teamRoleService.updateRole(teamId, roleId, request);
     }
 }
