@@ -82,8 +82,8 @@ public class TeamRoleController {
 
     @GetMapping("/category/{categoryId}")
     public ResponseEntity<List<CategoryRolePermissionDTO>> getRolesWithPermissions(
-            @PathVariable Long teamId,
-            @PathVariable Long categoryId
+            @PathVariable(name="teamId") Long teamId,
+            @PathVariable(name = "categoryId") Long categoryId
     ) {
         return ResponseEntity.ok(teamRoleService.getRolesWithPermissions(teamId, categoryId));
     }
