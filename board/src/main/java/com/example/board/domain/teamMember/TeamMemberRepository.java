@@ -20,6 +20,12 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
     Optional<TeamMember> findByTeamAndMember(Team team, Member member);
 
     @Query("SELECT tm FROM TeamMember tm " +
+            "JOIN FETCH tm.member m " +
+            "JOIN FETCH tm.role r " +
+            "WHERE tm.team.id = :teamId")
+    List<TeamMember> findAllWithDetailsByTeamId(@Param("teamId") Long teamId);
+
+    @Query("SELECT tm FROM TeamMember tm " +
             "JOIN FETCH tm.role " +
             "WHERE tm.team.id = :teamId AND tm.member = :member")
     Optional<TeamMember> findByTeamIdAndMember(@Param("teamId") Long teamId, @Param("member") Member member);
