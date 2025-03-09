@@ -2,6 +2,8 @@ package com.example.board.controller;
 
 import com.example.board.auth.UserPrincipal;
 import com.example.board.domain.member.Member;
+import com.example.board.dto.PageResponse;
+import com.example.board.dto.member.AddTeamMemberToRoleDTO;
 import com.example.board.dto.member.TeamMemberInfoListDTO;
 import com.example.board.dto.team.*;
 import com.example.board.service.MemberService;
@@ -9,11 +11,13 @@ import com.example.board.service.TeamMemberService;
 import com.example.board.service.TeamService;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.Response;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import javax.naming.ldap.PagedResultsResponseControl;
 import java.util.List;
 
 @RestController
@@ -56,5 +60,20 @@ public class TeamController {
     @GetMapping("/{teamId}/members")
     public ResponseEntity<List<TeamMemberInfoListDTO>> getTeamMembersList(@PathVariable(name="teamId") Long teamId){
         return ResponseEntity.ok(teamMemberService.getTeamMembersWithRole(teamId));
+    }
+
+    @GetMapping("/{teamId}/get-members")
+    public ResponseEntity<PageResponse<AddTeamMemberToRoleDTO>> getTeamMembersWithSearch(@PathVariable("teamId") Long teamId,
+                                                                                         @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size,
+                                                                                         @RequestParam(defaultValue = "") String keyword){
+        Page<AddTeamMemberToRoleDTO> result = teamMemberService.getTeamMembers(teamId, page, size, keyword);
+
+        return ResponseEntity.ok(new PageResponse<>(
+                result.getContent(),
+                result.getNumber(),
+                result.getSize(),
+                result.getTotalPages(),
+                result.getTotalElements()
+        ));
     }
 }

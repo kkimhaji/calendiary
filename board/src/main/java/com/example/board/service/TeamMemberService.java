@@ -10,6 +10,9 @@ import com.example.board.dto.member.TeamMemberInfoListDTO;
 import com.example.board.dto.team.TeamListDTO;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,5 +61,20 @@ public class TeamMemberService {
                 .stream()
                 .map(AddTeamMemberToRoleDTO::new)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Page<AddTeamMemberToRoleDTO> getTeamMembers(
+            Long teamId,
+            int page,
+            int size,
+            String keyword
+    ) {
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return teamMemberRepository.findAllWithDetailsByTeamId(
+                teamId,
+                "%" + keyword + "%",
+                pageRequest
+        ).map(AddTeamMemberToRoleDTO::new);
     }
 }

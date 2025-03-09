@@ -6,6 +6,8 @@ import com.example.board.domain.team.Team;
 import com.example.board.dto.member.TeamMemberDTO;
 import com.example.board.dto.member.TeamMemberInfoListDTO;
 import com.example.board.dto.team.TeamListDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -70,4 +72,15 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
             "WHERE tm.team.id = :teamId")
     List<TeamMemberInfoListDTO> findMembersByTeamId(@Param("teamId") Long teamId);
 
+    //검색 + 페이징 처리
+    @Query("SELECT tm FROM TeamMember tm " +
+            "JOIN FETCH tm.member m " +
+            "JOIN FETCH tm.role r " +
+            "WHERE tm.team.id = :teamId " +
+            "AND (m.email LIKE %:keyword% OR tm.teamNickname LIKE %:keyword%)")
+    Page<TeamMember> findAllWithDetailsByTeamId(
+            @Param("teamId") Long teamId,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
 }
