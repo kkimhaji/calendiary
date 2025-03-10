@@ -2,12 +2,16 @@ package com.example.board.controller;
 
 import com.example.board.auth.UserPrincipal;
 import com.example.board.domain.role.TeamRole;
+import com.example.board.dto.PageResponse;
+import com.example.board.dto.member.TeamMemberDTO;
+import com.example.board.dto.member.TeamMemberOfRoleDTO;
 import com.example.board.dto.role.*;
 import com.example.board.permission.CategoryPermission;
 import com.example.board.permission.TeamPermission;
 import com.example.board.service.TeamMemberService;
 import com.example.board.service.TeamRoleService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -71,7 +75,7 @@ public class TeamRoleController {
     }
 
     @GetMapping("/{roleId}")
-    public ResponseEntity<RoleDetailsWithMemberListDTO> getRolesDetailsWithMembers(@PathVariable(name="teamId") Long teamId, @PathVariable(name="roleId") Long roleId){
+    public ResponseEntity<TeamRoleResponse> getRolesDetailsWithMembers(@PathVariable(name="teamId") Long teamId, @PathVariable(name="roleId") Long roleId){
         return ResponseEntity.ok(teamRoleService.getRoleDetails(teamId, roleId));
     }
 
@@ -86,5 +90,17 @@ public class TeamRoleController {
             @PathVariable(name = "categoryId") Long categoryId
     ) {
         return ResponseEntity.ok(teamRoleService.getRolesWithPermissions(teamId, categoryId));
+    }
+
+    @GetMapping("/teams/{teamId}/roles/{roleId}/members")
+    public ResponseEntity<PageResponse<TeamMemberOfRoleDTO>> getRoleMembers(
+            @PathVariable Long teamId,
+            @PathVariable Long roleId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String keyword
+    ) {
+        Page<TeamMemberOfRoleDTO> result = teamRoleService.getRoleMembers(teamId, roleId, page, size, keyword);
+        return ResponseEntity.ok(PageResponse.from(result));
     }
 }

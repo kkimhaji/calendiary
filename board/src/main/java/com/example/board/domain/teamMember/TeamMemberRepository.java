@@ -83,4 +83,16 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
             @Param("keyword") String keyword,
             Pageable pageable
     );
+
+    // 역할 기반 멤버 검색 + 페이징 쿼리
+    @Query("SELECT tm FROM TeamMember tm " +
+            "JOIN FETCH tm.member m " +
+            "JOIN FETCH tm.role r " +
+            "WHERE tm.role.id = :roleId " + // 역할 ID 조건 추가
+            "AND (m.email LIKE %:keyword% OR tm.teamNickname LIKE %:keyword%)") // 검색 조건
+    Page<TeamMember> findByRoleId(
+            @Param("roleId") Long roleId,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
 }

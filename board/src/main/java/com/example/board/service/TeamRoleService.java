@@ -10,6 +10,7 @@ import com.example.board.domain.role.TeamRoleRepository;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.teamMember.TeamMemberRepository;
 import com.example.board.dto.member.TeamMemberDTO;
+import com.example.board.dto.member.TeamMemberOfRoleDTO;
 import com.example.board.dto.role.*;
 import com.example.board.exception.RoleDeletionException;
 import com.example.board.permission.*;
@@ -17,6 +18,8 @@ import com.example.board.permission.evaluator.TeamPermissionEvaluator;
 import com.example.board.permission.utils.PermissionUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -223,25 +226,11 @@ public class TeamRoleService {
 
     //team 정보 페이지에서 역할 수정 페이지로 넘어갔을 때 사용
     @Transactional(readOnly = true)
-    public RoleDetailsWithMemberListDTO getRoleDetails(Long teamId, Long roleId) {
+    public TeamRoleResponse getRoleDetails(Long teamId, Long roleId) {
         TeamRole role = teamRoleRepository.findWithDetails(teamId, roleId)
                 .orElseThrow(() -> new EntityNotFoundException("Role not found"));
 
-        Set<TeamPermission> teamPermissions = role.getPermissionSet();
-        Set<PermissionType> permissions = new HashSet<>(teamPermissions);
-
-        return new RoleDetailsWithMemberListDTO(
-                role.getId(),
-                role.getRoleName(),
-                role.getDescription(),
-                permissions,
-                role.getMembers().stream()
-                        .map(tm -> new TeamMemberDTO(
-                                tm.getMember().getMemberId(),
-                                tm.getTeamNickname()
-                        ))
-                        .collect(Collectors.toList())
-        );
+        return TeamRoleResponse.from(role);
     }
 
     @Transactional
@@ -293,5 +282,11 @@ public class TeamRoleService {
                     );
                 })
                 .collect(Collectors.toList());
+    }
+
+    public Page<TeamMemberOfRoleDTO> getRoleMembers(Long teamId, Long roleId, int page, int size, String keyword) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        return teamMemberRepository.findByRoleId(roleId, keyword, pageRequest)
+                .map(TeamMemberOfRoleDTO::from);
     }
 }

@@ -57,6 +57,7 @@ public class TeamController {
         return ResponseEntity.ok(teamService.updateTeamInfo(teamId, dto));
     }
 
+    //팀 정보에서 멤버 리스트 받아올 때
     @GetMapping("/{teamId}/members")
     public ResponseEntity<List<TeamMemberInfoListDTO>> getTeamMembersList(@PathVariable(name="teamId") Long teamId){
         return ResponseEntity.ok(teamMemberService.getTeamMembersWithRole(teamId));
