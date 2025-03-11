@@ -92,13 +92,13 @@ public class TeamRoleController {
         return ResponseEntity.ok(teamRoleService.getRolesWithPermissions(teamId, categoryId));
     }
 
-    @GetMapping("/teams/{teamId}/roles/{roleId}/members")
+    @GetMapping("/{roleId}/members")
     public ResponseEntity<PageResponse<TeamMemberOfRoleDTO>> getRoleMembers(
-            @PathVariable Long teamId,
-            @PathVariable Long roleId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "") String keyword
+            @PathVariable("teamId") Long teamId,
+            @PathVariable("roleId") Long roleId,
+            @RequestParam(value= "page",defaultValue = "0") int page,
+            @RequestParam(value = "size",defaultValue = "10") int size,
+            @RequestParam(value="keyword", defaultValue = "") String keyword
     ) {
         Page<TeamMemberOfRoleDTO> result = teamRoleService.getRoleMembers(teamId, roleId, page, size, keyword);
         return ResponseEntity.ok(PageResponse.from(result));
