@@ -70,7 +70,7 @@ public class TeamMemberService {
             int size,
             String keyword
     ) {
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("joinedAt").descending());
         return teamMemberRepository.findAllWithDetailsByTeamId(
                 teamId,
                 "%" + keyword + "%",

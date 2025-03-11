@@ -65,8 +65,9 @@ public class TeamController {
 
     @GetMapping("/{teamId}/get-members")
     public ResponseEntity<PageResponse<AddTeamMemberToRoleDTO>> getTeamMembersWithSearch(@PathVariable("teamId") Long teamId,
-                                                                                         @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size,
-                                                                                         @RequestParam(defaultValue = "") String keyword){
+                                                                                         @RequestParam(value="page", defaultValue = "0") int page,
+                                                                                         @RequestParam(value="size", defaultValue = "10") int size,
+                                                                                         @RequestParam(value="keyword", defaultValue = "") String keyword){
         Page<AddTeamMemberToRoleDTO> result = teamMemberService.getTeamMembers(teamId, page, size, keyword);
 
         return ResponseEntity.ok(new PageResponse<>(
