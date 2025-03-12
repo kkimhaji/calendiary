@@ -1,0 +1,44 @@
+package com.example.board.domain.team;
+
+import jakarta.persistence.*;
+import lombok.Builder;
+import lombok.Getter;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Getter
+@Builder
+public class TeamInvite {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String code; // UUID 또는 해시값
+
+    @ManyToOne
+    @JoinColumn(name = "team_id")
+    private Team team;
+
+    @Column(name = "expires_at")
+    private LocalDateTime expiresAt;
+
+    @Column(name = "max_uses")
+    private Integer maxUses = 1;
+
+    @Column(name = "used_count")
+    private Integer usedCount = 0;
+
+    // 생성자, 생성 시간 등 추가 필드
+
+    public void incrementUsedCount(){
+        if (usedCount >= maxUses) {
+            throw new IllegalStateException(
+                    "초대 코드 사용 횟수 초과 (최대 " + maxUses + "회)"
+            );
+        }
+        this.usedCount++;
+    }
+}
+

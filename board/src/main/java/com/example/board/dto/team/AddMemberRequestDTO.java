@@ -6,7 +6,6 @@ import com.example.board.domain.team.Team;
 
 public record AddMemberRequestDTO(
         Long teamId,
-        Long roleId,
         Long memberId
 ) {
 

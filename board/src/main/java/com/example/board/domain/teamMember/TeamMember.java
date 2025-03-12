@@ -41,6 +41,7 @@ public class TeamMember {
         this.teamNickname = teamNickname;
     }
 
+    @Builder
     private TeamMember(Team team, Member member, TeamRole role, String teamNickname, LocalDateTime joinedAt) {
         this.team = team;
         this.member = member;

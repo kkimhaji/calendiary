@@ -34,8 +34,7 @@ public class TeamController {
     }
 
     @PostMapping("/addmember")
-    @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_MEMBERS)")
-    public ResponseEntity<?> addMember(@AuthenticationPrincipal UserPrincipal user, @RequestBody AddMemberRequestDTO dto){
+    public ResponseEntity<?> addMember(@RequestBody AddMemberRequestDTO dto){
         return ResponseEntity.ok(teamService.addMember(dto));
     }
 
