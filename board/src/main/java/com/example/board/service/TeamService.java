@@ -38,6 +38,7 @@ public class TeamService {
     private final TeamInviteRepository inviteRepository;
 
     public TeamMember addMember(AddMemberRequestDTO dto){
+
         Team team = teamRepository.findById(dto.teamId())
                 .orElseThrow(()->new EntityNotFoundException("no such team"));
         TeamRole basicRole = teamRoleRepository.findById(team.getBasicRoleId())
@@ -124,20 +125,22 @@ public class TeamService {
     }
 
     @Transactional
-    public void joinTeam(Long teamId, TeamJoinRequest request, Long userId) {
+    public void joinTeam(Long teamId, TeamJoinRequest request, Member newMember) {
         TeamInvite invite = inviteRepository.findByCode(request.code())
                 .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 코드"));
 
         validateInvite(invite);
 
-        TeamMember member = TeamMember.builder()
-                .team(invite.getTeam())
-                .member(Member.builder().memberId(userId).build())
-                .build();
-        teamMemberRepository.save(member);
-
         invite.incrementUsedCount();
         inviteRepository.save(invite);
+
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(()->new EntityNotFoundException("no such team"));
+        TeamRole basicRole = teamRoleRepository.findById(team.getBasicRoleId())
+                .orElseThrow(()-> new EntityNotFoundException("no basic role"));
+
+        TeamMember teamMember = TeamMember.addTeamMember(team, newMember, basicRole);
+        teamMemberRepository.save(teamMember);
     }
 
 // 검증 헬퍼 메서드

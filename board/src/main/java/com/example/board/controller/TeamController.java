@@ -77,4 +77,21 @@ public class TeamController {
                 result.getTotalElements()
         ));
     }
+
+    @PostMapping("/invite")
+    public ResponseEntity<InviteResponse> createInvite(@RequestBody InviteCreateRequest request){
+        return ResponseEntity.ok(teamService.createInvite(request));
+    }
+
+    @GetMapping("/invite/validate")
+    public ResponseEntity<InviteValidationResponse> validateInvite(@RequestParam("code") String code){
+        return ResponseEntity.ok(teamService.validateInvite(code));
+    }
+
+    @PostMapping("/{teamId}/join")
+    public ResponseEntity<Void> joinTeam(@PathVariable("teamId") Long teamId, @RequestBody TeamJoinRequest request,
+                                         @AuthenticationPrincipal UserPrincipal userPrincipal){
+        teamService.joinTeam(teamId, request, userPrincipal.getMember());
+        return ResponseEntity.ok().build();
+    }
 }
