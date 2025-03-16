@@ -105,7 +105,7 @@ public class TeamService {
 
         inviteRepository.save(invite);
 
-        String inviteLink = "https://localhost:8080/teams/" + team.getId() + "/join?code=" + code;
+        String inviteLink = "http://localhost:3000/teams/" + team.getId() + "/join?code=" + code;
         return new InviteResponse(inviteLink);
     }
     @Transactional(readOnly = true)
