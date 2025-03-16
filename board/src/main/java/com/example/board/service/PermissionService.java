@@ -11,29 +11,49 @@ import com.example.board.permission.CategoryPermission;
 import com.example.board.permission.PermissionType;
 import com.example.board.permission.TeamPermission;
 import com.example.board.permission.evaluator.DelegatingPermissionEvaluator;
+import com.example.board.permission.utils.StringToPermissionConverter;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
 public class PermissionService {
-    //permission check 관련 메서드 옮길 것
     private final DelegatingPermissionEvaluator permissionEvaluator;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
+    private final ConversionService conversionService;
 
+    //단일 권한 검사
     public boolean checkPermission(Long targetId, PermissionType permission) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String targetType = getTargetType(permission);
         return permissionEvaluator.hasPermission(auth, targetId, targetType, permission);
     }
 
+    public Map<String, Boolean> checkMultiplePermission(Long targetId, List<String> permissions){
+        Map<String, Boolean> results = new HashMap<>();
+
+        for (String permission : permissions) {
+            try {
+                //문자열 -> PermissionType 변환
+                PermissionType permissionType = conversionService.convert(permission, PermissionType.class);
+                results.put(permission, checkPermission(targetId, permissionType));
+            } catch (IllegalArgumentException e){
+                results.put(permission, false);
+            }
+        }
+        return results;
+    }
     // 게시글 권한 검사
     public EditAndDeletePermissionResponse checkEditAndDeletePostPermission(Long postId) {
         return checkEditAndDeletePermission(
