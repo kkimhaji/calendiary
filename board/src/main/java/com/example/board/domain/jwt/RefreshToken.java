@@ -28,6 +28,8 @@ public class RefreshToken {
     private LocalDateTime expiryDate;
     private boolean revoked;
     private boolean expired;
+    @Column(nullable = false)
+    private boolean autoLogin = false;
 
 
     public RefreshToken(String token, Member member, long expirationMs) {
@@ -35,6 +37,15 @@ public class RefreshToken {
         this.member = member;
         this.expiryDate = LocalDateTime.now().plus(expirationMs, ChronoUnit.MILLIS);
         this.revoked = false;
+    }
+
+    public RefreshToken(String token, Member member, long expirationInMillis, boolean autoLogin) {
+        this(token, member, expirationInMillis);
+        this.autoLogin = autoLogin;
+    }
+
+    public boolean isExpired() {
+        return LocalDateTime.now().isAfter(expiryDate);
     }
 
     public void revoke() {

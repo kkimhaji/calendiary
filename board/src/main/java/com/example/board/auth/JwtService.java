@@ -37,6 +37,9 @@ public class JwtService {
     @Value("${security.jwt.refresh-token.expiration}")
     private long refreshTokenExpiration;
 
+    @Value("${security.jwt.auto-login.expiration:2592000000}") // 30일 기본값
+    private long autoLoginExpiration;
+
     public String extractUsername(String token) {
         return extractClaims(token, Claims::getSubject);
     }
@@ -55,6 +58,11 @@ public class JwtService {
     }
     public String generateRefreshToken(UserDetails userDetails){
         return createToken(new HashMap<>(), userDetails, refreshTokenExpiration);
+    }
+    public String generateAutoLoginRefreshToken(UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("autoLogin", true);
+        return createToken(claims, userDetails, autoLoginExpiration);
     }
 
     public String createToken(Map<String, Object> extraClaims, UserDetails userDetails, long expiration){
@@ -94,5 +102,15 @@ public class JwtService {
 
     public long getRefreshTokenExpiration(){
         return refreshTokenExpiration;
+    }
+
+    public boolean isAutoLoginToken(String token) {
+        try {
+            Boolean autoLogin = extractClaims(token, claims ->
+                    claims.get("autoLogin", Boolean.class));
+            return autoLogin != null && autoLogin;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

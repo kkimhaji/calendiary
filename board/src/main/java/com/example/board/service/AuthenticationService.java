@@ -153,23 +153,6 @@ public class AuthenticationService {
         userEmail = jwtService.extractUsername(refreshToken);
         if (userEmail == null) throw new UsernameNotFoundException("이메일에 해당하는 사용자를 찾을 수 없습니다.");
 
-//        if (userEmail != null) {
-//            var member = this.memberRepository.findByEmail(userEmail).orElseThrow();
-//            UserPrincipal user = new UserPrincipal(member);
-//
-//            if (jwtService.isTokenValid(refreshToken, user)) {
-//                var accessToken = jwtService.generateToken(user);
-//                revokeToken(member);
-//                saveUserToken(member, accessToken);
-//
-//                var authResponse = AuthenticationResponse.builder()
-//                        .accessToken(accessToken).refreshToken(refreshToken)
-//                        .build();
-//
-//                new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
-//            }
-//        }
-
         RefreshToken storedToken = refreshTokenRepository.findByToken(refreshToken)
                 .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
 
