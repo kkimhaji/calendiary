@@ -10,12 +10,14 @@ import com.example.board.dto.member.AuthenticationRequestDTO;
 import com.example.board.dto.member.MemberRegisterResponseDTO;
 import com.example.board.dto.member.RegisterRequestDTO;
 import com.example.board.dto.member.VerifyUserDTO;
+import com.example.board.util.CookieUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -31,6 +33,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthenticationService {
 
     private final MemberRepository memberRepository;
@@ -41,6 +44,7 @@ public class AuthenticationService {
     private final EmailService emailService;
     private final RefreshTokenRepository refreshTokenRepository;
     private final CustomUserDetailsService userDetailsService;
+    private final CookieUtil cookieUtil;
 
 
     // save to the database and return the generated token
@@ -59,7 +63,7 @@ public class AuthenticationService {
         return MemberRegisterResponseDTO.from(member);
     }
 
-    public AuthenticationResponse verifyUser(VerifyUserDTO dto) {
+    public AuthenticationResponse verifyUser(VerifyUserDTO dto, HttpServletResponse response) {
         Optional<Member> optionalMember = memberRepository.findByEmail(dto.email());
         if (optionalMember.isPresent()) {
             Member member = optionalMember.get();
@@ -76,7 +80,8 @@ public class AuthenticationService {
                 var refreshToken = jwtService.generateRefreshToken(user);
 
                 saveUserToken(savedUser, jwtToken);
-
+// Refresh Token을 HTTP-Only 쿠키에 저장
+                cookieUtil.addRefreshTokenCookie(response, refreshToken, jwtService.getRefreshTokenExpiration());
                 return new AuthenticationResponse(
                         jwtToken, refreshToken
                 );
@@ -85,8 +90,43 @@ public class AuthenticationService {
         } else throw new RuntimeException("User not found");
     }
 
+    public AuthenticationResponse authenticateWithAutoLogin(AuthenticationRequestDTO request, HttpServletResponse response) {
+        // 인증 로직은 일반 로그인과 동일
+        var member = memberRepository.findByEmail(request.email())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-    public AuthenticationResponse authenticate(AuthenticationRequestDTO request) {
+        if (!member.isEnabled()){
+            throw new RuntimeException("Account is not verified. Please verify your account first");
+        }
+
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.email(), request.password()
+                )
+        );
+        UserPrincipal user = new UserPrincipal(member);
+
+        // 일반 Access Token 생성
+        var jwtToken = jwtService.generateToken(user);
+
+        // 자동 로그인용 장기 Refresh Token 생성
+        var autoLoginRefreshToken = jwtService.generateAutoLoginRefreshToken(user);
+
+        revokeAllTokens(member);
+        saveUserToken(member, jwtToken);
+        saveRefreshToken(member, autoLoginRefreshToken, true);
+
+        // 자동 로그인 Refresh Token을 HTTP-Only 쿠키에 저장 (30일 유효)
+        cookieUtil.addRefreshTokenCookie(
+                response,
+                autoLoginRefreshToken,
+                jwtService.getAutoLoginExpiration()
+        );
+
+        return new AuthenticationResponse(jwtToken, autoLoginRefreshToken);
+    }
+
+    public AuthenticationResponse authenticate(AuthenticationRequestDTO request, HttpServletResponse response) {
         //authenticationManager를 통해 검사를 모두 하고, 잘못된 경우 알아서 에러를 내고 끝내기 때문에 아래와 같은 모든 동작을 호출하는 것은 secure하다
         //authenticationManager를 통해서 이메일과 비밀번호가 일치하는지 확인
         var member = memberRepository.findByEmail(request.email())
@@ -108,7 +148,7 @@ public class AuthenticationService {
 
         revokeToken(member);
         saveUserToken(member, jwtToken);
-
+        cookieUtil.addRefreshTokenCookie(response, refreshToken, jwtService.getRefreshTokenExpiration());
         return new AuthenticationResponse(jwtToken, refreshToken);
     }
 
@@ -177,6 +217,19 @@ public class AuthenticationService {
 
         return new AuthenticationResponse(newAccessToken, newRefreshToken);
     }
+    private void saveRefreshToken(Member member, String refreshToken, boolean autoLogin) {
+        long expiration = autoLogin ?
+                jwtService.getAutoLoginExpiration() :
+                jwtService.getRefreshTokenExpiration();
+
+        RefreshToken newToken = new RefreshToken(
+                refreshToken,
+                member,
+                expiration,
+                autoLogin
+        );
+        refreshTokenRepository.save(newToken);
+    }
 
     private void saveRefreshToken(Member member, String refreshToken) {
         RefreshToken newToken = new RefreshToken(
@@ -203,5 +256,72 @@ public class AuthenticationService {
         } catch (JwtException | UsernameNotFoundException e) {
             throw new RuntimeException();
         }
+    }
+
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+        // 1. 쿠키에서 리프레시 토큰 추출
+        Optional<String> refreshTokenOpt = cookieUtil.extractRefreshTokenFromCookies(request);
+
+        if (refreshTokenOpt.isPresent()) {
+            String refreshToken = refreshTokenOpt.get();
+
+            try {
+                // 2. 토큰에서 사용자 정보 추출
+                String userEmail = jwtService.extractUsername(refreshToken);
+                Member member = memberRepository.findByEmail(userEmail)
+                        .orElse(null);
+
+                if (member != null) {
+                    // 3. 모든 토큰 폐기
+                    revokeAllTokens(member);
+                }
+
+                // 4. 데이터베이스에서 리프레시 토큰 찾아 폐기
+                refreshTokenRepository.findByToken(refreshToken)
+                        .ifPresent(token -> {
+                            token.revoke();
+                            refreshTokenRepository.save(token);
+                        });
+            } catch (Exception e) {
+                log.error("Error processing logout", e);
+            }
+        }
+
+        // 5. 쿠키 삭제
+        cookieUtil.deleteRefreshTokenCookie(response);
+    }
+
+    /**
+     * 자동 로그인 처리
+     */
+    public AuthenticationResponse attemptAutoLogin(HttpServletRequest request, HttpServletResponse response) {
+        // 1. 쿠키에서 리프레시 토큰 추출
+        return cookieUtil.extractRefreshTokenFromCookies(request)
+                .map(refreshToken -> {
+                    try {
+                        // 2. 토큰 검증
+                        RefreshToken storedToken = refreshTokenRepository.findByToken(refreshToken)
+                                .orElseThrow(() -> new RuntimeException("Token not found"));
+
+                        if (storedToken.isRevoked() || storedToken.isExpired() || !storedToken.isAutoLogin()) {
+                            throw new RuntimeException("Invalid auto-login token");
+                        }
+
+                        // 3. 사용자 정보 추출
+                        Member member = storedToken.getMember();
+                        UserPrincipal user = new UserPrincipal(member);
+
+                        // 4. 새 Access Token 발급
+                        String newAccessToken = jwtService.generateToken(user);
+                        saveUserToken(member, newAccessToken);
+
+                        return new AuthenticationResponse(newAccessToken, refreshToken);
+                    } catch (Exception e) {
+                        log.error("Auto login failed", e);
+                        cookieUtil.deleteRefreshTokenCookie(response);
+                        throw new RuntimeException("Auto login failed", e);
+                    }
+                })
+                .orElseThrow(() -> new RuntimeException("No auto login cookie found"));
     }
 }

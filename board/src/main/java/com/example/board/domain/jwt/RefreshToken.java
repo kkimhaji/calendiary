@@ -26,7 +26,8 @@ public class RefreshToken {
     private Member member;
 
     private LocalDateTime expiryDate;
-    private boolean revoked;
+    @Column(nullable = false)
+    private boolean revoked = false;
     private boolean expired;
     @Column(nullable = false)
     private boolean autoLogin = false;

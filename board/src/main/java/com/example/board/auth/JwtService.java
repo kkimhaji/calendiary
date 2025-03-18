@@ -104,6 +104,9 @@ public class JwtService {
         return refreshTokenExpiration;
     }
 
+    public long getAutoLoginExpiration() {
+        return autoLoginExpiration;
+    }
     public boolean isAutoLoginToken(String token) {
         try {
             Boolean autoLogin = extractClaims(token, claims ->

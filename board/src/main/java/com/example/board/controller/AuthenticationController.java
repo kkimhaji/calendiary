@@ -34,9 +34,9 @@ public class AuthenticationController {
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<?> verifyUser(@RequestBody VerifyUserDTO dto){
+    public ResponseEntity<?> verifyUser(@RequestBody VerifyUserDTO dto, HttpServletResponse response){
         try{
-            return ResponseEntity.ok(authService.verifyUser(dto));
+            return ResponseEntity.ok(authService.verifyUser(dto, response));
         }catch (RuntimeException e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -53,8 +53,8 @@ public class AuthenticationController {
     }
 
     @PostMapping("/authenticate")
-    public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequestDTO dto){
-        return ResponseEntity.ok(authService.authenticate(dto));
+    public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequestDTO dto, HttpServletResponse response){
+        return ResponseEntity.ok(authService.authenticate(dto, response));
     }
 
     @PostMapping("/reissue")
@@ -65,6 +65,51 @@ public class AuthenticationController {
     @GetMapping("/validate")
     public ResponseEntity<Boolean> validateToken(@RequestHeader("Authorization") String authHeader){
         return ResponseEntity.ok(authService.validateToken(authHeader));
+    }
+
+    /**
+     * 자동 로그인 옵션이 있는 로그인
+     */
+    @PostMapping("/authenticate/auto-login")
+    public ResponseEntity<AuthenticationResponse> authenticateWithAutoLogin(
+            @RequestBody AuthenticationRequestDTO request,
+            HttpServletResponse response) {
+        return ResponseEntity.ok(authService.authenticateWithAutoLogin(request, response));
+    }
+
+    /**
+     * 쿠키 기반 리프레시 토큰으로 액세스 토큰 갱신
+     */
+    @PostMapping("/refresh-token")
+    public ResponseEntity<AuthenticationResponse> refreshToken(
+            HttpServletRequest request,
+            HttpServletResponse response) throws IOException {
+        return ResponseEntity.ok(authService.refreshToken(request, response));
+    }
+
+    /**
+     * 자동 로그인 시도
+     */
+    @PostMapping("/auto-login")
+    public ResponseEntity<AuthenticationResponse> attemptAutoLogin(
+            HttpServletRequest request,
+            HttpServletResponse response) {
+        try {
+            return ResponseEntity.ok(authService.attemptAutoLogin(request, response));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
+
+    /**
+     * 로그아웃
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(
+            HttpServletRequest request,
+            HttpServletResponse response) {
+        authService.logout(request, response);
+        return ResponseEntity.ok().build();
     }
 
 }
