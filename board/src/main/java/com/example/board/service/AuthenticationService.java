@@ -76,7 +76,7 @@ public class AuthenticationService {
                 memberRepository.save(member);
                 UserPrincipal user = new UserPrincipal(member);
                 var savedUser = memberRepository.save(member);
-                var jwtToken = jwtService.generateToken(user);
+                var jwtToken = jwtService.generateToken(user, false);
                 var refreshToken = jwtService.generateRefreshToken(user);
 
                 saveUserToken(savedUser, jwtToken);
@@ -107,7 +107,7 @@ public class AuthenticationService {
         UserPrincipal user = new UserPrincipal(member);
 
         // 일반 Access Token 생성
-        var jwtToken = jwtService.generateToken(user);
+        var jwtToken = jwtService.generateToken(user, true);
 
         // 자동 로그인용 장기 Refresh Token 생성
         var autoLoginRefreshToken = jwtService.generateAutoLoginRefreshToken(user);
@@ -127,6 +127,8 @@ public class AuthenticationService {
     }
 
     public AuthenticationResponse authenticate(AuthenticationRequestDTO request, HttpServletResponse response) {
+        // 로그인 유지 여부 확인
+        boolean rememberMe = request.rememberMe() != null && request.rememberMe();
         //authenticationManager를 통해 검사를 모두 하고, 잘못된 경우 알아서 에러를 내고 끝내기 때문에 아래와 같은 모든 동작을 호출하는 것은 secure하다
         //authenticationManager를 통해서 이메일과 비밀번호가 일치하는지 확인
         var member = memberRepository.findByEmail(request.email())
@@ -143,8 +145,14 @@ public class AuthenticationService {
         );
         UserPrincipal user = new UserPrincipal(member);
 
-        var jwtToken = jwtService.generateToken(user);
-        var refreshToken = jwtService.generateRefreshToken(user);
+        var jwtToken = jwtService.generateToken(user, rememberMe);
+        //rememberMe 선택 시만 refreshToken 생성
+        String refreshToken = null;
+        if (rememberMe) {
+            refreshToken = jwtService.generateRefreshToken(user);
+            revokeToken(member);
+            saveRefreshToken(member, refreshToken);
+        }
 
         revokeToken(member);
         saveUserToken(member, jwtToken);
@@ -204,7 +212,7 @@ public class AuthenticationService {
         UserPrincipal user = new UserPrincipal(member);
 
         // 1. 새로운 토큰 생성
-        String newAccessToken = jwtService.generateToken(user);
+        String newAccessToken = jwtService.generateToken(user, storedToken.isAutoLogin());
         String newRefreshToken = jwtService.generateRefreshToken(user);
 
         // 2. 기존 토큰 폐기
@@ -312,7 +320,7 @@ public class AuthenticationService {
                         UserPrincipal user = new UserPrincipal(member);
 
                         // 4. 새 Access Token 발급
-                        String newAccessToken = jwtService.generateToken(user);
+                        String newAccessToken = jwtService.generateToken(user, true);
                         saveUserToken(member, newAccessToken);
 
                         return new AuthenticationResponse(newAccessToken, refreshToken);

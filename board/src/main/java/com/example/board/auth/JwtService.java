@@ -39,7 +39,8 @@ public class JwtService {
 
     @Value("${security.jwt.auto-login.expiration:2592000000}") // 30일 기본값
     private long autoLoginExpiration;
-
+    // 세션 기반 로그인을 위한 짧은 만료 시간 (30분)
+    private static final long SESSION_EXPIRATION = 1800000; // 30분
     public String extractUsername(String token) {
         return extractClaims(token, Claims::getSubject);
     }
@@ -49,7 +50,8 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
-    public String generateToken(UserDetails userDetails) {
+    public String generateToken(UserDetails userDetails, boolean rememberMe) {
+        long expiration = rememberMe ? jwtExpiration : SESSION_EXPIRATION;
         return generateToken(new HashMap<>(), userDetails);
     }
 

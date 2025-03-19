@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 public record AuthenticationRequestDTO(
         String email,
-        String password
+        String password,
+        Boolean rememberMe
 ) {
 }

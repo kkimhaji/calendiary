@@ -39,6 +39,8 @@ security:
     expiration: 86400000 # one day
     refresh-token:
       expiration: 604800000 # 7 days
+    auto-login:
+      expiration: 2592000000
 
 file:
   upload:

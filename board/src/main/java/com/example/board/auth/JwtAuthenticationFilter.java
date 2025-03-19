@@ -40,26 +40,41 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         //extract token from header
-        // count = 7 because it starts with "Bearer "
         jwt = authHeader.substring(7);
-        //extract the userEmail from JWT Token
-        userEmail = jwtService.extractUsername(jwt);
-        //사용자가 존재하고, 이미 인증되지 않았을 경우(인증된 경우 뒤의 절차를 다시 반복X)
-        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        // 3. 빈 토큰이거나 올바른 형식이 아닌 경우 체크
+        if (jwt.isEmpty() || !isValidJwtFormat(jwt)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        try {
+            // 4. 토큰에서 사용자 이메일 추출
+            userEmail = jwtService.extractUsername(jwt);
 
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+            // 5. 사용자 이메일이 있고 현재 인증되지 않은 상태인 경우 인증 처리
+            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
 
-            if (jwtService.isTokenValid(jwt, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        (UserPrincipal) userDetails, null, userDetails.getAuthorities());
-
-            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            //update authenticate token
-            SecurityContextHolder.getContext().setAuthentication(authToken);
-
+                if (jwtService.isTokenValid(jwt, userDetails)) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities()
+                    );
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
             }
+        } catch (Exception e) {
+            // 6. 토큰 처리 중 예외 발생 시 로그만 남기고 계속 진행
+            // 로그인 유지 미선택 시 발생할 수 있는 예외도 여기서 처리됨
+            logger.error("JWT 토큰 처리 중 오류 발생: " + e.getMessage());
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    // 유효한 JWT 형식인지 확인하는 메서드 (최소한 2개의 마침표가 있어야 함)
+    private boolean isValidJwtFormat(String token) {
+        return token.split("\\.").length == 3;
     }
 }
