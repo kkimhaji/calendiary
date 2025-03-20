@@ -1,7 +1,9 @@
 package com.example.board.service;
 
+import com.example.board.auth.UserPrincipal;
 import com.example.board.domain.member.Member;
 import com.example.board.domain.member.MemberRepository;
+import com.example.board.dto.member.MemberInfoSummaryResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,5 +41,11 @@ public class MemberService {
         member.updatePassword(passwordEncoder.encode(tmpPwd));
         memberRepository.save(member);
         emailService.sendTempPasswordEmail(member, tmpPwd);
+    }
+
+    //헤더에서 닉네임 표시 및 계정 정보 페이지 이동을 위해
+    public MemberInfoSummaryResponse getMemberInfoSummary(UserPrincipal userPrincipal){
+        Member member = userPrincipal.getMember();
+        return new MemberInfoSummaryResponse(member.getMemberId(), member.getNickname());
     }
 }

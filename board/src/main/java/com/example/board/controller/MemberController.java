@@ -1,12 +1,10 @@
 package com.example.board.controller;
 
 import com.example.board.auth.UserPrincipal;
-import com.example.board.domain.member.Member;
-import com.example.board.domain.teamMember.TeamMemberRepository;
+import com.example.board.dto.member.MemberInfoSummaryResponse;
 import com.example.board.dto.team.TeamListDTO;
 import com.example.board.service.MemberService;
 import com.example.board.service.TeamMemberService;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -32,6 +30,11 @@ public class MemberController {
     @GetMapping("/get_teams")
     public ResponseEntity<List<TeamListDTO>> getTeams(@AuthenticationPrincipal UserPrincipal member){
         return ResponseEntity.ok(teamMemberService.getTeams(member.getMember()));
+    }
+
+    @GetMapping("/get-info")
+    public ResponseEntity<MemberInfoSummaryResponse> getMemberInfo(@AuthenticationPrincipal UserPrincipal userPrincipal){
+        return ResponseEntity.ok(memberService.getMemberInfoSummary(userPrincipal));
     }
 
 }
