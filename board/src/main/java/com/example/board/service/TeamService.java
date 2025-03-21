@@ -11,18 +11,13 @@ import com.example.board.domain.team.TeamRepository;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.teamMember.TeamMemberRepository;
 import com.example.board.dto.team.*;
-import com.example.board.permission.TeamPermission;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -84,8 +79,8 @@ public class TeamService {
 
     public long updateTeamInfo(long teamId, TeamUpdateRequestDTO dto){
         Team targetTeam = teamRepository.findById(teamId).orElseThrow(() -> new EntityNotFoundException("team not found"));
-        if (dto.teamName() != null && !dto.teamName().isBlank()) {
-            targetTeam.updateName(dto.teamName());
+        if (dto.name() != null && !dto.name().isBlank()) {
+            targetTeam.updateName(dto.name());
         }
         if (dto.description() != null) {
             targetTeam.updateDescription(dto.description());
