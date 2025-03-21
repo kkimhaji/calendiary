@@ -1,13 +1,9 @@
 package com.example.board.permission;
 
-import com.example.board.permission.evaluator.CategoryPermissionEvaluator;
-import com.example.board.permission.evaluator.CustomPermissionEvaluator;
-import com.example.board.permission.evaluator.TeamPermissionEvaluator;
-
 import java.util.Arrays;
 
 public enum TeamPermission implements PermissionType{
-    MANAGE_MEMBERS(0, "MANAGE_MEMBERS"), // ✅ 코드 명시적 할당
+    MANAGE_MEMBERS(0, "MANAGE_MEMBERS"),
     MANAGE_ROLES(1, "MANAGE_ROLES"),
     MANAGE_CATEGORIES(2, "MANAGE_CATEGORIES"),
     MANAGE_TEAM(3, "MANAGE_TEAM");

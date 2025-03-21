@@ -26,13 +26,6 @@ public class PermissionUtils {
         return permissions.charAt(permissions.length() - 1 - permission.getPosition()) == '1';
     }
 
-//    public static <T extends Enum<T> & PermissionType> String createPermissionBits(Set<T> permissions) {
-//        String bits = "0";
-//        for (T permission : permissions) {
-//            bits = addPermission(bits, permission);
-//        }
-//        return bits;
-//    }
 
     public static <T extends PermissionType> String createPermissionBits(Set<T> permissions) {
         if (permissions.isEmpty()) return "0";

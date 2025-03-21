@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,7 +31,7 @@ public class TeamRoleController {
 
     @PostMapping("/manage/create")
     @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_ROLES)")
-    public ResponseEntity<TeamRoleResponse> createRole(@PathVariable(name="teamId") Long teamId, @RequestBody CreateRoleRequest request){
+    public ResponseEntity<TeamRoleResponse> createRole(@PathVariable(name="teamId") @P("teamId") Long teamId, @RequestBody CreateRoleRequest request){
         TeamRole newRole = teamRoleService.createRole(teamId, request);
         return ResponseEntity.ok(TeamRoleResponse.from(newRole));
     }
@@ -43,7 +44,7 @@ public class TeamRoleController {
 
     @DeleteMapping("/manage/delete/{roleId}")
     @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_ROLES)")
-    public void deleteRole(@PathVariable(name="teamId") Long teamId, @PathVariable Long roleId){
+    public void deleteRole(@PathVariable(name="teamId") @P("teamId") Long teamId, @PathVariable Long roleId){
         teamRoleService.deleteRole(teamId, roleId);
     }
 

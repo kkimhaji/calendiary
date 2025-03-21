@@ -3,7 +3,6 @@ package com.example.board.permission.evaluator;
 import com.example.board.auth.UserPrincipal;
 import com.example.board.domain.member.Member;
 import com.example.board.domain.team.Team;
-import com.example.board.domain.team.TeamRepository;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.teamMember.TeamMemberRepository;
 import com.example.board.permission.utils.PermissionUtils;
@@ -20,7 +19,6 @@ import java.io.Serializable;
 public class TeamPermissionEvaluator implements CustomPermissionEvaluator {
 
     private final TeamMemberRepository teamMemberRepository;
-    private final TeamRepository teamRepository;
 
     @Override
     public boolean hasPermission(Authentication authentication, Serializable targetId, String targetType, Object permission) {

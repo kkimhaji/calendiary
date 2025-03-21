@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import javax.naming.ldap.PagedResultsResponseControl;
@@ -41,7 +42,7 @@ public class TeamController {
     //팀 삭제 시 role과 teamMember 정보, category&post도 삭제
     @DeleteMapping("/delete/{teamId}")
     @PreAuthorize("hasPermission(#team, 'ADMIN')")
-    public void deleteTeam(@PathVariable(name="teamId") Long teamId){
+    public void deleteTeam(@PathVariable(name="teamId") @P("teamId") Long teamId){
         teamService.deleteTeam(teamId);
     }
 
@@ -52,7 +53,7 @@ public class TeamController {
 
     @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_TEAM)")
     @PutMapping("/{teamId}")
-    public ResponseEntity<Long> updateTeamInfo(@PathVariable(name = "teamId") Long teamId, @RequestBody TeamUpdateRequestDTO dto){
+    public ResponseEntity<Long> updateTeamInfo(@PathVariable(name = "teamId") @P("teamId") Long teamId, @RequestBody TeamUpdateRequestDTO dto){
         return ResponseEntity.ok(teamService.updateTeamInfo(teamId, dto));
     }
 
