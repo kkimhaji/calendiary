@@ -18,6 +18,10 @@ public class PermissionUtils {
         binary.setCharAt(binary.length() - 1 - permission.getPosition(), '1');
         return binary.toString();
     }
+    
+    public static String createDefaultPermissionBits() {
+        return "0"; // 모든 권한 비활성화
+    }
 
     public static <T extends Enum<T> & PermissionType> boolean hasPermission(String permissions, T permission) {
         if (permission.getPosition() >= permissions.length()) {

@@ -48,6 +48,8 @@ public class TeamRoleService {
         if (teamRoleRepository.existsByTeamAndRoleName(team, request.roleName())) {
             throw new RuntimeException("Role name already exists in this team");
         }
+        //category role permission에 기본 저장
+
         return teamRoleRepository.save(request.toEntity(team));
     }
 

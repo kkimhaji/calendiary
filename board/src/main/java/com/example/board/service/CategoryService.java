@@ -18,6 +18,7 @@ import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.role.TeamRoleRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -57,7 +58,47 @@ public class CategoryService {
 
         return categoryRepository.save(category);
     }
+    @Transactional
+    public Long createTeamRoleWithDefaultPermissions(Long teamId, CreateCategoryRequest request) {
+        // 1. 팀 조회
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new EntityNotFoundException("Team not found"));
 
+        // 2. 역할 생성 및 저장
+        TeamRole newRole = TeamRole.builder()
+                .roleName(request.name())
+                .description(request.description())
+                .team(team)
+                .build();
+        roleRepository.save(newRole);
+
+        // 3. 모든 카테고리에 기본 권한(000) 생성
+        int insertedRows = categoryPermissionRepository.createDefaultPermissionsForNewRole(teamId, newRole.getId());
+
+        // 4. (선택) 결과 확인
+        if(insertedRows == 0) {
+            throw new IllegalStateException("카테고리가 존재하지 않아 권한을 생성할 수 없습니다");
+        }
+
+        return newRole.getId();
+    }
+
+    // 추가: 카테고리가 생성될 때 기존 역할들에 기본 권한 추가
+    @Transactional
+    public void addDefaultPermissionsForNewCategory(TeamCategory newCategory) {
+        List<TeamRole> roles = roleRepository.findByTeamId(newCategory.getTeam().getId());
+
+        roles.forEach(role -> {
+            if(!categoryPermissionRepository.existsByCategoryAndRole(newCategory, role)) {
+                CategoryRolePermission permission = CategoryRolePermission.builder()
+                        .category(newCategory)
+                        .role(role)
+                        .permissions(new HashSet<>()) // 모든 권한 비활성화
+                        .build();
+                categoryPermissionRepository.save(permission);
+            }
+        });
+    }
     private Map<Long, TeamRole> getTeamRoles(Team team, CreateCategoryRequest request){
         Set<Long> requestRoleIds = request.rolePermissions().stream()
                 .map(CategoryRolePermissionDTO::roleId).collect(Collectors.toSet());
@@ -128,7 +169,7 @@ public class CategoryService {
         category.clearRolePermissions();
         categoryPermissionRepository.deleteAllByCategoryId(category.getId());
 
-        // ✅ 유효한 역할 ID 검증
+        // 유효한 역할 ID 검증
         request.rolePermissions().ifPresent(permissions -> {
             permissions.forEach(perm -> {
                 if (!roleMap.containsKey(perm.roleId())) {
