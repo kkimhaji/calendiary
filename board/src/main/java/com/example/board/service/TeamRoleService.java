@@ -4,11 +4,13 @@ import com.example.board.domain.member.Member;
 import com.example.board.domain.role.CategoryPermissionRepository;
 import com.example.board.domain.role.CategoryRolePermission;
 import com.example.board.domain.team.Team;
+import com.example.board.domain.team.TeamCategory;
 import com.example.board.domain.team.TeamRepository;
 import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.role.TeamRoleRepository;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.teamMember.TeamMemberRepository;
+import com.example.board.dto.category.CreateCategoryRequest;
 import com.example.board.dto.member.TeamMemberDTO;
 import com.example.board.dto.member.TeamMemberOfRoleDTO;
 import com.example.board.dto.role.*;
@@ -48,9 +50,16 @@ public class TeamRoleService {
         if (teamRoleRepository.existsByTeamAndRoleName(team, request.roleName())) {
             throw new RuntimeException("Role name already exists in this team");
         }
+        TeamRole newRole = teamRoleRepository.save(request.toEntity(team));
         //category role permission에 기본 저장
+        int insertedRows = categoryPermissionRepository.createDefaultPermissionsForNewRole(teamId, newRole.getId());
 
-        return teamRoleRepository.save(request.toEntity(team));
+        // 4. (선택) 결과 확인
+        if(insertedRows == 0) {
+            throw new IllegalStateException("카테고리가 존재하지 않아 권한을 생성할 수 없습니다");
+        }
+
+        return newRole;
     }
 
     public TeamRole updateRolePermissions(Long roleId, Set<TeamPermission> newPermissions) {
