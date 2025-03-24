@@ -21,35 +21,8 @@ public class PostSearchService {
     private final PostRepository postRepository;
     private final AsyncConfig asyncConfig;
 
-    public CompletableFuture<List<Post>> searchByTitle(String keyword){
-        return CompletableFuture.supplyAsync(() ->
-                postRepository.findByTitleContaining(keyword), asyncConfig.getAsyncExecutor());
-    }
-
-    public CompletableFuture<List<Post>> searchByContent(String keyword){
-        return CompletableFuture.supplyAsync(() ->
-                postRepository.findByContentContaining(keyword), asyncConfig.getAsyncExecutor());
-    }
-
-    public List<Post> searchPosts(String keyword){
-        CompletableFuture<List<Post>> titleSearch = searchByTitle(keyword);
-        CompletableFuture<List<Post>> contentSearch = searchByContent(keyword);
-
-        List<Post> results = CompletableFuture.allOf(titleSearch, contentSearch)
-                .thenApply(v -> {
-                    Set<Post> combinedResults = new HashSet<>();
-                    combinedResults.addAll(titleSearch.join());
-                    combinedResults.addAll(contentSearch.join());
-
-                    return new ArrayList<>(combinedResults);
-                })
-                .join();
-
-        return results;
-    }
-
-    public Page<PostResponse> searchPosts(String keyword, Pageable pageable) {
-        return postRepository.searchByTitleOrContent(keyword, pageable)
+    public Page<PostResponse> searchPosts(Long teamId, String keyword, Pageable pageable) {
+        return postRepository.searchByTeamAndKeyword(teamId, keyword, pageable)
                 .map(PostResponse::from); // 메서드 참조 사용
     }
 }
