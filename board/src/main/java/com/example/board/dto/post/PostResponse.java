@@ -19,8 +19,8 @@ public record PostResponse(
                 post.getId(),
                 post.getTitle(),
                 post.getContent(),
-                post.getAuthor().getNickname(),
-                post.getCategory().getName(),
+                post.getAuthor() != null ? post.getAuthor().getNickname() : "Unknown",
+                post.getCategory() != null ? post.getCategory().getName() : "No Category",
                 post.getViewCount(),
                 post.getCreatedDate(),
                 post.getModifiedDate()

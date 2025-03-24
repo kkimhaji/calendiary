@@ -112,10 +112,19 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("UPDATE Post p SET p.viewCount = p.viewCount + :count WHERE p.id = :postId")
     void updateViewCount(@Param("postId") Long postId, @Param("count") long count);
 
-    // 더 효율적인 쿼리 사용
     @Query("SELECT p FROM Post p WHERE p.title LIKE %:keyword%")
     List<Post> findByTitleContaining(@Param("keyword") String keyword);
 
     @Query("SELECT p FROM Post p WHERE p.content LIKE %:keyword%")
     List<Post> findByContentContaining(@Param("keyword") String keyword);
+
+    // 단일 쿼리로 제목+내용 통합 검색 (페이징 적용)
+    @Query("SELECT p FROM Post p " +
+            "WHERE p.title LIKE %:keyword% " +
+            "OR p.content LIKE %:keyword%")
+    Page<Post> searchByTitleOrContent(
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
+
 }

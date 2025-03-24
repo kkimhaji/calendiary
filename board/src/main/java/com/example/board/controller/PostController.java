@@ -5,6 +5,7 @@ import com.example.board.domain.member.Member;
 import com.example.board.domain.post.Post;
 import com.example.board.dto.post.*;
 import com.example.board.service.ImageService;
+import com.example.board.service.PostSearchService;
 import com.example.board.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
@@ -32,6 +33,7 @@ public class PostController {
 
     private final PostService postService;
     private final ImageService imageService;
+    private final PostSearchService searchService;
     @Value("${file.upload.temp}")
     private String uploadTempDir;
 
@@ -113,5 +115,19 @@ public class PostController {
         } catch (IOException e){
             return ResponseEntity.internalServerError().build();
         }
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<PostResponse>> searchPosts(
+            @RequestParam String keyword,
+            @PageableDefault(
+                    size = 20,
+                    sort = "createdDate",
+                    direction = Sort.Direction.DESC
+            ) Pageable pageable
+    ) {
+        return ResponseEntity.ok(
+                searchService.searchPosts(keyword, pageable)
+        );
     }
 }

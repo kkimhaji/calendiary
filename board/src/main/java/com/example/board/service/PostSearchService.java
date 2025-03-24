@@ -3,7 +3,10 @@ package com.example.board.service;
 import com.example.board.config.AsyncConfig;
 import com.example.board.domain.post.Post;
 import com.example.board.domain.post.PostRepository;
+import com.example.board.dto.post.PostResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -43,5 +46,10 @@ public class PostSearchService {
                 .join();
 
         return results;
+    }
+
+    public Page<PostResponse> searchPosts(String keyword, Pageable pageable) {
+        return postRepository.searchByTitleOrContent(keyword, pageable)
+                .map(PostResponse::from); // 메서드 참조 사용
     }
 }
