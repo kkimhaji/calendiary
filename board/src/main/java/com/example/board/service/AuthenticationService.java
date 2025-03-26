@@ -10,6 +10,7 @@ import com.example.board.dto.member.AuthenticationRequestDTO;
 import com.example.board.dto.member.MemberRegisterResponseDTO;
 import com.example.board.dto.member.RegisterRequestDTO;
 import com.example.board.dto.member.VerifyUserDTO;
+import com.example.board.exception.RefreshTokenExpiredException;
 import com.example.board.util.CookieUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.JwtException;
@@ -205,7 +206,7 @@ public class AuthenticationService {
                 .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
 
         if (storedToken.isRevoked() || storedToken.getExpiryDate().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Refresh token expired or revoked");
+            throw new RefreshTokenExpiredException("Refresh token expired or revoked");
         }
 
         Member member = storedToken.getMember();
@@ -225,6 +226,7 @@ public class AuthenticationService {
 
         return new AuthenticationResponse(newAccessToken, newRefreshToken);
     }
+
     private void saveRefreshToken(Member member, String refreshToken, boolean autoLogin) {
         long expiration = autoLogin ?
                 jwtService.getAutoLoginExpiration() :
