@@ -123,4 +123,21 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             Pageable pageable
     );
 
+    @Query("SELECT p FROM Post p " +
+            "WHERE p.title LIKE %:keyword% " +
+            "AND p.team.id = :teamId")
+    Page<Post> findByTitleContainingAndTeamId(
+            @Param("keyword") String keyword,
+            @Param("teamId") Long teamId,
+            Pageable pageable
+    );
+
+    @Query("SELECT p FROM Post p " +
+            "WHERE p.content LIKE %:keyword% " +
+            "AND p.team.id = :teamId")
+    Page<Post> findByContentContainingAndTeamId(
+            @Param("keyword") String keyword,
+            @Param("teamId") Long teamId,
+            Pageable pageable
+    );
 }
