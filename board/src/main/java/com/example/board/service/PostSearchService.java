@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class PostSearchService {
     private final PostRepository postRepository;
     private final AsyncConfig asyncConfig;
@@ -104,8 +106,14 @@ public class PostSearchService {
     private Comparator<Post> getComparator(Sort.Order order) {
         return switch (order.getProperty()) {
             case "createdDate" -> order.isAscending() ?
-                    Comparator.comparing(Post::getCreatedDate) :
-                    Comparator.comparing(Post::getCreatedDate).reversed();
+                    Comparator.comparing(
+                            Post::getCreatedDate,
+                            Comparator.nullsLast(Comparator.naturalOrder())
+                    ) :
+                    Comparator.comparing(
+                            Post::getCreatedDate,
+                            Comparator.nullsFirst(Comparator.reverseOrder())
+                    );
             case "viewCount" -> order.isAscending() ?
                     Comparator.comparing(Post::getViewCount) :
                     Comparator.comparing(Post::getViewCount).reversed();
