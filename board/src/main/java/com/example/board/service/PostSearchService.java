@@ -17,6 +17,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -26,42 +27,83 @@ public class PostSearchService {
     private final AsyncConfig asyncConfig;
     private final Executor asyncExecutor;
 
-    public Page<PostResponse> searchPosts(Long teamId, String keyword, Pageable pageable) {
-        // 1. 병렬 검색 작업 생성
+//    public Page<PostResponse> searchPosts(Long teamId, String keyword, Pageable pageable) {
+//        // 1. 병렬 검색 작업 생성
+//        CompletableFuture<Page<Post>> titleFuture = CompletableFuture.supplyAsync(
+//                () -> postRepository.findByTitleContainingAndTeamId(keyword, teamId, pageable),
+//                asyncExecutor
+//        );
+//
+//        CompletableFuture<Page<Post>> contentFuture = CompletableFuture.supplyAsync(
+//                () -> postRepository.findByContentContainingAndTeamId(keyword, teamId, pageable),
+//                asyncExecutor
+//        );
+//
+//        // 2. 결과 병합
+//        return CompletableFuture.allOf(titleFuture, contentFuture)
+//                .thenApplyAsync(v -> {
+//                    try {
+//                        // 각 결과 추출
+//                        Page<Post> titleResults = titleFuture.get();
+//                        Page<Post> contentResults = contentFuture.get();
+//
+//                        // 순서 보장을 위한 스레드 안전 컬렉션
+//                        Set<Post> combinedSet = new LinkedHashSet<>();
+//                        combinedSet.addAll(titleResults.getContent());
+//                        combinedSet.addAll(contentResults.getContent());
+//
+//                        // 정렬 적용
+//                        List<Post> sortedList = sortPosts(new ArrayList<>(combinedSet), pageable.getSort());
+//
+//                        // 페이징 처리
+//                        return paginateList(sortedList, pageable);
+//
+//                    } catch (InterruptedException | ExecutionException e) {
+//                        throw new RuntimeException("검색 실패", e);
+//                    }
+//                }, asyncExecutor)
+//                .join();
+//    }
+
+    public Page<PostResponse> searchPosts(
+            Long teamId,
+            String keyword,
+            Long categoryId,  // 추가된 카테고리 ID 파라미터
+            Pageable pageable
+    ) {
         CompletableFuture<Page<Post>> titleFuture = CompletableFuture.supplyAsync(
-                () -> postRepository.findByTitleContainingAndTeamId(keyword, teamId, pageable),
+                () -> postRepository.searchByTitle(keyword, teamId, categoryId, pageable),
                 asyncExecutor
         );
 
         CompletableFuture<Page<Post>> contentFuture = CompletableFuture.supplyAsync(
-                () -> postRepository.findByContentContainingAndTeamId(keyword, teamId, pageable),
+                () -> postRepository.searchByContent(keyword, teamId, categoryId, pageable),
                 asyncExecutor
         );
 
-        // 2. 결과 병합
+        return processResults(titleFuture, contentFuture, pageable);
+    }
+
+    private Page<PostResponse> processResults(
+            CompletableFuture<Page<Post>> titleFuture,
+            CompletableFuture<Page<Post>> contentFuture,
+            Pageable pageable
+    ) {
         return CompletableFuture.allOf(titleFuture, contentFuture)
                 .thenApplyAsync(v -> {
                     try {
-                        // 각 결과 추출
-                        Page<Post> titleResults = titleFuture.get();
-                        Page<Post> contentResults = contentFuture.get();
+                        List<Post> combined = Stream.concat(
+                                titleFuture.get().getContent().stream(),
+                                contentFuture.get().getContent().stream()
+                        ).distinct().collect(Collectors.toList());
 
-                        // 순서 보장을 위한 스레드 안전 컬렉션
-                        Set<Post> combinedSet = new LinkedHashSet<>();
-                        combinedSet.addAll(titleResults.getContent());
-                        combinedSet.addAll(contentResults.getContent());
+                        List<Post> sorted = sortPosts(combined, pageable.getSort());
+                        return paginateList(sorted, pageable);
 
-                        // 정렬 적용
-                        List<Post> sortedList = sortPosts(new ArrayList<>(combinedSet), pageable.getSort());
-
-                        // 페이징 처리
-                        return paginateList(sortedList, pageable);
-
-                    } catch (InterruptedException | ExecutionException e) {
-                        throw new RuntimeException("검색 실패", e);
+                    } catch (Exception e) {
+                        throw new RuntimeException("검색 처리 실패", e);
                     }
-                }, asyncExecutor)
-                .join();
+                }, asyncExecutor).join();
     }
 
     // 리스트 정렬 메서드
@@ -120,6 +162,5 @@ public class PostSearchService {
             default -> (p1, p2) -> 0;
         };
     }
-
 
 }

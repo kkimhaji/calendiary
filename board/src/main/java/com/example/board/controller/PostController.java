@@ -121,6 +121,7 @@ public class PostController {
     public ResponseEntity<Page<PostResponse>> searchPosts(
             @PathVariable("teamId") Long teamId,
             @RequestParam("q") String keyword,
+            @RequestParam(required = false) Long categoryId,
             @PageableDefault(
                     size = 20,
                     sort = "createdDate",
@@ -128,7 +129,7 @@ public class PostController {
             ) Pageable pageable
     ) {
         return ResponseEntity.ok(
-                searchService.searchPosts(teamId, keyword, pageable)
+                searchService.searchPosts(teamId, keyword, categoryId, pageable)
         );
     }
 }

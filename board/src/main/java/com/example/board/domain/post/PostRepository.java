@@ -17,50 +17,7 @@ import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findAllByAuthor(Member member);
-    List<Post> findAllByTeam(Team team);
     List<Post> findAllByCategory(TeamCategory category);
-
-    @Query("SELECT p FROM Post p " +
-            "JOIN FETCH p.author " +
-            "JOIN FETCH p.category " +
-            "WHERE p.team.id = :teamId AND p.category.id = :categoryId")
-    List<Post> findAllByTeamAndCategory(
-            @Param("teamId") Long teamId,
-            @Param("categoryId") Long categoryId
-    );
-
-    @Query("SELECT p FROM Post p " +
-            "JOIN FETCH p.author " +
-            "JOIN FETCH p.category " +
-            "WHERE p.id = :postId AND p.team.id = :teamId")
-    Optional<Post> findByIdAndTeamWithAuthorAndCategory(
-            @Param("postId") Long postId,
-            @Param("teamId") Long teamId
-    );
-
-    // 페이징 처리를 위한 메서드
-    @Query(value = "SELECT p FROM Post p " +
-            "JOIN FETCH p.author " +
-            "JOIN FETCH p.category " +
-            "WHERE p.team.id = :teamId AND p.category.id = :categoryId",
-            countQuery = "SELECT COUNT(p) FROM Post p " +
-                    "WHERE p.team.id = :teamId AND p.category.id = :categoryId")
-    Page<Post> findAllByTeamAndCategoryWithPaging(
-            @Param("teamId") Long teamId,
-            @Param("categoryId") Long categoryId,
-            Pageable pageable
-    );
-
-    // 카테고리의 게시글 목록 조회 (제목만)
-    @Query(value="SELECT new com.example.board.dto.post.PostSummaryDTO(p.id, p.title, p.createdDate) " +
-            "FROM Post p " +
-            "WHERE p.category.id = :categoryId " +
-            "ORDER BY p.createdDate DESC",
-            countQuery = "SELECT COUNT(p) FROM Post p WHERE p.category.id = :categoryId")
-    Page<PostSummaryDTO> findPostSummariesByCategoryId(
-            @Param("categoryId") Long categoryId,
-            Pageable pageable
-    );
 
     // 팀의 카테고리별 게시글 조회
     @Query("SELECT new com.example.board.dto.post.PostListResponse(" +
@@ -115,17 +72,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("SELECT p FROM Post p " +
             "LEFT JOIN FETCH p.author " +
             "LEFT JOIN FETCH p.category " +
-            "WHERE (p.title LIKE %:keyword% OR p.content LIKE %:keyword%) " +
-            "AND p.team.id = :teamId")
-    Page<Post> searchByTeamAndKeyword(
-            @Param("teamId") Long teamId,
-            @Param("keyword") String keyword,
-            Pageable pageable
-    );
-
-    @Query("SELECT p FROM Post p " +
-            "LEFT JOIN FETCH p.author " +
-            "LEFT JOIN FETCH p.category " +
             "WHERE p.title LIKE %:keyword% " +
             "AND p.team.id = :teamId")
     Page<Post> findByTitleContainingAndTeamId(
@@ -142,6 +88,57 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     Page<Post> findByContentContainingAndTeamId(
             @Param("keyword") String keyword,
             @Param("teamId") Long teamId,
+            Pageable pageable
+    );
+
+    // 카테고리 필터링 추가된 메서드
+    @Query("SELECT p FROM Post p " +
+            "LEFT JOIN FETCH p.author " +
+            "WHERE p.title LIKE %:keyword% " +
+            "AND p.team.id = :teamId " +
+            "AND (:categoryId IS NULL OR p.category.id = :categoryId)")
+    Page<Post> searchByTitle(
+            @Param("keyword") String keyword,
+            @Param("teamId") Long teamId,
+            @Param("categoryId") Long categoryId,
+            Pageable pageable
+    );
+
+    @Query("SELECT p FROM Post p " +
+            "LEFT JOIN FETCH p.author " +
+            "WHERE p.content LIKE %:keyword% " +
+            "AND p.team.id = :teamId " +
+            "AND (:categoryId IS NULL OR p.category.id = :categoryId)")
+    Page<Post> searchByContent(
+            @Param("keyword") String keyword,
+            @Param("teamId") Long teamId,
+            @Param("categoryId") Long categoryId,
+            Pageable pageable
+    );
+
+    // 카테고리 내 제목 검색
+    @Query("SELECT p FROM Post p " +
+            "LEFT JOIN FETCH p.author " +
+            "WHERE p.title LIKE %:keyword% " +
+            "AND p.team.id = :teamId " +
+            "AND p.category.id = :categoryId")
+    Page<Post> findByTitleInCategory(
+            @Param("keyword") String keyword,
+            @Param("teamId") Long teamId,
+            @Param("categoryId") Long categoryId,
+            Pageable pageable
+    );
+
+    // 카테고리 내 내용 검색
+    @Query("SELECT p FROM Post p " +
+            "LEFT JOIN FETCH p.author " +
+            "WHERE p.content LIKE %:keyword% " +
+            "AND p.team.id = :teamId " +
+            "AND p.category.id = :categoryId")
+    Page<Post> findByContentInCategory(
+            @Param("keyword") String keyword,
+            @Param("teamId") Long teamId,
+            @Param("categoryId") Long categoryId,
             Pageable pageable
     );
 }
