@@ -94,6 +94,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     // 카테고리 필터링 추가된 메서드
     @Query("SELECT p FROM Post p " +
             "LEFT JOIN FETCH p.author " +
+            "LEFT JOIN FETCH p.category " +
             "WHERE p.title LIKE %:keyword% " +
             "AND p.team.id = :teamId " +
             "AND (:categoryId IS NULL OR p.category.id = :categoryId)")
@@ -106,6 +107,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query("SELECT p FROM Post p " +
             "LEFT JOIN FETCH p.author " +
+            "LEFT JOIN FETCH p.category " +
             "WHERE p.content LIKE %:keyword% " +
             "AND p.team.id = :teamId " +
             "AND (:categoryId IS NULL OR p.category.id = :categoryId)")

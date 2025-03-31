@@ -121,7 +121,7 @@ public class PostController {
     public ResponseEntity<Page<PostResponse>> searchPosts(
             @PathVariable("teamId") Long teamId,
             @RequestParam("q") String keyword,
-            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false, name = "categoryId") Long categoryId,
             @PageableDefault(
                     size = 20,
                     sort = "createdDate",
