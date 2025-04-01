@@ -95,4 +95,7 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
             @Param("keyword") String keyword,
             Pageable pageable
     );
+
+    @Query("SELECT tm.team.id FROM TeamMember tm WHERE tm.member.id = :memberId")
+    List<Long> findTeamIdsByMemberId(@Param("memberId") Long memberId);
 }

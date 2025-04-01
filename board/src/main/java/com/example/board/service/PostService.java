@@ -1,5 +1,6 @@
 package com.example.board.service;
 
+import com.example.board.auth.UserPrincipal;
 import com.example.board.config.HtmlSanitizer;
 import com.example.board.domain.member.Member;
 import com.example.board.domain.post.*;
@@ -7,6 +8,7 @@ import com.example.board.domain.team.CategoryRepository;
 import com.example.board.domain.team.Team;
 import com.example.board.domain.team.TeamCategory;
 import com.example.board.domain.team.TeamRepository;
+import com.example.board.domain.teamMember.TeamMemberRepository;
 import com.example.board.dto.comment.CommentResponse;
 import com.example.board.dto.post.*;
 import com.example.board.permission.CategoryPermission;
@@ -41,12 +43,11 @@ public class PostService {
     private final TeamRepository teamRepository;
     private final CategoryRepository categoryRepository;
     private final ConcurrentHashMap<Long, AtomicLong> viewCountCache = new ConcurrentHashMap<>();
-    private final CommentRepository commentRepository;
     private final ImageService imageService;
     private final HtmlSanitizer htmlSanitizer;
     private final PostImageRepository postImageRepository;
-    private final TeamRoleService teamRoleService;
     private final PermissionService permissionService;
+    private final TeamMemberRepository teamMemberRepository;
 
     public Post createPost(Long teamId, Long categoryId, CreatePostRequest request, Member author) throws AccessDeniedException, IOException {
         Team team = teamRepository.findById(teamId)
@@ -222,6 +223,15 @@ public class PostService {
 
             post.addImage(postImage);
         }
+    }
+
+    public Page<PostResponse> getLatestPostsByUserTeams(UserPrincipal user, Pageable pageable) {
+        // 1. 사용자가 속한 팀 ID 목록 조회
+        List<Long> teamIds = teamMemberRepository.findTeamIdsByMemberId(user.getMember().getMemberId());
+
+        // 2. 팀 ID 목록으로 게시글 조회
+        return postRepository.findByTeamIds(teamIds, pageable)
+                .map(PostResponse::from);
     }
 
 }

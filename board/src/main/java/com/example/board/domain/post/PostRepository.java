@@ -143,4 +143,12 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             @Param("categoryId") Long categoryId,
             Pageable pageable
     );
+
+    @Query("SELECT p FROM Post p " +
+            "WHERE p.team.id IN :teamIds " +
+            "ORDER BY p.createdDate DESC")
+    Page<Post> findByTeamIds(
+            @Param("teamIds") List<Long> teamIds,
+            Pageable pageable
+    );
 }
