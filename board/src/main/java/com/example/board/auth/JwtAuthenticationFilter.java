@@ -1,6 +1,8 @@
 package com.example.board.auth;
 
 import com.example.board.service.CustomUserDetailsService;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -64,10 +66,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
-        } catch (Exception e) {
+        } catch (ExpiredJwtException ex) {
             // 6. 토큰 처리 중 예외 발생 시 로그만 남기고 계속 진행
             // 로그인 유지 미선택 시 발생할 수 있는 예외도 여기서 처리됨
-            logger.error("JWT 토큰 처리 중 오류 발생: " + e.getMessage());
+            logger.error("JWT 토큰 처리 중 오류 발생: " + ex.getMessage());
+
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write(
+                    "{ \"code\": \"TOKEN_EXPIRED\", \"message\": \"세션이 만료되었습니다\" }");
+            return;
+        }catch (JwtException | IllegalArgumentException ex) {
+            // ✅ 2. 기타 JWT 관련 예외 통합 처리
+            logger.error("JWT 토큰 오류: " + ex.getMessage());
+
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write(
+                    "{ \"code\": \"INVALID_TOKEN\", \"message\": \"유효하지 않은 토큰입니다\" }"
+            );
+            return;
         }
 
         filterChain.doFilter(request, response);
