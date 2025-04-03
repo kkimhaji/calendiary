@@ -43,9 +43,5 @@ public class MemberController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/get-temp-password")
-    public ResponseEntity<Void> issueTempPassword(@RequestBody PasswordResetRequest request){
-        memberService.issueTempPassword(request);
-        return ResponseEntity.ok().build();
-    }
+
 }

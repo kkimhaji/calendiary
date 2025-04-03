@@ -3,12 +3,11 @@ package com.example.board.controller;
 import com.example.board.auth.AuthenticationResponse;
 import com.example.board.auth.JwtService;
 import com.example.board.domain.member.Member;
-import com.example.board.dto.member.AuthenticationRequestDTO;
-import com.example.board.dto.member.MemberRegisterResponseDTO;
-import com.example.board.dto.member.RegisterRequestDTO;
-import com.example.board.dto.member.VerifyUserDTO;
+import com.example.board.dto.member.*;
 import com.example.board.service.AuthenticationService;
 import com.example.board.service.EmailService;
+import com.example.board.service.MemberService;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +27,7 @@ public class AuthenticationController {
     private final AuthenticationService authService;
     private final EmailService emailService;
     private final JwtService jwtService;
+    private final MemberService memberService;
 
     @PostMapping("/register")
     public ResponseEntity<MemberRegisterResponseDTO> register(@RequestBody RegisterRequestDTO dto){
@@ -109,8 +109,17 @@ public class AuthenticationController {
     public ResponseEntity<Void> logout(
             HttpServletRequest request,
             HttpServletResponse response) {
+        Cookie cookie = new Cookie("refresh_token", null);
+        cookie.setMaxAge(0);
+        cookie.setPath("/");
+        response.addCookie(cookie);
         authService.logout(request, response);
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/get-temp-password")
+    public ResponseEntity<Void> issueTempPassword(@RequestBody PasswordResetRequest request){
+        memberService.issueTempPassword(request);
+        return ResponseEntity.ok().build();
+    }
 }
