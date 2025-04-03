@@ -4,7 +4,11 @@ import com.example.board.auth.UserPrincipal;
 import com.example.board.domain.member.Member;
 import com.example.board.domain.member.MemberRepository;
 import com.example.board.dto.member.MemberInfoSummaryResponse;
+import com.example.board.dto.member.PasswordChangeRequest;
+import com.example.board.dto.member.PasswordResetRequest;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.action.internal.EntityActionVetoException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -33,13 +37,14 @@ public class MemberService {
     public void updatePassword(Member member, String newPassword){
         String encodedPwd = passwordEncoder.encode(newPassword);
         member.updatePassword(encodedPwd);
+        memberRepository.save(member);
     }
 
     //임시 비밀번호 발급
-    public void issueTempPassword(Member member){
+    public void issueTempPassword(PasswordResetRequest request){
         String tmpPwd = emailService.generateRandomCode();
-        member.updatePassword(passwordEncoder.encode(tmpPwd));
-        memberRepository.save(member);
+        Member member = memberRepository.findByEmail(request.email()).orElseThrow(() -> new EntityNotFoundException("member with the email not found"));
+        updatePassword(member, tmpPwd);
         emailService.sendTempPasswordEmail(member, tmpPwd);
     }
 

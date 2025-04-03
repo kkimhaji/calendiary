@@ -2,15 +2,15 @@ package com.example.board.controller;
 
 import com.example.board.auth.UserPrincipal;
 import com.example.board.dto.member.MemberInfoSummaryResponse;
+import com.example.board.dto.member.PasswordChangeRequest;
+import com.example.board.dto.member.PasswordResetRequest;
 import com.example.board.dto.team.TeamListDTO;
 import com.example.board.service.MemberService;
 import com.example.board.service.TeamMemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -37,4 +37,15 @@ public class MemberController {
         return ResponseEntity.ok(memberService.getMemberInfoSummary(userPrincipal));
     }
 
+    @PutMapping("/change-password")
+    public ResponseEntity<Void> changePassword(@AuthenticationPrincipal UserPrincipal userPrincipal, @RequestBody PasswordChangeRequest request){
+        memberService.updatePassword(userPrincipal.getMember(), request.newPassword());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/get-temp-password")
+    public ResponseEntity<Void> issueTempPassword(@RequestBody PasswordResetRequest request){
+        memberService.issueTempPassword(request);
+        return ResponseEntity.ok().build();
+    }
 }

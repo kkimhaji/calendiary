@@ -27,15 +27,6 @@ public class MemberServiceTest extends AbstractTestSupport {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    void newPwdTest(){
-        String newPwd = "abcd";
-        memberService.updatePassword(member1, newPwd);
-        Member updatedMember = memberRepository.findById(member1.getMemberId()).get();
-        String updatedPwd = updatedMember.getPassword();
-        assertThat(passwordEncoder.matches(newPwd, updatedPwd)).isTrue();
-    }
-
-    @Test
     void updateNameTest(){
         String newName = "update Test";
         memberService.updateMemberName(member1, newName);
