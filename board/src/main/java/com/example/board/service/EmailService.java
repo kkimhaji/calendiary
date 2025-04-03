@@ -80,7 +80,7 @@ public class EmailService {
                 + "<h2 style=\"color: #333;\">This is Calendiary!</h2>"
                 + "<p style=\"font-size: 16px;\">This is your temporary password:</p>"
                 + "<div style=\"background-color: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1);\">"
-                + "<h3 style=\"color: #333;\">Verification Code:</h3>"
+                + "<h3 style=\"color: #333;\">Your temp password:</h3>"
                 + "<p style=\"font-size: 18px; font-weight: bold; color: #007bff;\">" + tmpPwd + "</p>"
                 + "</div>"
                 + "</div>"
