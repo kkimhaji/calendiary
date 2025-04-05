@@ -101,7 +101,7 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
     List<Long> findTeamIdsByMemberId(@Param("memberId") Long memberId);
 
     // 멤버 ID로 팀 정보 및 닉네임 조회
-    @Query("SELECT new com.example.dto.team.TeamInfoResponse(tm.team.id, tm.team.name, tm.teamNickname) " +
+    @Query("SELECT new com.example.board.dto.team.TeamInfoResponse(tm.team.id, tm.team.name, tm.teamNickname) " +
             "FROM TeamMember tm WHERE tm.member.id = :memberId")
     List<TeamInfoResponse> findTeamInfoAndNicknameByMemberId(@Param("memberId") Long memberId);
 }
