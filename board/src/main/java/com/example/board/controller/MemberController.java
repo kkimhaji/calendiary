@@ -1,9 +1,10 @@
 package com.example.board.controller;
 
 import com.example.board.auth.UserPrincipal;
+import com.example.board.dto.member.MemberInfoResponse;
 import com.example.board.dto.member.MemberInfoSummaryResponse;
 import com.example.board.dto.member.PasswordChangeRequest;
-import com.example.board.dto.member.PasswordResetRequest;
+import com.example.board.dto.team.TeamInfoResponse;
 import com.example.board.dto.team.TeamListDTO;
 import com.example.board.service.MemberService;
 import com.example.board.service.TeamMemberService;
@@ -43,5 +44,13 @@ public class MemberController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/account-info")
+    public ResponseEntity<MemberInfoResponse> getAccountInfo(@AuthenticationPrincipal UserPrincipal userPrincipal){
+        return ResponseEntity.ok(memberService.getInfoForAccountPage(userPrincipal));
+    }
 
+    @GetMapping("/team-list")
+    public ResponseEntity<List<TeamInfoResponse>> getTeamInfo(@AuthenticationPrincipal UserPrincipal userPrincipal){
+        return ResponseEntity.ok(teamMemberService.getTeamInfoWithTeamNickname(userPrincipal.getMember().getMemberId()));
+    }
 }

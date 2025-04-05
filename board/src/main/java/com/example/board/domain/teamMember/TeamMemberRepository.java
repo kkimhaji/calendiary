@@ -5,6 +5,7 @@ import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.team.Team;
 import com.example.board.dto.member.TeamMemberDTO;
 import com.example.board.dto.member.TeamMemberInfoListDTO;
+import com.example.board.dto.team.TeamInfoResponse;
 import com.example.board.dto.team.TeamListDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -98,4 +99,9 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
 
     @Query("SELECT tm.team.id FROM TeamMember tm WHERE tm.member.id = :memberId")
     List<Long> findTeamIdsByMemberId(@Param("memberId") Long memberId);
+
+    // 멤버 ID로 팀 정보 및 닉네임 조회
+    @Query("SELECT new com.example.dto.team.TeamInfoResponse(tm.team.id, tm.team.name, tm.teamNickname) " +
+            "FROM TeamMember tm WHERE tm.member.id = :memberId")
+    List<TeamInfoResponse> findTeamInfoAndNicknameByMemberId(@Param("memberId") Long memberId);
 }

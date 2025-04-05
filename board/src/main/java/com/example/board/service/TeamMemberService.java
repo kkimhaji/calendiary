@@ -7,6 +7,7 @@ import com.example.board.domain.teamMember.TeamMemberRepository;
 import com.example.board.dto.member.AddTeamMemberToRoleDTO;
 import com.example.board.dto.member.TeamMemberDTO;
 import com.example.board.dto.member.TeamMemberInfoListDTO;
+import com.example.board.dto.team.TeamInfoResponse;
 import com.example.board.dto.team.TeamListDTO;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -76,5 +77,10 @@ public class TeamMemberService {
                 "%" + keyword + "%",
                 pageRequest
         ).map(AddTeamMemberToRoleDTO::new);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TeamInfoResponse> getTeamInfoWithTeamNickname(Long memberId){
+        return teamMemberRepository.findTeamInfoAndNicknameByMemberId(memberId);
     }
 }

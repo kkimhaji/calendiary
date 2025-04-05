@@ -3,6 +3,7 @@ package com.example.board.service;
 import com.example.board.auth.UserPrincipal;
 import com.example.board.domain.member.Member;
 import com.example.board.domain.member.MemberRepository;
+import com.example.board.dto.member.MemberInfoResponse;
 import com.example.board.dto.member.MemberInfoSummaryResponse;
 import com.example.board.dto.member.PasswordChangeRequest;
 import com.example.board.dto.member.PasswordResetRequest;
@@ -52,5 +53,11 @@ public class MemberService {
     public MemberInfoSummaryResponse getMemberInfoSummary(UserPrincipal userPrincipal){
         Member member = userPrincipal.getMember();
         return new MemberInfoSummaryResponse(member.getMemberId(), member.getNickname());
+    }
+
+    @Transactional(readOnly = true)
+    public MemberInfoResponse getInfoForAccountPage(UserPrincipal principal){
+        Member member = principal.getMember();
+        return new MemberInfoResponse(member.getMemberId(), member.getEmail(), member.getNickname());
     }
 }
