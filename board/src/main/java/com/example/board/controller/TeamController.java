@@ -47,8 +47,8 @@ public class TeamController {
     }
 
     @GetMapping("/{teamId}")
-    public ResponseEntity<TeamInfoDTO> getTeamInfo(@PathVariable(name="teamId") Long teamId){
-        return ResponseEntity.ok(teamService.getTeamInfo(teamId));
+    public ResponseEntity<TeamInfoPageResponse> getTeamInfo(@PathVariable(name="teamId") Long teamId, @AuthenticationPrincipal UserPrincipal principal){
+        return ResponseEntity.ok(teamService.getTeamInfo(teamId, principal));
     }
 
     @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_TEAM)")

@@ -1,5 +1,6 @@
 package com.example.board.service;
 
+import com.example.board.auth.UserPrincipal;
 import com.example.board.domain.member.Member;
 import com.example.board.domain.member.MemberRepository;
 import com.example.board.domain.role.TeamRole;
@@ -10,6 +11,7 @@ import com.example.board.domain.team.TeamInviteRepository;
 import com.example.board.domain.team.TeamRepository;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.teamMember.TeamMemberRepository;
+import com.example.board.dto.member.TeamNicknameAndRoleName;
 import com.example.board.dto.team.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -59,9 +61,13 @@ public class TeamService {
 //        return TeamCreateResponse.fromEntity(newTeam);
     }
 
-    public TeamInfoDTO getTeamInfo(Long teamId){
-        return teamRepository.findTeamDetailsById(teamId)
+    public TeamInfoPageResponse getTeamInfo(Long teamId, UserPrincipal principal){
+        TeamNicknameAndRoleName teamMemberInfo = teamMemberRepository.findTeamNicknameAndRoleNameByTeamIdAndMemberId(teamId, principal.getMember().getMemberId())
+                .orElseThrow(() -> new EntityNotFoundException("해당 팀에 속한 멤버를 찾을 수 없습니다."));
+        TeamInfoDTO teamInfo = teamRepository.findTeamDetailsById(teamId)
                 .orElseThrow(() -> new EntityNotFoundException("Team not found"));
+
+        return TeamInfoPageResponse.from(teamInfo, teamMemberInfo);
     }
 
     public void deleteTeam(Long teamId){

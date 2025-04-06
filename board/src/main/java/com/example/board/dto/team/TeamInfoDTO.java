@@ -10,14 +10,4 @@ public record TeamInfoDTO(
         LocalDateTime createdAt,
         long memberCount
 ) {
-    public TeamInfoDTO(
-            Long id,
-            String name,
-            String description,
-            String created_by,
-            LocalDateTime createdAt,
-            Long memberCount
-    ) {
-        this(id, name, description, created_by, createdAt, memberCount.longValue());
-    }
 }
