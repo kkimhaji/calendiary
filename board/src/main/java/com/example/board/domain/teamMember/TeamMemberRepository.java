@@ -106,7 +106,7 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
             "FROM TeamMember tm WHERE tm.member.id = :memberId")
     List<TeamInfoResponse> findTeamInfoAndNicknameByMemberId(@Param("memberId") Long memberId);
 
-    @Query("SELECT new com.example.dto.member.TeamNicknameAndRoleName(tm.teamNickname, r.name) " +
+    @Query("SELECT new com.example.board.dto.member.TeamNicknameAndRoleName(tm.teamNickname, r.roleName) " +
             "FROM TeamMember tm " +
             "JOIN tm.role r " +
             "WHERE tm.team.id = :teamId AND tm.member.id = :memberId")
