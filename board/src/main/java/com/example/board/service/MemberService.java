@@ -29,10 +29,8 @@ public class MemberService {
     }
 
     //비밀번호 변경 시 먼저 현재 사용자의 비밀번호 확인 후 비밀번호 변경 기능으로 넘어감
-    public void checkPassword(Member member, String currentPwd){
-        if (passwordEncoder.encode(currentPwd).equals(member.getPassword())){
-            throw new AccessDeniedException("비밀번호가 일치하지 않습니다.");
-        }
+    public boolean checkPassword(Member member, String currentPwd){
+        return passwordEncoder.matches(currentPwd, member.getPassword());
     }
 
     public void updatePassword(Member member, String newPassword){
