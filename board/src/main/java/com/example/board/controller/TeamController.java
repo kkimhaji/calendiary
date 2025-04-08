@@ -1,16 +1,14 @@
 package com.example.board.controller;
 
 import com.example.board.auth.UserPrincipal;
-import com.example.board.domain.member.Member;
 import com.example.board.dto.PageResponse;
 import com.example.board.dto.member.AddTeamMemberToRoleDTO;
-import com.example.board.dto.member.TeamMemberInfoListDTO;
+import com.example.board.dto.teamMember.TeamMemberInfoListDTO;
 import com.example.board.dto.team.*;
-import com.example.board.service.MemberService;
+import com.example.board.dto.teamMember.ChangeTeamNicknameRequest;
 import com.example.board.service.TeamMemberService;
 import com.example.board.service.TeamService;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,7 +16,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
-import javax.naming.ldap.PagedResultsResponseControl;
 import java.util.List;
 
 @RestController
@@ -94,5 +91,11 @@ public class TeamController {
                                          @AuthenticationPrincipal UserPrincipal userPrincipal){
         teamService.joinTeam(teamId, request, userPrincipal.getMember());
         return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{teamId}/nickname")
+    public ResponseEntity<?> updateTeamNickname(@PathVariable("teamId") Long teamId,
+            @AuthenticationPrincipal UserPrincipal userPrincipal, @RequestBody ChangeTeamNicknameRequest request){
+        return ResponseEntity.ok(teamMemberService.updateTeamNickname(teamId, userPrincipal.getMember(), request.newNickname()));
     }
 }

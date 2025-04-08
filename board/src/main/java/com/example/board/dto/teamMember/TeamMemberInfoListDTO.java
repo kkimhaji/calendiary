@@ -1,4 +1,4 @@
-package com.example.board.dto.member;
+package com.example.board.dto.teamMember;
 
 public record TeamMemberInfoListDTO(
         String email,

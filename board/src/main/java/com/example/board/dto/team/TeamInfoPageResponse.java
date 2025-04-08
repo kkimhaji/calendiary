@@ -1,6 +1,6 @@
 package com.example.board.dto.team;
 
-import com.example.board.dto.member.TeamNicknameAndRoleName;
+import com.example.board.dto.teamMember.TeamNicknameAndRoleName;
 
 import java.time.LocalDateTime;
 

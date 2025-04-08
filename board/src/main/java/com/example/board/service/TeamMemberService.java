@@ -5,8 +5,8 @@ import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.teamMember.TeamMemberRepository;
 import com.example.board.dto.member.AddTeamMemberToRoleDTO;
-import com.example.board.dto.member.TeamMemberDTO;
-import com.example.board.dto.member.TeamMemberInfoListDTO;
+import com.example.board.dto.teamMember.TeamMemberDTO;
+import com.example.board.dto.teamMember.TeamMemberInfoListDTO;
 import com.example.board.dto.team.TeamInfoResponse;
 import com.example.board.dto.team.TeamListDTO;
 import jakarta.persistence.EntityNotFoundException;
@@ -34,9 +34,9 @@ public class TeamMemberService {
     }
 
     @Transactional
-    public String updateTeamNickname(Long teamMemberId, String newNickname) {
-        TeamMember teamMember = teamMemberRepository.findById(teamMemberId)
-                .orElseThrow(() -> new EntityNotFoundException("team member not found"));
+    public String updateTeamNickname(Long teamId,Member member, String newNickname) {
+        TeamMember teamMember = teamMemberRepository.findByTeamIdAndMemberId(teamId, member.getMemberId())
+                        .orElseThrow(() -> new EntityNotFoundException("cannot found team member"));
 
         teamMember.updateTeamNickname(newNickname);
         return newNickname;

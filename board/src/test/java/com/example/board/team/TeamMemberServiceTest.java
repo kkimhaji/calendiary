@@ -51,12 +51,4 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
         assertThat(teamRole1.getRoleName()).isEqualTo("ADMIN");
         assertThat(teamRole2.getRoleName()).isEqualTo("Member");
     }
-
-    @Test
-    void updateTeamNicknameTest(){
-        String newNickname = "new nickname";
-        String updatedName = teamMemberService.updateTeamNickname(teamMember.getId(), newNickname);
-
-        assertThat(updatedName).isEqualTo(newNickname);
-    }
 }

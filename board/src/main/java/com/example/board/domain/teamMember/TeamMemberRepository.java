@@ -3,9 +3,9 @@ package com.example.board.domain.teamMember;
 import com.example.board.domain.member.Member;
 import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.team.Team;
-import com.example.board.dto.member.TeamMemberDTO;
-import com.example.board.dto.member.TeamMemberInfoListDTO;
-import com.example.board.dto.member.TeamNicknameAndRoleName;
+import com.example.board.dto.teamMember.TeamMemberDTO;
+import com.example.board.dto.teamMember.TeamMemberInfoListDTO;
+import com.example.board.dto.teamMember.TeamNicknameAndRoleName;
 import com.example.board.dto.team.TeamInfoResponse;
 import com.example.board.dto.team.TeamListDTO;
 import org.springframework.data.domain.Page;
@@ -61,12 +61,12 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
             "WHERE tm.member.id = :memberId")
     List<TeamListDTO> findTeamListByMemberId(@Param("memberId") Long memberId);
 
-    @Query("SELECT new com.example.board.dto.member.TeamMemberDTO(tm.id, tm.teamNickname) " +
+    @Query("SELECT new com.example.board.dto.teamMember.TeamMemberDTO(tm.id, tm.teamNickname) " +
             "FROM TeamMember tm " +
             "WHERE tm.role.id = :roleId")
     List<TeamMemberDTO> findMembersByRoleId(@Param("roleId") Long roleId);
 
-    @Query("SELECT new com.example.board.dto.member.TeamMemberInfoListDTO(" +
+    @Query("SELECT new com.example.board.dto.teamMember.TeamMemberInfoListDTO(" +
             "m.email, tm.teamNickname, r.roleName, r.id) " + // ✅ r.id 추가
             "FROM TeamMember tm " +
             "JOIN tm.member m " +
@@ -106,7 +106,7 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
             "FROM TeamMember tm WHERE tm.member.id = :memberId")
     List<TeamInfoResponse> findTeamInfoAndNicknameByMemberId(@Param("memberId") Long memberId);
 
-    @Query("SELECT new com.example.board.dto.member.TeamNicknameAndRoleName(tm.teamNickname, r.roleName) " +
+    @Query("SELECT new com.example.board.dto.teamMember.TeamNicknameAndRoleName(tm.teamNickname, r.roleName) " +
             "FROM TeamMember tm " +
             "JOIN tm.role r " +
             "WHERE tm.team.id = :teamId AND tm.member.id = :memberId")

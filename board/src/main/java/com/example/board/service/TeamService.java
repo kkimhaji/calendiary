@@ -11,7 +11,7 @@ import com.example.board.domain.team.TeamInviteRepository;
 import com.example.board.domain.team.TeamRepository;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.teamMember.TeamMemberRepository;
-import com.example.board.dto.member.TeamNicknameAndRoleName;
+import com.example.board.dto.teamMember.TeamNicknameAndRoleName;
 import com.example.board.dto.team.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
