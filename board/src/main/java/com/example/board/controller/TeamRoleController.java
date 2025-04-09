@@ -42,8 +42,9 @@ public class TeamRoleController {
 
     @DeleteMapping("/manage/delete/{roleId}")
     @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_ROLES)")
-    public void deleteRole(@PathVariable(name="teamId") @P("teamId") Long teamId, @PathVariable Long roleId){
+    public ResponseEntity<Void> deleteRole(@PathVariable(name="teamId") @P("teamId") Long teamId, @PathVariable("roleId") Long roleId){
         teamRoleService.deleteRole(teamId, roleId);
+        return ResponseEntity.ok().build();
     }
 
     //관리자 권한 넘기기
