@@ -86,12 +86,13 @@ public class CategoryService {
     public void deleteAllCategoriesInTeam(Team team){
         List<TeamCategory> categories = categoryRepository.findAllByTeam(team);
         for (TeamCategory category : categories) {
-            deleteCategory(category);
+            deleteCategory(category.getId());
         }
         categoryRepository.deleteAll(categories);
     }
 
-    public void deleteCategory(TeamCategory category){
+    public void deleteCategory(Long categoryId){
+        TeamCategory category = categoryRepository.findById(categoryId).orElseThrow(() -> new EntityNotFoundException("category not found"));
         List<Post> postsInCategory = postRepository.findAllByCategory(category);
         postsInCategory.forEach(post -> post.setCategory(null));
         List<CategoryRolePermission> categoryRolePermissions = categoryPermissionRepository.findAllByCategory(category);
@@ -101,6 +102,7 @@ public class CategoryService {
         });
         categoryPermissionRepository.deleteAll(categoryRolePermissions);
         postRepository.deleteAll(postsInCategory);
+        categoryRepository.deleteById(categoryId);
     }
 
     @Transactional

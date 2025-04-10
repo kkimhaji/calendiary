@@ -13,6 +13,7 @@ import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.ResourceBundle;
 
 @RestController
 @RequiredArgsConstructor
@@ -43,5 +44,12 @@ public class CategoryController {
     @GetMapping("/{categoryId}")
     public ResponseEntity<CategoryResponse> getCategoryInfo(@PathVariable(name = "teamId") Long teamId, @PathVariable(name="categoryId") Long categoryId){
         return ResponseEntity.ok(categoryService.getCategoryInfo(categoryId));
+    }
+
+    @DeleteMapping("/{categoryId}/delete")
+    @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_CATEGORIES)")
+    public ResponseEntity<Void> deleteCategory(@PathVariable("teamId") @P("teamId") Long teamId, @PathVariable("categoryId") Long categoryId){
+        categoryService.deleteCategory(categoryId);
+        return ResponseEntity.ok().build();
     }
 }
