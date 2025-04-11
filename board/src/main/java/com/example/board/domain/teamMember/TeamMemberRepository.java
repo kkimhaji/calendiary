@@ -20,7 +20,7 @@ import java.util.Optional;
 public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
     List<Team> findAllTeamByMember(Member member);
     List<Member> findAllMemberByTeam(Team team);
-    List<TeamMember> findAllByTeam(Team team);
+    List<TeamMember> findAllByTeamId(Long teamId);
     Optional<TeamMember> findByTeamAndMember(Team team, Member member);
 
     @Query("SELECT tm FROM TeamMember tm " +

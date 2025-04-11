@@ -187,13 +187,13 @@ public class TeamRoleService {
     //지정 역할로 변경하는 코드 따로 뺄 것
 
     //팀 삭제 시 사용되는 것 (기본 역할도 상관 없이 삭제)
-    public void deleteRole(Team team){
+    public void deleteRole(Long teamId){
         //teamMember의 role 수정
-        List<TeamMember> teamMembers = teamMemberRepository.findAllByTeam(team);
+        List<TeamMember> teamMembers = teamMemberRepository.findAllByTeamId(teamId);
         teamMembers.forEach(TeamMember::reset);
         teamMemberRepository.deleteAll(teamMembers);
 
-        List<TeamRole> roles = teamRoleRepository.findAllByTeam(team);
+        List<TeamRole> roles = teamRoleRepository.findAllByTeamId(teamId);
         roles.forEach(role -> role.setMembers(null));
         teamRoleRepository.deleteAll(roles);
     }

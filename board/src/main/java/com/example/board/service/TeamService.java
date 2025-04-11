@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -34,12 +35,12 @@ public class TeamService {
     private final CategoryService categoryService;
     private final TeamInviteRepository inviteRepository;
 
-    public TeamMember addMember(AddMemberRequestDTO dto){
+    public TeamMember addMember(AddMemberRequestDTO dto) {
 
         Team team = teamRepository.findById(dto.teamId())
-                .orElseThrow(()->new EntityNotFoundException("no such team"));
+                .orElseThrow(() -> new EntityNotFoundException("no such team"));
         TeamRole basicRole = teamRoleRepository.findById(team.getBasicRoleId())
-                .orElseThrow(()-> new EntityNotFoundException("no basic role"));
+                .orElseThrow(() -> new EntityNotFoundException("no basic role"));
 
         var newMember = memberRepository.findById(dto.memberId())
                 .orElseThrow(() -> new UsernameNotFoundException("no such user"));
@@ -48,7 +49,7 @@ public class TeamService {
         return teamMemberRepository.save(teamMember);
     }
 
-    public Team createTeam(Member member, TeamCreateRequestDTO dto){
+    public Team createTeam(Member member, TeamCreateRequestDTO dto) {
         Team newTeam = teamRepository.save(dto.toEntity(member));
         TeamRole admin = teamRoleService.createAdmin(newTeam);
 
@@ -61,7 +62,7 @@ public class TeamService {
 //        return TeamCreateResponse.fromEntity(newTeam);
     }
 
-    public TeamInfoPageResponse getTeamInfo(Long teamId, UserPrincipal principal){
+    public TeamInfoPageResponse getTeamInfo(Long teamId, UserPrincipal principal) {
         TeamNicknameAndRoleName teamMemberInfo = teamMemberRepository.findTeamNicknameAndRoleNameByTeamIdAndMemberId(teamId, principal.getMember().getMemberId())
                 .orElseThrow(() -> new EntityNotFoundException("해당 팀에 속한 멤버를 찾을 수 없습니다."));
         TeamInfoDTO teamInfo = teamRepository.findTeamDetailsById(teamId)
@@ -70,20 +71,24 @@ public class TeamService {
         return TeamInfoPageResponse.from(teamInfo, teamMemberInfo);
     }
 
-    public void deleteTeam(Long teamId){
+    public void deleteTeam(Long teamId) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new EntityNotFoundException("team not found"));
         //team에 속한 카테고리 삭제
         categoryService.deleteAllCategoriesInTeam(team);
 
         //teamMember 수정
-
+        List<TeamMember> teamMembers= teamMemberRepository.findAllByTeamId(teamId);
+        teamMembers.forEach(TeamMember::reset);
+        teamMemberRepository.deleteAll(teamMembers);
 
         //team의 role 삭제
-        teamRoleService.deleteRole(team);
+        teamRoleService.deleteRole(teamId);
+
+        teamRepository.delete(team);
     }
 
-    public long updateTeamInfo(long teamId, TeamUpdateRequestDTO dto){
+    public long updateTeamInfo(long teamId, TeamUpdateRequestDTO dto) {
         Team targetTeam = teamRepository.findById(teamId).orElseThrow(() -> new EntityNotFoundException("team not found"));
         if (dto.name() != null && !dto.name().isBlank()) {
             targetTeam.updateName(dto.name());
@@ -94,11 +99,11 @@ public class TeamService {
         return targetTeam.getId();
     }
 
-    public InviteResponse createInvite(InviteCreateRequest request){
+    public InviteResponse createInvite(InviteCreateRequest request) {
         Team team = teamRepository.findById(request.teamId()).orElseThrow(() -> new EntityNotFoundException("team not found"));
         String code = UUID.randomUUID().toString().replace("-", "");
         TeamInvite invite = TeamInvite.builder()
-        .code(code)
+                .code(code)
                 .team(team)
                 .expiresAt(request.expiresAt())
                 .maxUses(request.maxUses())
@@ -109,6 +114,7 @@ public class TeamService {
         String inviteLink = "http://localhost:3000/teams/" + team.getId() + "/join?code=" + code;
         return new InviteResponse(inviteLink);
     }
+
     @Transactional(readOnly = true)
     public InviteValidationResponse validateInvite(String code) {
         return inviteRepository.findByCode(code)
@@ -136,23 +142,23 @@ public class TeamService {
         inviteRepository.save(invite);
 
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(()->new EntityNotFoundException("no such team"));
+                .orElseThrow(() -> new EntityNotFoundException("no such team"));
         TeamRole basicRole = teamRoleRepository.findById(team.getBasicRoleId())
-                .orElseThrow(()-> new EntityNotFoundException("no basic role"));
+                .orElseThrow(() -> new EntityNotFoundException("no basic role"));
 
         TeamMember teamMember = TeamMember.addTeamMember(team, newMember, basicRole);
         teamMemberRepository.save(teamMember);
     }
 
-// 검증 헬퍼 메서드
-private void validateInvite(TeamInvite invite) {
-    if (isExpired(invite)) {
-        throw new IllegalArgumentException("만료된 초대 코드");
+    // 검증 헬퍼 메서드
+    private void validateInvite(TeamInvite invite) {
+        if (isExpired(invite)) {
+            throw new IllegalArgumentException("만료된 초대 코드");
+        }
+        if (isOverused(invite)) {
+            throw new IllegalArgumentException("사용 횟수 초과");
+        }
     }
-    if (isOverused(invite)) {
-        throw new IllegalArgumentException("사용 횟수 초과");
-    }
-}
 
     private boolean isExpired(TeamInvite invite) {
         return invite.getExpiresAt() != null

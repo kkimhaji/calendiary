@@ -36,9 +36,8 @@ public class TeamController {
         return ResponseEntity.ok(teamService.addMember(dto));
     }
 
-    //팀 삭제 시 role과 teamMember 정보, category&post도 삭제
     @DeleteMapping("/delete/{teamId}")
-    @PreAuthorize("hasPermission(#team, 'ADMIN')")
+    @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_TEAM)")
     public void deleteTeam(@PathVariable(name="teamId") @P("teamId") Long teamId){
         teamService.deleteTeam(teamId);
     }
