@@ -7,6 +7,7 @@ import com.example.board.domain.post.Post;
 import com.example.board.domain.post.PostRepository;
 import com.example.board.dto.comment.CommentResponse;
 import com.example.board.dto.comment.CreateCommentRequest;
+import com.example.board.dto.comment.UpdateCommentRequest;
 import com.example.board.permission.CategoryPermission;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -40,8 +41,6 @@ public class CommentService {
             parent = commentRepository.findById(parentId)
                     .orElseThrow(() -> new EntityNotFoundException("Parent comment not found"));
         }
-//        int depth = parent != null ? parent.getDepth() + 1 : 0;
-//        if (depth>MAX_DEPTH) throw new IllegalArgumentException("최대 답글 깊이를 초과했습니다.");
 
         Comment comment = request.toEntity(post, member, parent);
         post.addComment(comment);
@@ -50,7 +49,7 @@ public class CommentService {
     }
 
     @Transactional
-    public void deleteComment(Long teamId, Long commentId, Member member){
+    public void deleteComment(Long commentId, Member member){
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(()->new EntityNotFoundException("Comment not found"));
 

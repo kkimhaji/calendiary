@@ -26,8 +26,8 @@ public class CommentController {
     }
 
     @DeleteMapping("/{commentId}")
-    public void deleteComment(@PathVariable Long teamId, @PathVariable Long postId, @PathVariable Long commentId,@AuthenticationPrincipal UserPrincipal user){
-        commentService.deleteComment(teamId, commentId, user.getMember());
+    public void deleteComment(@PathVariable("postId") Long postId, @PathVariable("commentId") Long commentId,@AuthenticationPrincipal UserPrincipal user){
+        commentService.deleteComment(commentId, user.getMember());
     }
 
     @GetMapping
