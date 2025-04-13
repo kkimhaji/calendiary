@@ -7,7 +7,6 @@ import com.example.board.domain.post.Post;
 import com.example.board.domain.post.PostRepository;
 import com.example.board.dto.comment.CommentResponse;
 import com.example.board.dto.comment.CreateCommentRequest;
-import com.example.board.dto.comment.UpdateCommentRequest;
 import com.example.board.permission.CategoryPermission;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
