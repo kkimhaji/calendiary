@@ -29,6 +29,7 @@ public class Team {
     private LocalDateTime createdAt;
 
     private Long basicRoleId;
+    private Long adminRoleId;
 
     @OneToMany(mappedBy = "team")
     @JsonIgnore

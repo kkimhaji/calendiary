@@ -56,6 +56,7 @@ public class TeamService {
         TeamMember teamMember = TeamMember.createTeam(newTeam, member, admin);
         var basicRole = teamRoleRepository.save(teamRoleService.createBasic(newTeam));
         newTeam.setBasicRoleId(basicRole.getId());
+        newTeam.setAdminRoleId(admin.getId());
         teamMemberRepository.save(teamMember);
         return teamRepository.save(newTeam);
 
