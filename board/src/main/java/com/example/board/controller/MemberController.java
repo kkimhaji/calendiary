@@ -59,4 +59,10 @@ public class MemberController {
     public ResponseEntity<Boolean> verifyPassword(@AuthenticationPrincipal UserPrincipal userPrincipal, @RequestBody VerifyPasswordRequest request){
         return ResponseEntity.ok(memberService.checkPassword(userPrincipal.getMember(), request.currentPassword()));
     }
+
+    @PostMapping("/{teamId}/leave")
+    public ResponseEntity<Void> leaveTeam(@PathVariable("teamId") Long teamId, @AuthenticationPrincipal UserPrincipal userPrincipal){
+        teamMemberService.leaveTeam(teamId, userPrincipal.getMember());
+        return ResponseEntity.ok().build();
+    }
 }

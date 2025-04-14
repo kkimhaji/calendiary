@@ -2,6 +2,9 @@ package com.example.board.service;
 
 import com.example.board.domain.member.Member;
 import com.example.board.domain.role.TeamRole;
+import com.example.board.domain.role.TeamRoleRepository;
+import com.example.board.domain.team.Team;
+import com.example.board.domain.team.TeamRepository;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.teamMember.TeamMemberRepository;
 import com.example.board.dto.member.AddTeamMemberToRoleDTO;
@@ -25,6 +28,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TeamMemberService {
     private final TeamMemberRepository teamMemberRepository;
+    private final TeamRepository teamRepository;
+    private final TeamRoleRepository teamRoleRepository;
 
     @Transactional(readOnly = true)
     public TeamRole getCurrentUserRole(Long teamId, Member member) {
@@ -34,9 +39,9 @@ public class TeamMemberService {
     }
 
     @Transactional
-    public String updateTeamNickname(Long teamId,Member member, String newNickname) {
+    public String updateTeamNickname(Long teamId, Member member, String newNickname) {
         TeamMember teamMember = teamMemberRepository.findByTeamIdAndMemberId(teamId, member.getMemberId())
-                        .orElseThrow(() -> new EntityNotFoundException("cannot found team member"));
+                .orElseThrow(() -> new EntityNotFoundException("cannot found team member"));
 
         teamMember.updateTeamNickname(newNickname);
         return newNickname;
@@ -80,7 +85,25 @@ public class TeamMemberService {
     }
 
     @Transactional(readOnly = true)
-    public List<TeamInfoResponse> getTeamInfoWithTeamNickname(Long memberId){
+    public List<TeamInfoResponse> getTeamInfoWithTeamNickname(Long memberId) {
         return teamMemberRepository.findTeamInfoAndNicknameByMemberId(memberId);
+    }
+
+    public void leaveTeam(Long teamId, Member member) {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new EntityNotFoundException("team not found"));
+
+        TeamMember teamMember = teamMemberRepository.findByTeamIdAndMember(teamId, member)
+                .orElseThrow(() -> new EntityNotFoundException("member is not in team"));
+
+        Long adminRoleId  = team.getAdminRoleId();
+        if (teamMember.getRole().getId().equals(adminRoleId) && isLastOwner(teamId, adminRoleId)) {
+            throw new IllegalStateException("팀의 관리자는 탈퇴할 수 없습니다. 다른 사용자에게 관리자 권한을 부여한 후 탈퇴해주세요.");
+        }
+        teamMemberRepository.delete(teamMember);
+    }
+
+    private boolean isLastOwner(Long teamId, Long roleId) {
+        return teamMemberRepository.countByTeamIdAndRoleId(teamId, roleId) <= 1;
     }
 }

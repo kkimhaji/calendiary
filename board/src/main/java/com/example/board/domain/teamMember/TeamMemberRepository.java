@@ -114,4 +114,7 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
             @Param("teamId") Long teamId,
             @Param("memberId") Long memberId
     );
+
+    //팀 탈퇴 시 마지막으로 남은 관리자인지 확인
+    int countByTeamIdAndRoleId(Long teamId, Long roleId);
 }
