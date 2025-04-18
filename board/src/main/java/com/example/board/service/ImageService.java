@@ -1,5 +1,7 @@
 package com.example.board.service;
 
+import com.example.board.domain.post.Post;
+import com.example.board.domain.post.PostImage;
 import com.example.board.domain.post.PostImageRepository;
 import com.example.board.dto.post.ImageResponse;
 import com.example.board.exception.FileDeleteException;
@@ -139,23 +141,12 @@ public class ImageService {
         }
         return content;
     }
-//------
-//    public String convertImageUrls(String content) {
-//        return content.replaceAll("/temp-images/", "/perm-images/");
-//    }
 
-//    private void validateFile(MultipartFile file) {
-//        if (file.isEmpty()) throw new IllegalArgumentException("Empty file");
-//
-//        String extension = getFileExtension(file.getOriginalFilename());
-//        if (!ALLOWED_EXTENSIONS.contains(extension.toLowerCase())) {
-//            throw new IllegalArgumentException("Invalid file type");
-//        }
-//    }
-//
-//    private String generateUniqueFileName(String originalName) {
-//        String ext = getFileExtension(originalName);
-//        return UUID.randomUUID() + "." + ext;
-//    }
-
+    public void deleteAllPostImages(Post post) throws IOException {
+        List<PostImage> images = post.getImages();
+        for (PostImage image : images) {
+            deleteImage(image.getStoredFileName());
+        }
+        post.clearImages();
+    }
 }

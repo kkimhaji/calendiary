@@ -48,6 +48,7 @@ public class PostService {
     private final PostImageRepository postImageRepository;
     private final PermissionService permissionService;
     private final TeamMemberRepository teamMemberRepository;
+    private final CommentRepository commentRepository;
 
     public Post createPost(Long teamId, Long categoryId, CreatePostRequest request, Member author) throws AccessDeniedException, IOException {
         Team team = teamRepository.findById(teamId)
@@ -144,7 +145,8 @@ public class PostService {
         if (!permissionService.hasPermissionOrAuthor(categoryId, postId, CategoryPermission.DELETE_POST))
             throw new AccessDeniedException("게시글을 삭제할 권한이 없습니다.");
 
-        deleteAllPostImages(post);
+        commentRepository.deleteAllByPostId(postId);
+        imageService.deleteAllPostImages(post);
 
         postRepository.deleteById(postId);
     }
@@ -156,7 +158,6 @@ public class PostService {
         //이미지 처리
         String sanitizedContent = htmlSanitizer.sanitize(requestDTO.content());
         String processedContent = imageService.processContentImages(sanitizedContent);
-
 
         //기존 이미지 중 삭제 대상 처리
         if (requestDTO.deleteImageIds() != null && !requestDTO.deleteImageIds().isEmpty()){
@@ -188,27 +189,13 @@ public class PostService {
             if (!image.getPost().getId().equals(post.getId())) {
                 throw new IllegalArgumentException("잘못된 이미지 ID입니다.");
             }
-
             // 파일 시스템에서 파일 삭제
             imageService.deleteImage(image.getStoredFileName());
-
             // 게시글에서 이미지 제거
             post.removeImage(image);
-
             // DB에서 이미지 정보 삭제
             postImageRepository.delete(image);
         }
-    }
-    private void deleteAllPostImages(Post post) throws IOException {
-        List<PostImage> images = post.getImages();
-
-        // 4-1. 파일 시스템에서 이미지 삭제
-        for (PostImage image : images) {
-            imageService.deleteImage(image.getStoredFileName());
-        }
-
-        // 4-2. DB에서 이미지 레코드 삭제 (CASCADE 설정 시 자동)
-        post.clearImages();
     }
 
     private void addNewImages(Post post, List<MultipartFile> newImages) throws FileUploadException {
