@@ -1,6 +1,7 @@
 package com.example.board.service;
 
 import com.example.board.domain.member.Member;
+import com.example.board.domain.post.CommentRepository;
 import com.example.board.domain.post.Post;
 import com.example.board.domain.post.PostRepository;
 import com.example.board.domain.role.CategoryPermissionRepository;
@@ -18,6 +19,7 @@ import com.example.board.domain.role.TeamRoleRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -34,20 +36,21 @@ public class CategoryService {
     private final PostRepository postRepository;
     private final CategoryPermissionRepository categoryPermissionRepository;
     private final TeamMemberService teamMemberService;
+    private final CommentRepository commentRepository;
+    private final ImageService imageService;
 
     @Transactional
-    public TeamCategory createCategory(Long teamId, CreateCategoryRequest request){
+    public TeamCategory createCategory(Long teamId, CreateCategoryRequest request) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new EntityNotFoundException("Team not found"));
         TeamCategory category = request.toEntity(team);
-
 
         Map<Long, TeamRole> teamRoles = getTeamRoles(team, request);
         List<CategoryRolePermission> categoryRolePermissions = request.toCategoryRolePermissions(category, teamRoles);
 
         categoryRolePermissions.forEach(crp -> {
             TeamRole role = crp.getRole();
-            if (role == null){
+            if (role == null) {
                 throw new EntityNotFoundException("Role not found: " + crp.getRole().getId());
             }
             category.addRolePermission(crp);
@@ -55,18 +58,17 @@ public class CategoryService {
 
         categoryPermissionRepository.saveAll(categoryRolePermissions);
 
-
         return categoryRepository.save(category);
     }
 
-    private Map<Long, TeamRole> getTeamRoles(Team team, CreateCategoryRequest request){
+    private Map<Long, TeamRole> getTeamRoles(Team team, CreateCategoryRequest request) {
         Set<Long> requestRoleIds = request.rolePermissions().stream()
                 .map(CategoryRolePermissionDTO::roleId).collect(Collectors.toSet());
 
         Map<Long, TeamRole> teamRoles = roleRepository.findAllByTeam(team).stream()
                 .collect(Collectors.toMap(TeamRole::getId, role -> role));
 
-        requestRoleIds.forEach(roleId ->{
+        requestRoleIds.forEach(roleId -> {
             if (!teamRoles.containsKey(roleId))
                 throw new IllegalArgumentException("Invalid role ID: " + roleId);
         });
@@ -83,7 +85,7 @@ public class CategoryService {
     }
 
     @Transactional
-    public void deleteAllCategoriesInTeam(Team team){
+    public void deleteAllCategoriesInTeam(Team team) {
         List<TeamCategory> categories = categoryRepository.findAllByTeam(team);
         for (TeamCategory category : categories) {
             deleteCategory(category.getId());
@@ -91,10 +93,18 @@ public class CategoryService {
         categoryRepository.deleteAll(categories);
     }
 
-    public void deleteCategory(Long categoryId){
+    public void deleteCategory(Long categoryId) {
         TeamCategory category = categoryRepository.findById(categoryId).orElseThrow(() -> new EntityNotFoundException("category not found"));
         List<Post> postsInCategory = postRepository.findAllByCategory(category);
-        postsInCategory.forEach(post -> post.setCategory(null));
+        List<Long> postIds = postsInCategory.stream().map(Post::getId).toList();
+        commentRepository.deleteAllByPostIdIn(postIds);
+        for (Post post : postsInCategory) {
+            try {
+                imageService.deleteAllPostImages(post);
+            } catch (IOException e) {
+//                log.error("Error deleting images for post {}: {}", post.getId(), e.getMessage());
+            }
+        }
         List<CategoryRolePermission> categoryRolePermissions = categoryPermissionRepository.findAllByCategory(category);
         categoryRolePermissions.forEach(categoryPermission -> {
             categoryPermission.setCategory(null);
@@ -107,9 +117,9 @@ public class CategoryService {
 
     @Transactional
     //카테고리 수정 -> 게시글에 저장된 카테고리 정보도 수정
-    public CategoryResponse updateCategory(Long teamId, Long categoryId, UpdateCategoryRequest request){
+    public CategoryResponse updateCategory(Long teamId, Long categoryId, UpdateCategoryRequest request) {
         TeamCategory category = categoryRepository.findById(categoryId)
-                .orElseThrow(()->new EntityNotFoundException("category not found"));
+                .orElseThrow(() -> new EntityNotFoundException("category not found"));
 
         request.updateEntity(category);
 
@@ -147,11 +157,11 @@ public class CategoryService {
         });
     }
 
-    public List<CategoryListDTO> getCategoryListByTeam(Long teamId){
+    public List<CategoryListDTO> getCategoryListByTeam(Long teamId) {
         return categoryRepository.findCategoryListByTeamId(teamId);
     }
 
-    public CategoryResponse getCategoryInfo(Long categoryId){
+    public CategoryResponse getCategoryInfo(Long categoryId) {
         TeamCategory category = categoryRepository.findById(categoryId).orElseThrow(() -> new EntityNotFoundException("category not found"));
         return CategoryResponse.from(category);
     }
