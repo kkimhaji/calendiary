@@ -1,6 +1,9 @@
 package com.example.board.service;
 
 import com.example.board.domain.member.Member;
+import com.example.board.domain.post.CommentRepository;
+import com.example.board.domain.post.Post;
+import com.example.board.domain.post.PostRepository;
 import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.role.TeamRoleRepository;
 import com.example.board.domain.team.Team;
@@ -21,6 +24,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,6 +34,9 @@ public class TeamMemberService {
     private final TeamMemberRepository teamMemberRepository;
     private final TeamRepository teamRepository;
     private final TeamRoleRepository teamRoleRepository;
+    private final CommentRepository commentRepository;
+    private final PostRepository postRepository;
+    private final ImageService imageService;
 
     @Transactional(readOnly = true)
     public TeamRole getCurrentUserRole(Long teamId, Member member) {
@@ -105,5 +112,29 @@ public class TeamMemberService {
 
     private boolean isLastOwner(Long teamId, Long roleId) {
         return teamMemberRepository.countByTeamIdAndRoleId(teamId, roleId) <= 1;
+    }
+    private void deleteTeamMemberContents(Long teamId, Long memberId) {
+        // 1. 사용자가 작성한 댓글 삭제
+        commentRepository.deleteAllByTeamIdAndMemberId(teamId, memberId);
+
+        // 2. 사용자가 작성한 게시글 삭제
+        List<Post> posts = postRepository.findAllByTeamIdAndAuthorId(teamId, memberId);
+        for (Post post : posts) {
+            try {
+                // 게시글 이미지 파일 삭제
+                imageService.deleteAllPostImages(post);
+
+                // 게시글에 달린 모든 댓글 삭제
+                commentRepository.deleteAllByPostId(post.getId());
+
+                // 게시글 삭제
+                postRepository.delete(post);
+            } catch (IOException e) {
+//                log.error("이미지 삭제 중 오류 발생: " + e.getMessage());
+                // 이미지 삭제 실패해도 게시글은 삭제 진행
+                commentRepository.deleteAllByPostId(post.getId());
+                postRepository.delete(post);
+            }
+        }
     }
 }

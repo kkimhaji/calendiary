@@ -109,10 +109,10 @@ public class AuthenticationController {
     public ResponseEntity<Void> logout(
             HttpServletRequest request,
             HttpServletResponse response) {
-        Cookie cookie = new Cookie("refresh_token", null);
-        cookie.setMaxAge(0);
-        cookie.setPath("/");
-        response.addCookie(cookie);
+//        Cookie cookie = new Cookie("refresh_token", null);
+//        cookie.setMaxAge(0);
+//        cookie.setPath("/");
+//        response.addCookie(cookie);
         authService.logout(request, response);
         return ResponseEntity.ok().build();
     }

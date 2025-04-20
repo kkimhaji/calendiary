@@ -74,7 +74,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.getWriter().write(
-                    "{ \"code\": \"TOKEN_EXPIRED\", \"message\": \"세션이 만료되었습니다\" }");
+                    "{ \"code\": \"TOKEN_EXPIRED\", \"message\": \"session is expired\" }");
             return;
         }catch (JwtException | IllegalArgumentException ex) {
             // ✅ 2. 기타 JWT 관련 예외 통합 처리
@@ -83,7 +83,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.getWriter().write(
-                    "{ \"code\": \"INVALID_TOKEN\", \"message\": \"유효하지 않은 토큰입니다\" }"
+                    "{ \"code\": \"INVALID_TOKEN\", \"message\": \"not valid token\" }"
             );
             return;
         }
