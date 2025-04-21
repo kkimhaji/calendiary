@@ -61,8 +61,9 @@ public class MemberController {
     }
 
     @PostMapping("/{teamId}/leave")
-    public ResponseEntity<Void> leaveTeam(@PathVariable("teamId") Long teamId, @AuthenticationPrincipal UserPrincipal userPrincipal){
-        teamMemberService.leaveTeam(teamId, userPrincipal.getMember());
+    public ResponseEntity<Void> leaveTeam(@PathVariable("teamId") Long teamId, @AuthenticationPrincipal UserPrincipal userPrincipal,
+                                          @RequestParam(required = false, defaultValue = "false") boolean deleteContents){
+        teamMemberService.leaveTeam(teamId, userPrincipal.getMember(), deleteContents);
         return ResponseEntity.ok().build();
     }
 }

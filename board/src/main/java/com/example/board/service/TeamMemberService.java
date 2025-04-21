@@ -96,7 +96,7 @@ public class TeamMemberService {
         return teamMemberRepository.findTeamInfoAndNicknameByMemberId(memberId);
     }
 
-    public void leaveTeam(Long teamId, Member member) {
+    public void leaveTeam(Long teamId, Member member, boolean deleteContents) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new EntityNotFoundException("team not found"));
 
@@ -107,6 +107,11 @@ public class TeamMemberService {
         if (teamMember.getRole().getId().equals(adminRoleId) && isLastOwner(teamId, adminRoleId)) {
             throw new IllegalStateException("팀의 관리자는 탈퇴할 수 없습니다. 다른 사용자에게 관리자 권한을 부여한 후 탈퇴해주세요.");
         }
+
+        if (deleteContents) {
+            deleteTeamMemberContents(teamId, member.getMemberId());
+        }
+
         teamMemberRepository.delete(teamMember);
     }
 

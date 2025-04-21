@@ -19,7 +19,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findAllByAuthor(Member member);
     List<Post> findAllByCategory(TeamCategory category);
 
-    List<Post> findAllByTeamIdAndAuthorId(Long teamId, Long memberId);
+    @Query("SELECT p FROM Post p WHERE p.category.team.id = :teamId AND p.author.id = :authorId")
+    List<Post> findAllByTeamIdAndAuthorId(Long teamId, Long authorId);
 
     // 팀의 카테고리별 게시글 조회
     @Query("SELECT new com.example.board.dto.post.PostListResponse(" +
