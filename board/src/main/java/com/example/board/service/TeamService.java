@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -63,13 +64,31 @@ public class TeamService {
 //        return TeamCreateResponse.fromEntity(newTeam);
     }
 
-    public TeamInfoPageResponse getTeamInfo(Long teamId, UserPrincipal principal) {
-        TeamNicknameAndRoleName teamMemberInfo = teamMemberRepository.findTeamNicknameAndRoleNameByTeamIdAndMemberId(teamId, principal.getMember().getMemberId())
-                .orElseThrow(() -> new EntityNotFoundException("해당 팀에 속한 멤버를 찾을 수 없습니다."));
+    public TeamInfoPageResponse getTeamInfo(Long teamId, UserPrincipal principal, String inviteCode) {
         TeamInfoDTO teamInfo = teamRepository.findTeamDetailsById(teamId)
                 .orElseThrow(() -> new EntityNotFoundException("Team not found"));
 
-        return TeamInfoPageResponse.from(teamInfo, teamMemberInfo);
+// 케이스 1: 로그인 사용자가 팀 멤버인 경우
+        if (principal != null) {
+            Optional<TeamNicknameAndRoleName> memberInfoOpt =
+                    teamMemberRepository.findTeamNicknameAndRoleNameByTeamIdAndMemberId(
+                            teamId, principal.getMember().getMemberId());
+
+            if (memberInfoOpt.isPresent()) {
+                return TeamInfoPageResponse.fromTeamMember(teamInfo, memberInfoOpt.get());
+            }
+        }
+
+        // 케이스 2: 초대 코드가 유효한 경우
+        if (inviteCode != null && !inviteCode.isEmpty()) {
+            InviteValidationResponse validation = validateInvite(inviteCode);
+            if (validation.isValid() && validation.teamId().equals(teamId)) {
+                return TeamInfoPageResponse.fromInvite(teamInfo);
+            }
+        }
+
+        // 케이스 3: 접근 권한 없음
+        return TeamInfoPageResponse.noAccess(teamInfo);
     }
 
     public void deleteTeam(Long teamId) {
@@ -79,7 +98,7 @@ public class TeamService {
         categoryService.deleteAllCategoriesInTeam(team);
 
         //teamMember 수정
-        List<TeamMember> teamMembers= teamMemberRepository.findAllByTeamId(teamId);
+        List<TeamMember> teamMembers = teamMemberRepository.findAllByTeamId(teamId);
         teamMembers.forEach(TeamMember::reset);
         teamMemberRepository.deleteAll(teamMembers);
 
