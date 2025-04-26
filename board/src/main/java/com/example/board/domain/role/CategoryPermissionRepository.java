@@ -42,4 +42,6 @@ public interface CategoryPermissionRepository extends JpaRepository<CategoryRole
 
     // 카테고리별 권한 존재 여부 확인
     boolean existsByCategoryAndRole(TeamCategory category, TeamRole role);
+
+    List<CategoryRolePermission> findAllByCategoryIdAndRoleId(Long categoryId, Long roleId);
 }
