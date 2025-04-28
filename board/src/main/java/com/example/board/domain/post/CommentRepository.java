@@ -52,5 +52,5 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Modifying
     @Transactional
     @Query("DELETE FROM Comment c WHERE c.post.category.team.id = :teamId AND c.author.memberId = :memberId")
-    void deleteAllByTeamIdAndMemberId(Long teamId, Long memberId);
+    void deleteAllByTeamIdAndMemberId(@Param("teamId") Long teamId, @Param("memberId") Long memberId);
 }
