@@ -70,7 +70,7 @@ public class MemberController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/members/{memberId}/posts")
+    @GetMapping("/{memberId}/teams/{teamId}/posts")
     public ResponseEntity<?> getMemberPosts(
             @PathVariable("teamId") Long teamId, @PathVariable("memberId") Long memberId,
             @RequestParam(defaultValue = "0", name="page") int page,
@@ -78,7 +78,7 @@ public class MemberController {
         return ResponseEntity.ok(postService.findPostsByTeamAndMember(teamId, memberId, page, size));
     }
 
-    @GetMapping("/teams/{teamId}/members/{memberId}/comments")
+    @GetMapping("/{memberId}/teams/{teamId}/comments")
     public ResponseEntity<?> getMemberComments(
             @PathVariable Long teamId,
             @PathVariable Long memberId,
