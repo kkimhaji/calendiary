@@ -1,15 +1,16 @@
 package com.example.board.controller;
 
 import com.example.board.auth.UserPrincipal;
+import com.example.board.dto.comment.CommentResponse;
 import com.example.board.dto.member.MemberInfoResponse;
 import com.example.board.dto.member.MemberInfoSummaryResponse;
 import com.example.board.dto.member.PasswordChangeRequest;
 import com.example.board.dto.member.VerifyPasswordRequest;
 import com.example.board.dto.team.TeamInfoResponse;
 import com.example.board.dto.team.TeamListDTO;
-import com.example.board.service.MemberService;
-import com.example.board.service.TeamMemberService;
+import com.example.board.service.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +24,8 @@ public class MemberController {
 
     private final MemberService memberService;
     private final TeamMemberService teamMemberService;
+    private final PostService postService;
+    private final CommentService commentService;
 
     @GetMapping("/getprincipal")
     public ResponseEntity<?> getPrincipal(@AuthenticationPrincipal UserPrincipal member){
@@ -65,5 +68,23 @@ public class MemberController {
                                           @RequestParam(required = false, defaultValue = "false", name = "deleteContents") boolean deleteContents){
         teamMemberService.leaveTeam(teamId, userPrincipal.getMember(), deleteContents);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/members/{memberId}/posts")
+    public ResponseEntity<?> getMemberPosts(
+            @PathVariable("teamId") Long teamId, @PathVariable("memberId") Long memberId,
+            @RequestParam(defaultValue = "0", name="page") int page,
+            @RequestParam(defaultValue = "0", name = "size") int size){
+        return ResponseEntity.ok(postService.findPostsByTeamAndMember(teamId, memberId, page, size));
+    }
+
+    @GetMapping("/teams/{teamId}/members/{memberId}/comments")
+    public ResponseEntity<?> getMemberComments(
+            @PathVariable Long teamId,
+            @PathVariable Long memberId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        return ResponseEntity.ok(commentService.findCommentsByTeamAndMember(teamId, memberId, page, size));
     }
 }

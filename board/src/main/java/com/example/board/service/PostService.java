@@ -8,6 +8,7 @@ import com.example.board.domain.team.CategoryRepository;
 import com.example.board.domain.team.Team;
 import com.example.board.domain.team.TeamCategory;
 import com.example.board.domain.team.TeamRepository;
+import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.teamMember.TeamMemberRepository;
 import com.example.board.dto.comment.CommentResponse;
 import com.example.board.dto.post.*;
@@ -20,6 +21,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.AccessDeniedException;
@@ -221,4 +223,19 @@ public class PostService {
                 .map(PostResponse::from);
     }
 
+    public Page<PostSummaryDTO> findPostsByTeamAndMember(Long teamId, Long memberId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return postRepository.findByTeamIdAndAuthorId(teamId, memberId, pageable)
+                .map(this::convertToSummaryDTO);
+    }
+
+    // Post 엔티티를 DTO로 변환
+    private PostSummaryDTO convertToSummaryDTO(Post post) {
+        return new PostSummaryDTO(
+                post.getId(),
+                post.getTitle(),
+                post.getContent().substring(0, Math.min(post.getContent().length(), 100)) + "...",
+                post.getCreatedDate()
+        );
+    }
 }

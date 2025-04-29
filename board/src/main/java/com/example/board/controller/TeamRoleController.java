@@ -25,7 +25,6 @@ import java.util.Set;
 public class TeamRoleController {
 
     private final TeamRoleService teamRoleService;
-    private final TeamMemberService teamMemberService;
 
     @PostMapping("/manage/create")
     @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_ROLES)")

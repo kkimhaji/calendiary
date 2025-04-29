@@ -10,6 +10,10 @@ import com.example.board.dto.comment.CreateCommentRequest;
 import com.example.board.permission.CategoryPermission;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,4 +75,11 @@ public class CommentService {
         return commentRepository.findByPostIdAndParentIsNull(postId).stream()
                 .map(CommentResponse::from).toList();
     }
+
+    public Page<CommentResponse> findCommentsByTeamAndMember(Long teamId, Long memberId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return commentRepository.findByTeamIdAndAuthorId(teamId, memberId, pageable)
+                .map(CommentResponse::from);
+    }
+
 }

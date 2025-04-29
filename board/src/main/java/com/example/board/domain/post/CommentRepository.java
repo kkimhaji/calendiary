@@ -1,6 +1,8 @@
 package com.example.board.domain.post;
 
 import com.example.board.dto.comment.CommentResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -53,4 +55,10 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Transactional
     @Query("DELETE FROM Comment c WHERE c.post.category.team.id = :teamId AND c.author.memberId = :memberId")
     void deleteAllByTeamIdAndMemberId(@Param("teamId") Long teamId, @Param("memberId") Long memberId);
+
+    @Query("SELECT c FROM Comment c WHERE c.post.category.team.id = :teamId AND c.author.id = :authorId")
+    Page<Comment> findByTeamIdAndAuthorId(
+            @Param("teamId") Long teamId,
+            @Param("authorId") Long authorId,
+            Pageable pageable);
 }
