@@ -74,16 +74,16 @@ public class MemberController {
     public ResponseEntity<?> getMemberPosts(
             @PathVariable("teamId") Long teamId, @PathVariable("memberId") Long memberId,
             @RequestParam(defaultValue = "0", name="page") int page,
-            @RequestParam(defaultValue = "0", name = "size") int size){
+            @RequestParam(defaultValue = "10", name = "size") int size){
         return ResponseEntity.ok(postService.findPostsByTeamAndMember(teamId, memberId, page, size));
     }
 
     @GetMapping("/{memberId}/teams/{teamId}/comments")
     public ResponseEntity<?> getMemberComments(
-            @PathVariable Long teamId,
-            @PathVariable Long memberId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @PathVariable("teamId") Long teamId,
+            @PathVariable("memberId") Long memberId,
+            @RequestParam(defaultValue = "0", name="page") int page,
+            @RequestParam(defaultValue = "10", name="size") int size) {
 
         return ResponseEntity.ok(commentService.findCommentsByTeamAndMember(teamId, memberId, page, size));
     }
