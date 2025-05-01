@@ -77,7 +77,7 @@ public class CommentService {
     }
 
     public Page<CommentResponse> findCommentsByTeamAndMember(Long teamId, Long memberId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
         return commentRepository.findByTeamIdAndAuthorId(teamId, memberId, pageable)
                 .map(CommentResponse::from);
     }
