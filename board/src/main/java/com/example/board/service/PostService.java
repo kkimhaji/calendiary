@@ -224,7 +224,7 @@ public class PostService {
     }
 
     public Page<PostSummaryDTO> findPostsByTeamAndMember(Long teamId, Long memberId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
         return postRepository.findByTeamIdAndAuthorId(teamId, memberId, pageable)
                 .map(this::convertToSummaryDTO);
     }
