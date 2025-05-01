@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 public record CommentResponse(
         Long id,
         String content,
+        Long authorId,
         String authorName,
         LocalDateTime createdDate,
         boolean isDeleted,
@@ -29,6 +30,7 @@ public record CommentResponse(
         return new CommentResponse(
                 comment.getId(),
                 comment.getContent(),
+                comment.getAuthor().getMemberId(),
                 comment.getAuthor() != null ? comment.getAuthor().getNickname() : "Unknown", // 작성자 정보 처리
                 comment.getCreatedDate(),
                 comment.isDeleted(),
