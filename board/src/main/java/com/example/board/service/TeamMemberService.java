@@ -5,7 +5,6 @@ import com.example.board.domain.post.CommentRepository;
 import com.example.board.domain.post.Post;
 import com.example.board.domain.post.PostRepository;
 import com.example.board.domain.role.TeamRole;
-import com.example.board.domain.role.TeamRoleRepository;
 import com.example.board.domain.team.Team;
 import com.example.board.domain.team.TeamRepository;
 import com.example.board.domain.teamMember.TeamMember;
@@ -15,6 +14,7 @@ import com.example.board.dto.teamMember.TeamMemberDTO;
 import com.example.board.dto.teamMember.TeamMemberInfoListDTO;
 import com.example.board.dto.team.TeamInfoResponse;
 import com.example.board.dto.team.TeamListDTO;
+import com.example.board.dto.teamMember.TeamNicknameAndRoleName;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,7 +34,6 @@ import java.util.stream.Collectors;
 public class TeamMemberService {
     private final TeamMemberRepository teamMemberRepository;
     private final TeamRepository teamRepository;
-    private final TeamRoleRepository teamRoleRepository;
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
     private final ImageService imageService;
@@ -63,9 +63,45 @@ public class TeamMemberService {
         return teamMemberRepository.findMembersByRoleId(roleId);
     }
 
+    public TeamNicknameAndRoleName getMembersInfo(Long teamId, Long memberId){
+        Optional<TeamNicknameAndRoleName> memberInfoOpt =
+                teamMemberRepository.findTeamNicknameAndRoleNameByTeamIdAndMemberId(
+                        teamId, memberId);
+    }
+
     @Transactional(readOnly = true)
     public List<TeamMemberInfoListDTO> getTeamMembersWithRole(Long teamId) {
-        return teamMemberRepository.findMembersByTeamId(teamId);
+        List<TeamMemberInfoListDTO> members = teamMemberRepository.findMembersByTeamId(teamId);
+        return members.stream()
+                .map(dto -> new TeamMemberInfoListDTO(
+                        maskEmail(dto.email()),
+                        dto.teamNickname(),
+                        dto.roleName(),
+                        dto.roleId()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    private String maskEmail(String email) {
+        if (email == null || !email.contains("@")) {
+            return email;
+        }
+
+        String[] parts = email.split("@", 2);
+        String localPart = parts[0];
+        String domainPart = parts[1];
+
+        // 로컬 부분 마스킹 처리
+        String maskedLocalPart;
+        if (localPart.length() <= 2) {
+            // 2글자 이하인 경우 첫 글자만 보이고 나머지 *
+            maskedLocalPart = localPart.substring(0, 1) + "*".repeat(localPart.length() - 1);
+        } else {
+            // 2글자 초과인 경우 첫 2글자만 보이고 나머지 *
+            maskedLocalPart = localPart.substring(0, 2) + "*".repeat(localPart.length() - 2);
+        }
+
+        return maskedLocalPart + "@" + domainPart;
     }
 
     @Transactional(readOnly = true)

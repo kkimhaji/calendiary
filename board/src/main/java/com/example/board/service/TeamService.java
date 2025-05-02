@@ -68,7 +68,7 @@ public class TeamService {
         TeamInfoDTO teamInfo = teamRepository.findTeamDetailsById(teamId)
                 .orElseThrow(() -> new EntityNotFoundException("Team not found"));
 
-// 케이스 1: 로그인 사용자가 팀 멤버인 경우
+        // 케이스 1: 로그인 사용자가 팀 멤버인 경우
         if (principal != null) {
             Optional<TeamNicknameAndRoleName> memberInfoOpt =
                     teamMemberRepository.findTeamNicknameAndRoleNameByTeamIdAndMemberId(

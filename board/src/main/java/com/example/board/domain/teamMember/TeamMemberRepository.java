@@ -67,7 +67,7 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
     List<TeamMemberDTO> findMembersByRoleId(@Param("roleId") Long roleId);
 
     @Query("SELECT new com.example.board.dto.teamMember.TeamMemberInfoListDTO(" +
-            "m.email, tm.teamNickname, r.roleName, r.id) " + // ✅ r.id 추가
+            "m.email, tm.teamNickname, r.roleName, r.id) " +
             "FROM TeamMember tm " +
             "JOIN tm.member m " +
             "JOIN tm.role r " +
