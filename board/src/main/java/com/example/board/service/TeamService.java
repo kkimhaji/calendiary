@@ -11,7 +11,7 @@ import com.example.board.domain.team.TeamInviteRepository;
 import com.example.board.domain.team.TeamRepository;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.teamMember.TeamMemberRepository;
-import com.example.board.dto.teamMember.TeamNicknameAndRoleName;
+import com.example.board.dto.teamMember.TeamMemberInfo;
 import com.example.board.dto.team.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -70,8 +70,8 @@ public class TeamService {
 
         // 케이스 1: 로그인 사용자가 팀 멤버인 경우
         if (principal != null) {
-            Optional<TeamNicknameAndRoleName> memberInfoOpt =
-                    teamMemberRepository.findTeamNicknameAndRoleNameByTeamIdAndMemberId(
+            Optional<TeamMemberInfo> memberInfoOpt =
+                    teamMemberRepository.findTeamMemberInfoFromTeamIdAndMemberId(
                             teamId, principal.getMember().getMemberId());
 
             if (memberInfoOpt.isPresent()) {

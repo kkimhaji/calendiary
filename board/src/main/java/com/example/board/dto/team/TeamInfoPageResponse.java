@@ -1,7 +1,7 @@
 package com.example.board.dto.team;
 
 import com.example.board.domain.team.enums.UserTeamStatus;
-import com.example.board.dto.teamMember.TeamNicknameAndRoleName;
+import com.example.board.dto.teamMember.TeamMemberInfo;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.time.LocalDateTime;
@@ -14,37 +14,44 @@ public record TeamInfoPageResponse(
         LocalDateTime createdAt,
         long memberCount,
         @JsonInclude(JsonInclude.Include.NON_NULL)
-        String teamNickname,
-        @JsonInclude(JsonInclude.Include.NON_NULL)
-        String roleName,
+        TeamMemberInfo teamMemberInfo,
         UserTeamStatus userStatus
 ) {
-    public static TeamInfoPageResponse fromTeamMember(TeamInfoDTO teamInfo, TeamNicknameAndRoleName memberInfo) {
+    public static TeamInfoPageResponse fromTeamMember(TeamInfoDTO teamInfo, TeamMemberInfo memberInfo) {
         return new TeamInfoPageResponse(
-                teamInfo.id(), teamInfo.name(), teamInfo.description(),
-                teamInfo.created_by(), teamInfo.createdAt(),
+                teamInfo.id(),
+                teamInfo.name(),
+                teamInfo.description(),
+                teamInfo.created_by(),
+                teamInfo.createdAt(),
                 teamInfo.memberCount(),
-                memberInfo.teamNickname(), memberInfo.roleName(),
+                memberInfo,
                 UserTeamStatus.TEAM_MEMBER
         );
     }
 
     public static TeamInfoPageResponse fromInvite(TeamInfoDTO teamInfo) {
         return new TeamInfoPageResponse(
-                teamInfo.id(), teamInfo.name(), teamInfo.description(),
-                teamInfo.created_by(), teamInfo.createdAt(),
+                teamInfo.id(),
+                teamInfo.name(),
+                teamInfo.description(),
+                teamInfo.created_by(),
+                teamInfo.createdAt(),
                 teamInfo.memberCount(),
-                null, null,
+                null,
                 UserTeamStatus.VALID_INVITE
         );
     }
 
     public static TeamInfoPageResponse noAccess(TeamInfoDTO teamInfo) {
         return new TeamInfoPageResponse(
-                teamInfo.id(), teamInfo.name(), teamInfo.description(),
-                teamInfo.created_by(), teamInfo.createdAt(),
+                teamInfo.id(),
+                teamInfo.name(),
+                teamInfo.description(),
+                teamInfo.created_by(),
+                teamInfo.createdAt(),
                 teamInfo.memberCount(),
-                null, null,
+                null,
                 UserTeamStatus.NO_ACCESS
         );
     }

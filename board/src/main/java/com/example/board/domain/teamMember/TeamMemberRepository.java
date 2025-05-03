@@ -5,7 +5,7 @@ import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.team.Team;
 import com.example.board.dto.teamMember.TeamMemberDTO;
 import com.example.board.dto.teamMember.TeamMemberInfoListDTO;
-import com.example.board.dto.teamMember.TeamNicknameAndRoleName;
+import com.example.board.dto.teamMember.TeamMemberInfo;
 import com.example.board.dto.team.TeamInfoResponse;
 import com.example.board.dto.team.TeamListDTO;
 import org.springframework.data.domain.Page;
@@ -106,11 +106,11 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
             "FROM TeamMember tm WHERE tm.member.id = :memberId")
     List<TeamInfoResponse> findTeamInfoAndNicknameByMemberId(@Param("memberId") Long memberId);
 
-    @Query("SELECT new com.example.board.dto.teamMember.TeamNicknameAndRoleName(tm.teamNickname, r.roleName) " +
+    @Query("SELECT new com.example.board.dto.teamMember.TeamMemberInfo(tm.teamNickname, r.roleName, tm.joinedAt) " +
             "FROM TeamMember tm " +
             "JOIN tm.role r " +
             "WHERE tm.team.id = :teamId AND tm.member.id = :memberId")
-    Optional<TeamNicknameAndRoleName> findTeamNicknameAndRoleNameByTeamIdAndMemberId(
+    Optional<TeamMemberInfo> findTeamMemberInfoFromTeamIdAndMemberId(
             @Param("teamId") Long teamId,
             @Param("memberId") Long memberId
     );

@@ -14,7 +14,7 @@ import com.example.board.dto.teamMember.TeamMemberDTO;
 import com.example.board.dto.teamMember.TeamMemberInfoListDTO;
 import com.example.board.dto.team.TeamInfoResponse;
 import com.example.board.dto.team.TeamListDTO;
-import com.example.board.dto.teamMember.TeamNicknameAndRoleName;
+import com.example.board.dto.teamMember.TeamMemberInfo;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -63,9 +63,9 @@ public class TeamMemberService {
         return teamMemberRepository.findMembersByRoleId(roleId);
     }
 
-    public TeamNicknameAndRoleName getMembersInfo(Long teamId, Long memberId){
-        Optional<TeamNicknameAndRoleName> memberInfoOpt =
-                teamMemberRepository.findTeamNicknameAndRoleNameByTeamIdAndMemberId(
+    public TeamMemberInfo getMembersInfo(Long teamId, Long memberId){
+        Optional<TeamMemberInfo> memberInfoOpt =
+                teamMemberRepository.findTeamMemberInfoFromTeamIdAndMemberId(
                         teamId, memberId);
 
     }
