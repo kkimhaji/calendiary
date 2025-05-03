@@ -67,6 +67,7 @@ public class TeamMemberService {
         Optional<TeamNicknameAndRoleName> memberInfoOpt =
                 teamMemberRepository.findTeamNicknameAndRoleNameByTeamIdAndMemberId(
                         teamId, memberId);
+
     }
 
     @Transactional(readOnly = true)
@@ -98,7 +99,7 @@ public class TeamMemberService {
             maskedLocalPart = localPart.substring(0, 1) + "*".repeat(localPart.length() - 1);
         } else {
             // 2글자 초과인 경우 첫 2글자만 보이고 나머지 *
-            maskedLocalPart = localPart.substring(0, 2) + "*".repeat(localPart.length() - 2);
+            maskedLocalPart = localPart.substring(0, 3) + "*".repeat(localPart.length() - 3);
         }
 
         return maskedLocalPart + "@" + domainPart;
