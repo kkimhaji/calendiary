@@ -89,7 +89,7 @@ public class MemberController {
         return ResponseEntity.ok(commentService.findCommentsByTeamAndMember(teamId, memberId, page, size));
     }
 
-    @GetMapping("{memberId}/teams/{teamId}")
+    @GetMapping("/{memberId}/teams/{teamId}")
     public ResponseEntity<MemberProfileResponse> getTeamMemberProfile(
             @PathVariable("teamId") Long teamId, @PathVariable("memberId") Long memberId
     ){
