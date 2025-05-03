@@ -65,8 +65,15 @@ public class TeamMemberService {
     }
 
     public MemberProfileResponse getTeamMemberProfile(Long teamId, Long memberId){
-        return teamMemberRepository.findMemberProfileByTeamIdAndMemberId(teamId, memberId)
+        MemberProfileResponse dto = teamMemberRepository.findMemberProfileByTeamIdAndMemberId(teamId, memberId)
                 .orElseThrow(() -> new EntityNotFoundException("team member not found"));
+
+        return new MemberProfileResponse(
+                maskEmail(dto.email()),
+                dto.teamNickname(),
+                dto.roleName(),
+                dto.joinedAt()
+                );
     }
 
     @Transactional(readOnly = true)
