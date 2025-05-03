@@ -8,6 +8,7 @@ import com.example.board.dto.member.PasswordChangeRequest;
 import com.example.board.dto.member.VerifyPasswordRequest;
 import com.example.board.dto.team.TeamInfoResponse;
 import com.example.board.dto.team.TeamListDTO;
+import com.example.board.dto.teamMember.MemberProfileResponse;
 import com.example.board.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -86,5 +87,12 @@ public class MemberController {
             @RequestParam(defaultValue = "10", name="size") int size) {
 
         return ResponseEntity.ok(commentService.findCommentsByTeamAndMember(teamId, memberId, page, size));
+    }
+
+    @GetMapping("{memberId}/teams/{teamId}")
+    public ResponseEntity<MemberProfileResponse> getTeamMemberProfile(
+            @PathVariable("teamId") Long teamId, @PathVariable("memberId") Long memberId
+    ){
+        return ResponseEntity.ok(teamMemberService.getTeamMemberProfile(teamId, memberId));
     }
 }

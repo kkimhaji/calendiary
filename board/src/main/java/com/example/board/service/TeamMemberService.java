@@ -10,6 +10,7 @@ import com.example.board.domain.team.TeamRepository;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.teamMember.TeamMemberRepository;
 import com.example.board.dto.member.AddTeamMemberToRoleDTO;
+import com.example.board.dto.teamMember.MemberProfileResponse;
 import com.example.board.dto.teamMember.TeamMemberDTO;
 import com.example.board.dto.teamMember.TeamMemberInfoListDTO;
 import com.example.board.dto.team.TeamInfoResponse;
@@ -48,7 +49,7 @@ public class TeamMemberService {
     @Transactional
     public String updateTeamNickname(Long teamId, Member member, String newNickname) {
         TeamMember teamMember = teamMemberRepository.findByTeamIdAndMemberId(teamId, member.getMemberId())
-                .orElseThrow(() -> new EntityNotFoundException("cannot found team member"));
+                .orElseThrow(() -> new EntityNotFoundException("cannot find team member"));
 
         teamMember.updateTeamNickname(newNickname);
         return newNickname;
@@ -63,11 +64,9 @@ public class TeamMemberService {
         return teamMemberRepository.findMembersByRoleId(roleId);
     }
 
-    public TeamMemberInfo getMembersInfo(Long teamId, Long memberId){
-        Optional<TeamMemberInfo> memberInfoOpt =
-                teamMemberRepository.findTeamMemberInfoFromTeamIdAndMemberId(
-                        teamId, memberId);
-
+    public MemberProfileResponse getTeamMemberProfile(Long teamId, Long memberId){
+        return teamMemberRepository.findMemberProfileByTeamIdAndMemberId(teamId, memberId)
+                .orElseThrow(() -> new EntityNotFoundException("team member not found"));
     }
 
     @Transactional(readOnly = true)

@@ -3,6 +3,7 @@ package com.example.board.domain.teamMember;
 import com.example.board.domain.member.Member;
 import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.team.Team;
+import com.example.board.dto.teamMember.MemberProfileResponse;
 import com.example.board.dto.teamMember.TeamMemberDTO;
 import com.example.board.dto.teamMember.TeamMemberInfoListDTO;
 import com.example.board.dto.teamMember.TeamMemberInfo;
@@ -117,4 +118,14 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
 
     //팀 탈퇴 시 마지막으로 남은 관리자인지 확인
     int countByTeamIdAndRoleId(Long teamId, Long roleId);
+
+    @Query("SELECT new com.example.board.dto.teamMember.MemberProfileResponse(" +
+            "m.email, tm.teamNickname, r.roleName, tm.joinedAt) " +
+            "FROM TeamMember tm " +
+            "JOIN tm.member m " +
+            "JOIN tm.role r " +
+            "WHERE tm.team.id = :teamId AND m.id = :memberId")
+    Optional<MemberProfileResponse> findMemberProfileByTeamIdAndMemberId(
+            @Param("teamId") Long teamId,
+            @Param("memberId") Long memberId);
 }
