@@ -17,11 +17,18 @@ public record PostResponse(
         LocalDateTime modifiedDate
 ) {
     public static PostResponse from(Post post){
+        String nickname = "Unknown";
+        if (post.getAuthor() != null) {
+            nickname = post.getAuthor().getNickname();
+            if (nickname.length() > 7) {
+                nickname = nickname.substring(0, 5) + "...";
+            }
+        }
         return new PostResponse(
                 post.getId(),
                 post.getTitle(),
                 post.getContent(),
-                post.getAuthor() != null ? post.getAuthor().getNickname() : "Unknown",
+                nickname,
                 post.getTeam().getId(),
                 post.getCategory() != null ? post.getCategory().getId() : null,
                 post.getCategory() != null ? post.getCategory().getName() : "No Category",
