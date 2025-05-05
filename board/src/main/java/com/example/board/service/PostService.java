@@ -97,13 +97,6 @@ public class PostService {
         return CommentResponse.from(comment, replies);
     }
 
-    //최근 게시글 조회
-    @Transactional(readOnly = true)
-    @Cacheable(value = "recentPosts", key = "#categoryId")
-    public List<PostSummaryDTO> getRecentCategoryPosts(Long categoryId, int limit) {
-        return postRepository.findRecentPostsByCategoryId(categoryId, PageRequest.of(0, limit));
-    }
-
     public TeamRecentPostsResponse getRecentPosts(Long teamId, Pageable pageable) {
         String teamName = teamRepository.findById(teamId).orElseThrow(()->new EntityNotFoundException("team not found")).getName();
         Page<PostListResponse> posts = postRepository.findRecentPostsByTeamId(teamId, pageable);
@@ -223,19 +216,10 @@ public class PostService {
                 .map(PostResponse::from);
     }
 
-    public Page<PostSummaryDTO> findPostsByTeamAndMember(Long teamId, Long memberId, int page, int size) {
+    public Page<PostResponse> findPostsByTeamAndMember(Long teamId, Long memberId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
         return postRepository.findByTeamIdAndAuthorId(teamId, memberId, pageable)
-                .map(this::convertToSummaryDTO);
+                .map(PostResponse::from);
     }
 
-    // Post 엔티티를 DTO로 변환
-    private PostSummaryDTO convertToSummaryDTO(Post post) {
-        return new PostSummaryDTO(
-                post.getId(),
-                post.getTitle(),
-                post.getContent().substring(0, Math.min(post.getContent().length(), 100)) + "...",
-                post.getCreatedDate()
-        );
-    }
 }
