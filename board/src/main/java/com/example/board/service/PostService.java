@@ -216,10 +216,9 @@ public class PostService {
                 .map(PostResponse::from);
     }
 
-    public Page<PostResponse> findPostsByTeamAndMember(Long teamId, Long memberId, int page, int size) {
+    public Page<PostListResponse> findPostsByTeamAndMember(Long teamId, Long memberId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
-        return postRepository.findByTeamIdAndAuthorId(teamId, memberId, pageable)
-                .map(PostResponse::from);
+        return postRepository.findPostListResponseByTeamIdAndAuthorId(teamId, memberId, pageable);
     }
 
 }

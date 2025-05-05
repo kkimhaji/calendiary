@@ -47,8 +47,14 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             Pageable pageable
     );
 
-    @Query("SELECT p FROM Post p WHERE p.category.team.id = :teamId AND p.author.id = :authorId")
-    Page<Post> findByTeamIdAndAuthorId(
+    @Query("SELECT new com.example.board.dto.post.PostListResponse(" +
+            "p.id, p.title, a.nickname, c.name, c.id, p.viewCount, p.createdDate, " +
+            "(SELECT COUNT(cm) FROM Comment cm WHERE cm.post = p)) " +
+            "FROM Post p " +
+            "JOIN p.author a " +
+            "JOIN p.category c " +
+            "WHERE c.team.id = :teamId AND a.id = :authorId")
+    Page<PostListResponse> findPostListResponseByTeamIdAndAuthorId(
             @Param("teamId") Long teamId,
             @Param("authorId") Long authorId,
             Pageable pageable);

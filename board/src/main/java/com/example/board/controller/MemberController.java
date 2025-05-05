@@ -1,13 +1,12 @@
 package com.example.board.controller;
 
 import com.example.board.auth.UserPrincipal;
-import com.example.board.dto.comment.CommentResponse;
 import com.example.board.dto.comment.MemberCommentResponse;
 import com.example.board.dto.member.MemberInfoResponse;
 import com.example.board.dto.member.MemberInfoSummaryResponse;
 import com.example.board.dto.member.PasswordChangeRequest;
 import com.example.board.dto.member.VerifyPasswordRequest;
-import com.example.board.dto.post.PostResponse;
+import com.example.board.dto.post.PostListResponse;
 import com.example.board.dto.team.TeamInfoResponse;
 import com.example.board.dto.team.TeamListDTO;
 import com.example.board.dto.teamMember.MemberProfileResponse;
@@ -74,7 +73,7 @@ public class MemberController {
     }
 
     @GetMapping("/{memberId}/teams/{teamId}/posts")
-    public ResponseEntity<Page<PostResponse>> getMemberPosts(
+    public ResponseEntity<Page<PostListResponse>> getMemberPosts(
             @PathVariable("teamId") Long teamId, @PathVariable("memberId") Long memberId,
             @RequestParam(defaultValue = "0", name="page") int page,
             @RequestParam(defaultValue = "10", name = "size") int size){
