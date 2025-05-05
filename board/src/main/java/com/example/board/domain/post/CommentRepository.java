@@ -1,6 +1,7 @@
 package com.example.board.domain.post;
 
 import com.example.board.dto.comment.CommentResponse;
+import com.example.board.dto.comment.MemberCommentResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -49,6 +50,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     List<Comment> findByPostIdWithAuthorAndReplies(@Param("postId") Long postId);
 
     void deleteAllByPostId(Long postId);
+
     void deleteAllByPostIdIn(List<Long> postIds);
 
     @Modifying
@@ -60,5 +62,19 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     Page<Comment> findByTeamIdAndAuthorId(
             @Param("teamId") Long teamId,
             @Param("authorId") Long authorId,
+            Pageable pageable);
+
+    @Query("SELECT new com.example.board.dto.comment.MemberCommentResponse(" +
+            "c.id, c.content, c.author.id, c.author.nickname, c.createdDate, c.isDeleted, " +
+            "p.id, p.title, cat.id, cat.name, t.id) " +
+            "FROM Comment c " +
+            "JOIN c.post p " +
+            "JOIN p.category cat " +
+            "JOIN cat.team t " +
+            "WHERE c.author.memberId = :memberId AND t.id = :teamId " +
+            "ORDER BY c.createdDate DESC")
+    Page<MemberCommentResponse> findCommentsByMemberIdAndTeamId(
+            @Param("memberId") Long memberId,
+            @Param("teamId") Long teamId,
             Pageable pageable);
 }

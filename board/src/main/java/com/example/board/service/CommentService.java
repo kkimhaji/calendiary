@@ -7,6 +7,7 @@ import com.example.board.domain.post.Post;
 import com.example.board.domain.post.PostRepository;
 import com.example.board.dto.comment.CommentResponse;
 import com.example.board.dto.comment.CreateCommentRequest;
+import com.example.board.dto.comment.MemberCommentResponse;
 import com.example.board.permission.CategoryPermission;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -76,10 +77,9 @@ public class CommentService {
                 .map(CommentResponse::from).toList();
     }
 
-    public Page<CommentResponse> findCommentsByTeamAndMember(Long teamId, Long memberId, int page, int size) {
+    @Transactional(readOnly = true)
+    public Page<MemberCommentResponse> findCommentsByTeamAndMember(Long teamId, Long memberId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
-        return commentRepository.findByTeamIdAndAuthorId(teamId, memberId, pageable)
-                .map(CommentResponse::from);
+        return commentRepository.findCommentsByMemberIdAndTeamId(memberId, teamId, pageable);
     }
-
 }
