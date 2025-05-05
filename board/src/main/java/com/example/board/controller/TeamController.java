@@ -4,7 +4,6 @@ import com.example.board.auth.UserPrincipal;
 import com.example.board.domain.team.enums.UserTeamStatus;
 import com.example.board.dto.PageResponse;
 import com.example.board.dto.member.AddTeamMemberToRoleDTO;
-import com.example.board.dto.post.PostSummaryDTO;
 import com.example.board.dto.teamMember.TeamMemberInfoListDTO;
 import com.example.board.dto.team.*;
 import com.example.board.dto.teamMember.ChangeTeamNicknameRequest;

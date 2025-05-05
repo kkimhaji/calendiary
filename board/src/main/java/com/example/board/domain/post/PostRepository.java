@@ -3,7 +3,6 @@ package com.example.board.domain.post;
 import com.example.board.domain.member.Member;
 import com.example.board.domain.team.TeamCategory;
 import com.example.board.dto.post.PostListResponse;
-import com.example.board.dto.post.PostSummaryDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -54,16 +53,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             @Param("authorId") Long authorId,
             Pageable pageable);
 
-    // 최근 게시글 요약 정보
-    @Query("SELECT new com.example.board.dto.post.PostSummaryDTO(" +
-            "p.id, p.title, p.createdDate) " +
-            "FROM Post p " +
-            "WHERE p.category.id = :categoryId " +
-            "ORDER BY p.createdDate DESC")
-    List<PostSummaryDTO> findRecentPostsByCategoryId(
-            @Param("categoryId") Long categoryId,
-            Pageable pageable
-    );
 
     @Modifying
     @Query("UPDATE Post p SET p.viewCount = p.viewCount + :count WHERE p.id = :postId")
