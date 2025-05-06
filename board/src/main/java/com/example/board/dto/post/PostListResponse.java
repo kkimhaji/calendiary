@@ -15,10 +15,17 @@ public record PostListResponse(
         long commentCount
 ) {
     public static PostListResponse from(Post post){
+        String nickname = "Unknown";
+        if (post.getTeamMember() != null) {
+            nickname = post.getTeamMember().getTeamNickname();
+            if (nickname.length() > 7) {
+                nickname = nickname.substring(0, 5) + "...";
+            }
+        }
         return new PostListResponse(
                 post.getId(),
                 post.getTitle(),
-                post.getAuthor().getNickname(),
+                nickname,
                 post.getCategory().getName(),
                 post.getCategory().getId(),
                 post.getViewCount(),

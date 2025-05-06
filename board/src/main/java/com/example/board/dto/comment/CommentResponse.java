@@ -31,7 +31,7 @@ public record CommentResponse(
                 comment.getId(),
                 comment.getContent(),
                 comment.getAuthor().getMemberId(),
-                comment.getAuthor() != null ? comment.getAuthor().getNickname() : "Unknown", // 작성자 정보 처리
+                comment.getTeamMember().getTeamNickname() != null ? comment.getTeamMember().getTeamNickname() : "Unknown",
                 comment.getCreatedDate(),
                 comment.isDeleted(),
                 replies

@@ -2,6 +2,7 @@ package com.example.board.domain.post;
 
 import com.example.board.domain.BaseTimeEntity;
 import com.example.board.domain.member.Member;
+import com.example.board.domain.teamMember.TeamMember;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -31,6 +32,10 @@ public class Comment extends BaseTimeEntity {
     private Member author;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "team_member_id")
+    private TeamMember teamMember;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     private Comment parent;
 
@@ -42,10 +47,11 @@ public class Comment extends BaseTimeEntity {
     private boolean isDeleted = false;
 
     @Builder
-    public Comment(String content, Post post, Member author, Comment parent, int depth) {
+    public Comment(String content, Post post, Member author, Comment parent, int depth, TeamMember teamMember) {
         this.content = content;
         this.post = post;
         this.author = author;
+        this.teamMember = teamMember;
         this.parent = parent;
         this.depth = depth;
     }

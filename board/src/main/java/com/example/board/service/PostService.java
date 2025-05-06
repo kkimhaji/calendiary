@@ -60,7 +60,10 @@ public class PostService {
         //이미지 처리
         String processedContent = imageService.processContentImages(htmlSanitizer.sanitize(request.content()));
 
-        Post post = request.toEntity(processedContent, team, category, author);
+        TeamMember teamMember = teamMemberRepository.findByTeamIdAndMember(teamId, author)
+                .orElseThrow(() -> new EntityNotFoundException("team member not found"));
+
+        Post post = request.toEntity(processedContent, team, category, author, teamMember);
 
         List<String> permUrls = imageService.extractImageUrlsFromContent(processedContent).stream()
                 .filter(url -> url.contains("/perm-images/")).toList();

@@ -22,7 +22,7 @@ public record MemberCommentResponse(
                 comment.getId(),
                 comment.getContent(),
                 comment.getAuthor().getMemberId(),
-                comment.getAuthor().getNickname(),
+                comment.getTeamMember().getTeamNickname(),
                 comment.getCreatedDate(),
                 comment.isDeleted(),
                 comment.getPost().getId(),
