@@ -13,7 +13,6 @@ import com.example.board.permission.utils.PermissionUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.assertj.core.util.Arrays;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
