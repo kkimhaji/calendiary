@@ -7,7 +7,14 @@ public record AuthorDTO(
         Long id,
         String username
 ) {
-    public static AuthorDTO from(Member member, TeamMember teamMember){
-        return new AuthorDTO(member.getMemberId(), teamMember.getTeamNickname());
+    public static AuthorDTO from(Member author, TeamMember teamMember){
+        String displayName = "Unknown";
+        if (author != null) {
+            // teamMember가 null이 아닌 경우 teamNickname 사용
+            if (teamMember != null) {
+                displayName = teamMember.getTeamNickname();
+            }
+        }
+        return new AuthorDTO(author.getMemberId(), displayName);
     }
 }
