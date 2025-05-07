@@ -18,8 +18,8 @@ public record PostResponse(
 ) {
     public static PostResponse from(Post post){
         String nickname = "Unknown";
-        if (post.getAuthor() != null) {
-            nickname = post.getAuthor().getNickname();
+        if (post.getTeamMember() != null) {
+            nickname = post.getTeamMember().getTeamNickname();
             if (nickname.length() > 7) {
                 nickname = nickname.substring(0, 5) + "...";
             }

@@ -5,6 +5,8 @@ import com.example.board.domain.post.Comment;
 import com.example.board.domain.post.CommentRepository;
 import com.example.board.domain.post.Post;
 import com.example.board.domain.post.PostRepository;
+import com.example.board.domain.teamMember.TeamMember;
+import com.example.board.domain.teamMember.TeamMemberRepository;
 import com.example.board.dto.comment.CommentResponse;
 import com.example.board.dto.comment.CreateCommentRequest;
 import com.example.board.dto.comment.MemberCommentResponse;
@@ -26,9 +28,8 @@ import java.util.List;
 public class CommentService {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
-    private final TeamService teamService;
     private final CategoryService categoryService;
-    private final TeamMemberService teamMemberService;
+    private final TeamMemberRepository teamMemberRepository;
     private static final int MAX_DEPTH = 2;
 
     @Transactional
@@ -36,6 +37,10 @@ public class CommentService {
         Post post = postRepository.findById(postId).orElseThrow(()->new EntityNotFoundException("post not found"));
         if (!categoryService.checkCategoryPermission(post.getCategory().getId(), member, CategoryPermission.CREATE_COMMENT))
             throw new AccessDeniedException("댓글을 작성할 권한이 없습니다.");
+
+        long teamId = post.getTeam().getId();
+        TeamMember teamMember = teamMemberRepository.findByTeamIdAndMember(teamId, member)
+                .orElseThrow(() -> new EntityNotFoundException("team member not found"));
 
         Comment parent = null;
         //부모가 있을 때만 부모 댓글 조회
@@ -46,7 +51,7 @@ public class CommentService {
                     .orElseThrow(() -> new EntityNotFoundException("Parent comment not found"));
         }
 
-        Comment comment = request.toEntity(post, member, parent);
+        Comment comment = request.toEntity(post, member, parent, teamMember);
         post.addComment(comment);
 
         return CommentResponse.from(commentRepository.save(comment));

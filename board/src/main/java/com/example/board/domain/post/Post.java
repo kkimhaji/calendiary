@@ -4,6 +4,7 @@ import com.example.board.domain.BaseTimeEntity;
 import com.example.board.domain.member.Member;
 import com.example.board.domain.team.Team;
 import com.example.board.domain.team.TeamCategory;
+import com.example.board.domain.teamMember.TeamMember;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -31,6 +32,10 @@ public class Post extends BaseTimeEntity {
     @JoinColumn(name = "author_id")
     private Member author;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="team_member_id")
+    private TeamMember teamMember;
+
     @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
@@ -49,12 +54,13 @@ public class Post extends BaseTimeEntity {
 
 
     @Builder
-    public Post(Long id, String title, String content, Member author, Team team, TeamCategory category){
+    public Post(Long id, String title, String content, Member author, Team team, TeamCategory category, TeamMember teamMember){
         this.id = id;
         this.title = title;
         this.content = content;
         this.author = author;
         this.team = team;
+        this.teamMember = teamMember;
         this.category = category;
     }
 

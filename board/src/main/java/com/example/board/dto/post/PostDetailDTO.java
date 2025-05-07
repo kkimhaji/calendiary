@@ -26,7 +26,7 @@ public record PostDetailDTO(
                 post.getId(),
                 post.getTitle(),
                 post.getContent(),
-                AuthorDTO.from(post.getAuthor()),
+                AuthorDTO.from(post.getAuthor(), post.getTeamMember()),
                 post.getCategory().getName(),
                 post.getCreatedDate(),
                 post.getImages().stream()
