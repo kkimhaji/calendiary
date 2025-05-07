@@ -14,7 +14,7 @@ public record PostResponse(
         String categoryName,
         int viewCount,
         LocalDateTime createdDate,
-        LocalDateTime modifiedDate
+        long commentCount
 ) {
     public static PostResponse from(Post post){
         String nickname = "Unknown";
@@ -34,7 +34,7 @@ public record PostResponse(
                 post.getCategory() != null ? post.getCategory().getName() : "No Category",
                 post.getViewCount(),
                 post.getCreatedDate(),
-                post.getModifiedDate()
+                post.getComments().size()
         );
     }
 }
