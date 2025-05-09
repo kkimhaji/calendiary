@@ -1,15 +1,23 @@
 package com.example.board.config;
 
+import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
+import org.springframework.aop.interceptor.SimpleAsyncUncaughtExceptionHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.scheduling.annotation.AsyncConfigurer;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.concurrent.Executor;
 
-// Thread Pool 설정
 @Configuration
-public class AsyncConfig {
-    @Bean
+@EnableAsync
+public class AsyncConfig implements AsyncConfigurer {
+
+    @Bean(name = "asyncTaskExecutor")
+    @Primary
+    @Override
     public Executor getAsyncExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(5);
@@ -18,5 +26,10 @@ public class AsyncConfig {
         executor.setThreadNamePrefix("AsyncThread-");
         executor.initialize();
         return executor;
+    }
+
+    @Override
+    public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
+        return new SimpleAsyncUncaughtExceptionHandler();
     }
 }

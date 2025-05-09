@@ -5,6 +5,7 @@ import com.example.board.domain.post.Post;
 import com.example.board.domain.post.PostRepository;
 import com.example.board.dto.post.PostResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +26,7 @@ import java.util.stream.Stream;
 public class PostSearchService {
     private final PostRepository postRepository;
     private final AsyncConfig asyncConfig;
+    @Qualifier("asyncTaskExecutor")
     private final Executor asyncExecutor;
 
 //    public Page<PostResponse> searchPosts(Long teamId, String keyword, Pageable pageable) {
