@@ -60,7 +60,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             Pageable pageable);
 
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("UPDATE Post p SET p.viewCount = p.viewCount + :count WHERE p.id = :postId")
     void updateViewCount(@Param("postId") Long postId, @Param("count") long count);
 

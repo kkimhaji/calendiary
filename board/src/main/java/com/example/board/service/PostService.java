@@ -92,14 +92,6 @@ public class PostService {
         return PostDetailDTO.from(post);
     }
 
-    private CommentResponse convertToResponse(Comment comment) {
-        List<CommentResponse> replies = comment.getReplies().stream()
-                .map(this::convertToResponse) // 재귀적으로 대댓글 처리
-                .collect(Collectors.toList());
-
-        return CommentResponse.from(comment, replies);
-    }
-
     public TeamRecentPostsResponse getRecentPosts(Long teamId, Pageable pageable) {
         String teamName = teamRepository.findById(teamId).orElseThrow(()->new EntityNotFoundException("team not found")).getName();
         Page<PostListResponse> posts = postRepository.findRecentPostsByTeamId(teamId, pageable);
@@ -118,10 +110,26 @@ public class PostService {
     @Async
     public CompletableFuture<Void> increaseViewCount(Long postId) {
         return CompletableFuture.runAsync(() -> {
-                    AtomicLong viewCount = viewCountCache.computeIfAbsent(postId, k -> new AtomicLong(0));
-                    viewCount.incrementAndGet();
-                }
-        );
+            // 캐시에 조회수 증가
+            AtomicLong viewCount = viewCountCache.computeIfAbsent(postId, k -> new AtomicLong(0));
+            viewCount.incrementAndGet();
+
+            // 임계값(10)에 도달하면 즉시 DB에 반영
+            if (viewCount.get() >= 10) {
+                syncSinglePostViewCount(postId);
+            }
+        });
+    }
+
+    @Transactional
+    public void syncSinglePostViewCount(Long postId) {
+        AtomicLong countAtomic = viewCountCache.get(postId);
+        if (countAtomic != null) {
+            long count = countAtomic.getAndSet(0);
+            if (count > 0) {
+                postRepository.updateViewCount(postId, count);
+            }
+        }
     }
 
     // 주기적으로 캐시된 조회수를 DB에 반영
