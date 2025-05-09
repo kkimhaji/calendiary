@@ -17,6 +17,7 @@ public record PostDetailDTO(
         String content,
         AuthorDTO author,
         String categoryName,
+        long viewCount,
         LocalDateTime createdDate,
         List<String> imageUrls
 ) {
@@ -28,6 +29,7 @@ public record PostDetailDTO(
                 post.getContent(),
                 AuthorDTO.from(post.getAuthor(), post.getTeamMember()),
                 post.getCategory().getName(),
+                post.getViewCount(),
                 post.getCreatedDate(),
                 post.getImages().stream()
                                 .map(PostImage::getImageUrl)
