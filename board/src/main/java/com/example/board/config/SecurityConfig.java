@@ -5,6 +5,7 @@ import com.example.board.permission.evaluator.CategoryPermissionEvaluator;
 import com.example.board.permission.evaluator.DelegatingPermissionEvaluator;
 import com.example.board.permission.evaluator.TeamPermissionEvaluator;
 import com.example.board.service.LogoutService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -52,6 +53,14 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            // 인증 실패 시 JSON 응답 반환
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write("{\"error\":\"unauthorized\",\"message\":\"세션이 만료되었습니다.\"}");
+                        })
+                )
                 .logout(logout->
                         logout.logoutUrl("auth/logout")
                                 .addLogoutHandler(logoutService)
