@@ -1,8 +1,6 @@
 package com.example.board.controller;
 
 import com.example.board.auth.AuthenticationResponse;
-import com.example.board.auth.JwtService;
-import com.example.board.domain.member.Member;
 import com.example.board.dto.member.*;
 import com.example.board.service.AuthenticationService;
 import com.example.board.service.EmailService;
@@ -13,8 +11,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -26,7 +22,6 @@ public class AuthenticationController {
 
     private final AuthenticationService authService;
     private final EmailService emailService;
-    private final JwtService jwtService;
     private final MemberService memberService;
 
     @PostMapping("/register")
@@ -68,9 +63,6 @@ public class AuthenticationController {
         return ResponseEntity.ok(authService.validateToken(authHeader));
     }
 
-    /**
-     * 자동 로그인 옵션이 있는 로그인
-     */
     @PostMapping("/authenticate/auto-login")
     public ResponseEntity<AuthenticationResponse> authenticateWithAutoLogin(
             @RequestBody AuthenticationRequestDTO request,
@@ -78,9 +70,6 @@ public class AuthenticationController {
         return ResponseEntity.ok(authService.authenticateWithAutoLogin(request, response));
     }
 
-    /**
-     * 쿠키 기반 리프레시 토큰으로 액세스 토큰 갱신
-     */
     @PostMapping("/refresh-token")
     public ResponseEntity<AuthenticationResponse> refreshToken(
             HttpServletRequest request,
@@ -88,9 +77,6 @@ public class AuthenticationController {
         return ResponseEntity.ok(authService.refreshToken(request, response));
     }
 
-    /**
-     * 자동 로그인 시도
-     */
     @PostMapping("/auto-login")
     public ResponseEntity<AuthenticationResponse> attemptAutoLogin(
             HttpServletRequest request,
@@ -102,17 +88,14 @@ public class AuthenticationController {
         }
     }
 
-    /**
-     * 로그아웃
-     */
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
             HttpServletRequest request,
             HttpServletResponse response) {
-//        Cookie cookie = new Cookie("refresh_token", null);
-//        cookie.setMaxAge(0);
-//        cookie.setPath("/");
-//        response.addCookie(cookie);
+        Cookie cookie = new Cookie("refresh_token", null);
+        cookie.setMaxAge(0);
+        cookie.setPath("/");
+        response.addCookie(cookie);
         authService.logout(request, response);
         return ResponseEntity.ok().build();
     }

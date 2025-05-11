@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @Repository
 public interface TeamRepository extends JpaRepository<Team, Long> {
-//    List<Team> findAllByMember(Member member);
+
     @Query("SELECT new com.example.board.dto.team.TeamInfoDTO(" +
             "t.id, t.name, t.description, t.created_by.nickname, t.createdAt, " +
             "(SELECT COUNT(tm) FROM TeamMember tm WHERE tm.team = t)) " +

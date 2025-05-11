@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -28,44 +27,6 @@ public class PostSearchService {
     private final AsyncConfig asyncConfig;
     @Qualifier("asyncTaskExecutor")
     private final Executor asyncExecutor;
-
-//    public Page<PostResponse> searchPosts(Long teamId, String keyword, Pageable pageable) {
-//        // 1. 병렬 검색 작업 생성
-//        CompletableFuture<Page<Post>> titleFuture = CompletableFuture.supplyAsync(
-//                () -> postRepository.findByTitleContainingAndTeamId(keyword, teamId, pageable),
-//                asyncExecutor
-//        );
-//
-//        CompletableFuture<Page<Post>> contentFuture = CompletableFuture.supplyAsync(
-//                () -> postRepository.findByContentContainingAndTeamId(keyword, teamId, pageable),
-//                asyncExecutor
-//        );
-//
-//        // 2. 결과 병합
-//        return CompletableFuture.allOf(titleFuture, contentFuture)
-//                .thenApplyAsync(v -> {
-//                    try {
-//                        // 각 결과 추출
-//                        Page<Post> titleResults = titleFuture.get();
-//                        Page<Post> contentResults = contentFuture.get();
-//
-//                        // 순서 보장을 위한 스레드 안전 컬렉션
-//                        Set<Post> combinedSet = new LinkedHashSet<>();
-//                        combinedSet.addAll(titleResults.getContent());
-//                        combinedSet.addAll(contentResults.getContent());
-//
-//                        // 정렬 적용
-//                        List<Post> sortedList = sortPosts(new ArrayList<>(combinedSet), pageable.getSort());
-//
-//                        // 페이징 처리
-//                        return paginateList(sortedList, pageable);
-//
-//                    } catch (InterruptedException | ExecutionException e) {
-//                        throw new RuntimeException("검색 실패", e);
-//                    }
-//                }, asyncExecutor)
-//                .join();
-//    }
 
     public Page<PostResponse> searchPosts(
             Long teamId,

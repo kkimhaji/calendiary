@@ -21,14 +21,6 @@ public interface CategoryRepository extends JpaRepository<TeamCategory, Long> {
             @Param("roleId") Long roleId
     );
 
-    @Query("SELECT tc FROM TeamCategory tc " +
-            "LEFT JOIN FETCH tc.rolePermissions rp " +
-            "LEFT JOIN FETCH rp.role " +
-            "WHERE tc.team.id = :teamId")
-    List<TeamCategory> findAllByTeamWithPermissions(@Param("teamId") Long teamId);
-
-    Optional<Team> findTeamById(Long id);
-
     // 카테고리와 팀을 함께 조회 (N+1 문제 방지)
     @Query("SELECT c FROM TeamCategory c JOIN FETCH c.team WHERE c.id = :categoryId")
     Optional<TeamCategory> findWithTeamById(@Param("categoryId") Long categoryId);
