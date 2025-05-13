@@ -3,6 +3,7 @@ package com.example.board.service;
 import com.example.board.config.AsyncConfig;
 import com.example.board.domain.post.Post;
 import com.example.board.domain.post.PostRepository;
+import com.example.board.domain.post.enums.SearchType;
 import com.example.board.dto.post.PostResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -32,19 +33,33 @@ public class PostSearchService {
             Long teamId,
             String keyword,
             Long categoryId,  // 추가된 카테고리 ID 파라미터
-            Pageable pageable
+            Pageable pageable,
+            SearchType searchType
     ) {
-        CompletableFuture<Page<Post>> titleFuture = CompletableFuture.supplyAsync(
-                () -> postRepository.searchByTitle(keyword, teamId, categoryId, pageable),
-                asyncExecutor
-        );
+        switch (searchType) {
+            case TITLE:
+                // 제목만 검색
+                return postRepository.searchByTitle(keyword, teamId, categoryId, pageable)
+                        .map(PostResponse::from);
+            case CONTENT:
+                // 내용만 검색
+                return postRepository.searchByContent(keyword, teamId, categoryId, pageable)
+                        .map(PostResponse::from);
+            case BOTH:
+            default:
+                // 기존 코드처럼 두 결과 합치기
+                CompletableFuture<Page<Post>> titleFuture = CompletableFuture.supplyAsync(
+                        () -> postRepository.searchByTitle(keyword, teamId, categoryId, pageable),
+                        asyncExecutor
+                );
 
-        CompletableFuture<Page<Post>> contentFuture = CompletableFuture.supplyAsync(
-                () -> postRepository.searchByContent(keyword, teamId, categoryId, pageable),
-                asyncExecutor
-        );
+                CompletableFuture<Page<Post>> contentFuture = CompletableFuture.supplyAsync(
+                        () -> postRepository.searchByContent(keyword, teamId, categoryId, pageable),
+                        asyncExecutor
+                );
 
-        return processResults(titleFuture, contentFuture, pageable);
+                return processResults(titleFuture, contentFuture, pageable);
+        }
     }
 
     private Page<PostResponse> processResults(

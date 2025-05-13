@@ -2,6 +2,7 @@ package com.example.board.controller;
 
 import com.example.board.auth.UserPrincipal;
 import com.example.board.domain.post.Post;
+import com.example.board.domain.post.enums.SearchType;
 import com.example.board.dto.post.*;
 import com.example.board.service.ImageService;
 import com.example.board.service.PostSearchService;
@@ -121,10 +122,11 @@ public class PostController {
                     size = 20,
                     sort = "createdDate",
                     direction = Sort.Direction.DESC
-            ) Pageable pageable
-    ) {
+            ) Pageable pageable,
+            @RequestParam("searchType") SearchType searchType
+            ) {
         return ResponseEntity.ok(
-                searchService.searchPosts(teamId, keyword, categoryId, pageable)
+                searchService.searchPosts(teamId, keyword, categoryId, pageable, searchType)
         );
     }
 }

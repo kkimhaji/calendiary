@@ -92,6 +92,20 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     );
 
     @Query("SELECT p FROM Post p " +
+            "LEFT JOIN FETCH p.author " +
+            "LEFT JOIN FETCH p.category " +
+            "WHERE (p.title LIKE %:keyword% OR p.content LIKE %:keyword%) " +
+            "AND p.team.id = :teamId " +
+            "AND (:categoryId IS NULL OR p.category.id = :categoryId)")
+    Page<Post> searchByTitleOrContent(
+            @Param("keyword") String keyword,
+            @Param("teamId") Long teamId,
+            @Param("categoryId") Long categoryId,
+            Pageable pageable
+    );
+
+
+    @Query("SELECT p FROM Post p " +
             "WHERE p.team.id IN :teamIds " +
             "ORDER BY p.createdDate DESC")
     Page<Post> findByTeamIds(
