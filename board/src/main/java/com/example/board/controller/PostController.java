@@ -123,7 +123,7 @@ public class PostController {
                     sort = "createdDate",
                     direction = Sort.Direction.DESC
             ) Pageable pageable,
-            @RequestParam("searchType") SearchType searchType
+            @RequestParam(defaultValue = "BOTH", name = "searchType") SearchType searchType
             ) {
         return ResponseEntity.ok(
                 searchService.searchPosts(teamId, keyword, categoryId, pageable, searchType)
