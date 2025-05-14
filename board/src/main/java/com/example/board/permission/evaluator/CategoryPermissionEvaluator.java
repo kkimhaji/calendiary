@@ -9,7 +9,7 @@ import com.example.board.domain.team.TeamCategory;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.teamMember.TeamMemberRepository;
 import com.example.board.permission.CategoryPermission;
-import com.example.board.permission.utils.PermissionUtils;
+import com.example.board.permission.utils.PermissionConverter;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,17 +62,14 @@ public class CategoryPermissionEvaluator implements CustomPermissionEvaluator {
 
             // CategoryRolePermission에서 권한 확인
             for (CategoryRolePermission crp : categoryRolePermissions) {
-                log.debug("카테고리 권한 비트: {}, 확인할 권한: {}", crp.getPermissions(), categoryPermission);
+            // 바이트 배열을 직접 사용
+                byte[] permissionBytes = crp.getPermissionBytes();
 
-                if (PermissionUtils.hasPermission(crp.getPermissions(), categoryPermission)) {
-                    log.debug("카테고리 권한 확인 성공: 역할={}, 권한={}",
-                            teamMember.getRole().getRoleName(), categoryPermission);
+                // 최적화된 권한 확인 메서드 사용
+                if (PermissionConverter.hasPermissionOptimized(permissionBytes, categoryPermission)) {
                     return true;
                 }
             }
-
-            log.debug("카테고리 권한 없음: 역할={}, 카테고리={}, 권한={}",
-                    teamMember.getRole().getRoleName(), categoryId, categoryPermission);
             return false;
 
         } catch (Exception e) {

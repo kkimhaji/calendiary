@@ -11,9 +11,9 @@ import com.example.board.permission.CategoryPermission;
 import com.example.board.permission.PermissionType;
 import com.example.board.permission.TeamPermission;
 import com.example.board.permission.evaluator.DelegatingPermissionEvaluator;
-import com.example.board.permission.utils.StringToPermissionConverter;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,27 +35,69 @@ public class PermissionService {
     private final ConversionService conversionService;
 
     //단일 권한 검사
+    @Cacheable(value = "permission-checks", key = "#targetId + '-' + #permission.getCode()")
     public boolean checkPermission(Long targetId, PermissionType permission) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String targetType = getTargetType(permission);
         return permissionEvaluator.hasPermission(auth, targetId, targetType, permission);
     }
 
-    public Map<String, Boolean> checkMultiplePermission(Long targetId, List<String> permissions){
-        Map<String, Boolean> results = new HashMap<>();
+//    public Map<String, Boolean> checkMultiplePermission(Long targetId, List<String> permissions){
+//        Map<String, Boolean> results = new HashMap<>();
+//
+//        for (String permission : permissions) {
+//            try {
+//                //문자열 -> PermissionType 변환
+//                PermissionType permissionType = conversionService.convert(permission, PermissionType.class);
+//                results.put(permission, checkPermission(targetId, permissionType));
+//            } catch (IllegalArgumentException e){
+//                results.put(permission, false);
+//            }
+//        }
+//        return results;
+//    }
 
-        for (String permission : permissions) {
-            try {
-                //문자열 -> PermissionType 변환
-                PermissionType permissionType = conversionService.convert(permission, PermissionType.class);
-                results.put(permission, checkPermission(targetId, permissionType));
-            } catch (IllegalArgumentException e){
-                results.put(permission, false);
+private PermissionType apply(String p) {
+    return conversionService.convert(p, PermissionType.class);
+}
+
+    // 다중 권한 검사 최적화
+    public Map<String, Boolean> checkMultiplePermission(Long targetId, List<String> permissions) {
+        Map<String, Boolean> results = new HashMap<>();
+        // 한 번에 권한 객체 생성
+        Map<String, PermissionType> permissionObjects = permissions.stream()
+                .filter(p -> {
+                    try {
+                        apply(p);
+                        return true;
+                    } catch (IllegalArgumentException e) {
+                        results.put(p, false);
+                        return false;
+                    }
+                })
+                .collect(Collectors.toMap(
+                        p -> p,
+                        this::apply
+                ));
+        // 권한 검사 수행
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String targetType = null;
+
+        for (Map.Entry<String, PermissionType> entry : permissionObjects.entrySet()) {
+            String permissionName = entry.getKey();
+            PermissionType permission = entry.getValue();
+
+            if (targetType == null) {
+                targetType = getTargetType(permission);
             }
+            results.put(permissionName, permissionEvaluator.hasPermission(
+                    auth, targetId, targetType, permission));
         }
         return results;
     }
+
     // 게시글 권한 검사
+    @Cacheable(value = "edit-delete-permissions", key = "'post-' + #postId")
     public EditAndDeletePermissionResponse checkEditAndDeletePostPermission(Long postId) {
         return checkEditAndDeletePermission(
                 () -> postRepository.findById(postId)
@@ -66,6 +109,7 @@ public class PermissionService {
     }
 
     // 댓글 권한 검사
+    @Cacheable(value = "edit-delete-permissions", key = "'comment-' + #commentId")
     public EditAndDeletePermissionResponse checkEditAndDeleteCommentPermission(Long commentId) {
         return checkEditAndDeletePermission(
                 () -> commentRepository.findById(commentId)

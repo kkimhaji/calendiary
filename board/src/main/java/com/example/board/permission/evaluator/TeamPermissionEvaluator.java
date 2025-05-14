@@ -2,11 +2,12 @@ package com.example.board.permission.evaluator;
 
 import com.example.board.auth.UserPrincipal;
 import com.example.board.domain.member.Member;
+import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.team.Team;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.teamMember.TeamMemberRepository;
-import com.example.board.permission.utils.PermissionUtils;
 import com.example.board.permission.TeamPermission;
+import com.example.board.permission.utils.PermissionConverter;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -36,7 +37,10 @@ public class TeamPermissionEvaluator implements CustomPermissionEvaluator {
             TeamMember teamMember = teamMemberRepository.findByTeamIdAndMember(teamId, member)
                     .orElseThrow(() -> new EntityNotFoundException("Team member not found"));
 
-            return PermissionUtils.hasPermission(teamMember.getRole().getPermissions(), teamPermission);
+            TeamRole role = teamMember.getRole();
+            byte[] permissionBytes = role.getPermissionBytes();
+
+            return PermissionConverter.hasPermissionOptimized(permissionBytes, teamPermission);
         } catch (Exception e) {
             return false;
         }
@@ -47,7 +51,6 @@ public class TeamPermissionEvaluator implements CustomPermissionEvaluator {
         if (authentication == null || targetDomainObject == null || !(targetDomainObject instanceof Team)) {
             return false;
         }
-
         return hasPermission(authentication, ((Team) targetDomainObject).getId(), "Team", permission);
     }
 }

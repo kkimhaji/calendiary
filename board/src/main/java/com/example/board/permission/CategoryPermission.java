@@ -1,9 +1,5 @@
 package com.example.board.permission;
 
-import com.example.board.permission.evaluator.CategoryPermissionEvaluator;
-import com.example.board.permission.evaluator.CustomPermissionEvaluator;
-import lombok.RequiredArgsConstructor;
-
 import java.util.Arrays;
 
 public enum CategoryPermission implements PermissionType {
