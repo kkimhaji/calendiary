@@ -206,7 +206,7 @@ public class TeamRoleService {
     }
 
     private TeamRoleDetailResponse convertToResponse(TeamRoleDetailDto dto) {
-        Set<TeamPermission> permissions = PermissionUtils.getPermissionsFromBits(
+        Set<TeamPermission> permissions = PermissionUtils.getPermissionsFromBytes(
                 dto.permissionBits(),
                 TeamPermission.class
         );

@@ -19,7 +19,7 @@ public interface TeamRoleRepository extends JpaRepository<TeamRole, Long> {
     List<TeamRole> findAllByTeamId(Long teamId);
 
     @Query("SELECT new com.example.board.dto.role.TeamRoleDetailDto(" +
-            "tr.id, tr.roleName, tr.permissions, " +
+            "tr.id, tr.roleName, tr.permissionBytes, " +
             "(SELECT COUNT(tm) FROM TeamMember tm WHERE tm.role.id = tr.id)) " +
             "FROM TeamRole tr " +
             "WHERE tr.team.id = :teamId")

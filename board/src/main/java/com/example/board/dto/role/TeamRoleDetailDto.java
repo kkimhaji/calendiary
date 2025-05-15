@@ -3,6 +3,6 @@ package com.example.board.dto.role;
 public record TeamRoleDetailDto(
         Long id,
         String name,
-        String permissionBits,
+        byte[] permissionBits,
         long memberCount
 ) {}
