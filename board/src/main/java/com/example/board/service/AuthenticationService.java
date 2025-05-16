@@ -269,37 +269,58 @@ public class AuthenticationService {
     }
 
     public void logout(HttpServletRequest request, HttpServletResponse response) {
-        // 1. 쿠키에서 리프레시 토큰 추출
-        Optional<String> refreshTokenOpt = cookieUtil.extractRefreshTokenFromCookies(request);
+        cookieUtil.deleteRefreshTokenCookie(response);
 
-        if (refreshTokenOpt.isPresent()) {
-            String refreshToken = refreshTokenOpt.get();
+        try {
+            // 2. 쿠키에서 리프레시 토큰 추출
+            Optional<String> refreshTokenOpt = cookieUtil.extractRefreshTokenFromCookies(request);
 
-            try {
-                // 2. 토큰에서 사용자 정보 추출
-                String userEmail = jwtService.extractUsername(refreshToken);
-                Member member = memberRepository.findByEmail(userEmail)
-                        .orElse(null);
+            // 2.1 헤더에서 액세스 토큰도 추출 (선택적)
+            String authHeader = request.getHeader("Authorization");
+            String accessToken = null;
 
-                if (member != null) {
-                    // 3. 모든 토큰 폐기
-                    revokeAllTokens(member);
-                }
-
-                // 4. 데이터베이스에서 리프레시 토큰 찾아 폐기
-                refreshTokenRepository.findByToken(refreshToken)
-                        .ifPresent(token -> {
-                            token.revoke();
-                            refreshTokenRepository.save(token);
-                        });
-            } catch (Exception e) {
-                log.error("Error processing logout", e);
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                accessToken = authHeader.substring(7);
             }
+
+            // 3. 리프레시 토큰이 있는 경우에만 처리 진행
+            if (refreshTokenOpt.isPresent()) {
+                String refreshToken = refreshTokenOpt.get();
+
+                // 3.1 토큰 유효성 검증
+                if (refreshToken != null && !refreshToken.trim().isEmpty()) {
+                    // 3.2 사용자 정보 추출
+                    try {
+                        String userEmail = jwtService.extractUsername(refreshToken);
+                        Member member = memberRepository.findByEmail(userEmail)
+                                .orElse(null);
+
+                        if (member != null) {
+                            // 3.3 모든 토큰 폐기
+                            revokeAllTokens(member);
+                        }
+
+                        // 3.4 데이터베이스에서 리프레시 토큰 찾아 폐기
+                        refreshTokenRepository.findByToken(refreshToken)
+                                .ifPresent(token -> {
+                                    token.revoke();
+                                    refreshTokenRepository.save(token);
+                                });
+                    } catch (Exception e) {
+                        log.warn("리프레시 토큰 처리 중 오류 발생, 계속 진행: {}", e.getMessage());
+                    }
+                }
+            } else {
+                log.info("리프레시 토큰 없음 - 쿠키만 삭제하고 로그아웃 진행");
+            }
+
+        } catch (Exception e) {
+            log.error("로그아웃 처리 중 예기치 않은 오류 발생", e);
         }
 
-        // 5. 쿠키 삭제
-        cookieUtil.deleteRefreshTokenCookie(response);
+        log.info("로그아웃 처리 완료");
     }
+
 
     /**
      * 자동 로그인 처리
