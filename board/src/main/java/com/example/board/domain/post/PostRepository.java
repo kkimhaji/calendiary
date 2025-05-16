@@ -22,10 +22,12 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     // 팀의 카테고리별 게시글 조회
     @Query("SELECT new com.example.board.dto.post.PostListResponse(" +
-            "p.id, p.title, p.teamMember.teamNickname, " +
+            "p.id, p.title, " +
+            "COALESCE(p.teamMember.teamNickname, 'Unknown'), " + // null 안전 처리
             "p.category.name, p.category.id, p.viewCount, p.createdDate, " +
             "(SELECT COUNT(c) FROM Comment c WHERE c.post.id = p.id)) " +
             "FROM Post p " +
+            "LEFT JOIN p.teamMember tm " + // LEFT JOIN으로 변경
             "WHERE p.team.id = :teamId " +
             "AND p.category.id = :categoryId " +
             "ORDER BY p.createdDate DESC")
@@ -37,9 +39,12 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     // 팀의 최근 게시글 목록 조회
     @Query("SELECT new com.example.board.dto.post.PostListResponse(" +
-            "p.id, p.title, p.teamMember.teamNickname, p.category.name, p.category.id, p.viewCount, p.createdDate, " +
+            "p.id, p.title, " +
+            "COALESCE(p.teamMember.teamNickname, 'Unknown'), " + // null 안전 처리
+            "p.category.name, p.category.id, p.viewCount, p.createdDate, " +
             "(SELECT COUNT(c) FROM Comment c WHERE c.post.id = p.id)) " +
             "FROM Post p " +
+            "LEFT JOIN p.teamMember tm " + // LEFT JOIN으로 변경
             "WHERE p.team.id = :teamId " +
             "ORDER BY p.createdDate DESC")
     Page<PostListResponse> findRecentPostsByTeamId(
@@ -47,18 +52,21 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             Pageable pageable
     );
 
+    //사용자의 작성 게시글 목록
     @Query("SELECT new com.example.board.dto.post.PostListResponse(" +
-            "p.id, p.title, a.nickname, c.name, c.id, p.viewCount, p.createdDate, " +
+            "p.id, p.title, " +
+            "COALESCE(p.teamMember.teamNickname, 'Unknown'), " + // 팀 닉네임 우선, null이면 일반 닉네임
+            "c.name, c.id, p.viewCount, p.createdDate, " +
             "(SELECT COUNT(cm) FROM Comment cm WHERE cm.post = p)) " +
             "FROM Post p " +
             "JOIN p.author a " +
+            "LEFT JOIN p.teamMember tm " + // LEFT JOIN으로 변경
             "JOIN p.category c " +
             "WHERE c.team.id = :teamId AND a.id = :authorId")
     Page<PostListResponse> findPostListResponseByTeamIdAndAuthorId(
             @Param("teamId") Long teamId,
             @Param("authorId") Long authorId,
             Pageable pageable);
-
 
     @Modifying(clearAutomatically = true)
     @Query("UPDATE Post p SET p.viewCount = p.viewCount + :count WHERE p.id = :postId")
