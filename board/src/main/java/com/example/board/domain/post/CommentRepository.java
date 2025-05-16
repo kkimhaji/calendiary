@@ -66,7 +66,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     @Query("SELECT new com.example.board.dto.comment.MemberCommentResponse(" +
             "c.id, c.content, c.author.id, c.author.nickname, c.createdDate, c.isDeleted, " +
-            "p.id, p.title, cat.id, cat.name, t.id) " +
+            "p.id, p.title, cat.id, t.id) " +
             "FROM Comment c " +
             "JOIN c.post p " +
             "JOIN p.category cat " +
