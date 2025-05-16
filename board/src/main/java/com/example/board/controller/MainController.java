@@ -1,6 +1,7 @@
 package com.example.board.controller;
 
 import com.example.board.auth.UserPrincipal;
+import com.example.board.dto.post.PostListResponse;
 import com.example.board.dto.post.PostResponse;
 import com.example.board.service.PostService;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ public class MainController {
     private final PostService postService;
 
     @GetMapping("/main")
-    public ResponseEntity<Page<PostResponse>> getUserTeamPosts(
+    public ResponseEntity<Page<PostListResponse>> getUserTeamPosts(
             @AuthenticationPrincipal UserPrincipal user, @PageableDefault(size=10)Pageable pageable
             ){
         return ResponseEntity.ok(postService.getLatestPostsByUserTeams(user, pageable));

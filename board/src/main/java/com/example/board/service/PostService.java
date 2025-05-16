@@ -214,13 +214,13 @@ public class PostService {
         }
     }
 
-    public Page<PostResponse> getLatestPostsByUserTeams(UserPrincipal user, Pageable pageable) {
+    public Page<PostListResponse> getLatestPostsByUserTeams(UserPrincipal user, Pageable pageable) {
         // 1. 사용자가 속한 팀 ID 목록 조회
         List<Long> teamIds = teamMemberRepository.findTeamIdsByMemberId(user.getMember().getMemberId());
 
         // 2. 팀 ID 목록으로 게시글 조회
         return postRepository.findByTeamIds(teamIds, pageable)
-                .map(PostResponse::from);
+                .map(PostListResponse::from);
     }
 
     public Page<PostListResponse> findPostsByTeamAndMember(Long teamId, Long memberId, int page, int size) {
