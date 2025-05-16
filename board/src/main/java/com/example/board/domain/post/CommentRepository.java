@@ -65,9 +65,12 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
             Pageable pageable);
 
     @Query("SELECT new com.example.board.dto.comment.MemberCommentResponse(" +
-            "c.id, c.content, c.author.id, c.author.nickname, c.createdDate, c.isDeleted, " +
+            "c.id, c.content, c.author.id, " +
+            "COALESCE(c.teamMember.teamNickname, c.author.nickname, '익명'), " + // teamNickname 우선 사용, null이면 기본 닉네임
+            "c.createdDate, c.isDeleted, " +
             "p.id, p.title, cat.id, t.id) " +
             "FROM Comment c " +
+            "LEFT JOIN c.teamMember tm " + // teamMember에 LEFT JOIN 추가
             "JOIN c.post p " +
             "JOIN p.category cat " +
             "JOIN cat.team t " +

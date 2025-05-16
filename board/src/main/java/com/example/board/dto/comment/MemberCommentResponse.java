@@ -16,13 +16,19 @@ public record MemberCommentResponse(
         Long categoryId,
         Long teamId
 ) {
-    // 팩토리 메서드로 변환 가능
     public static MemberCommentResponse from(Comment comment) {
+        String nickname = "Unknown";
+        if (comment.getTeamMember() != null) {
+            nickname = comment.getTeamMember().getTeamNickname();
+            if (nickname.length() > 7) {
+                nickname = nickname.substring(0, 5) + "...";
+            }
+        }
         return new MemberCommentResponse(
                 comment.getId(),
                 comment.getContent(),
                 comment.getAuthor().getMemberId(),
-                comment.getTeamMember().getTeamNickname(),
+                nickname,
                 comment.getCreatedDate(),
                 comment.isDeleted(),
                 comment.getPost().getId(),
