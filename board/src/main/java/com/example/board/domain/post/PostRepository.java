@@ -24,7 +24,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("SELECT new com.example.board.dto.post.PostListResponse(" +
             "p.id, p.title, " +
             "COALESCE(p.teamMember.teamNickname, 'Unknown'), " + // null 안전 처리
-            "p.category.name, p.category.id, p.viewCount, p.createdDate, " +
+            "p.team.id, p.category.name, p.category.id, p.viewCount, p.createdDate, " +
             "(SELECT COUNT(c) FROM Comment c WHERE c.post.id = p.id)) " +
             "FROM Post p " +
             "LEFT JOIN p.teamMember tm " + // LEFT JOIN으로 변경
@@ -41,7 +41,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("SELECT new com.example.board.dto.post.PostListResponse(" +
             "p.id, p.title, " +
             "COALESCE(p.teamMember.teamNickname, 'Unknown'), " + // null 안전 처리
-            "p.category.name, p.category.id, p.viewCount, p.createdDate, " +
+            "p.team.id, p.category.name, p.category.id, p.viewCount, p.createdDate, " +
             "(SELECT COUNT(c) FROM Comment c WHERE c.post.id = p.id)) " +
             "FROM Post p " +
             "LEFT JOIN p.teamMember tm " + // LEFT JOIN으로 변경
@@ -56,7 +56,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("SELECT new com.example.board.dto.post.PostListResponse(" +
             "p.id, p.title, " +
             "COALESCE(p.teamMember.teamNickname, 'Unknown'), " + // 팀 닉네임 우선, null이면 일반 닉네임
-            "c.name, c.id, p.viewCount, p.createdDate, " +
+            "p.team.id, c.name, c.id, p.viewCount, p.createdDate, " +
             "(SELECT COUNT(cm) FROM Comment cm WHERE cm.post = p)) " +
             "FROM Post p " +
             "JOIN p.author a " +

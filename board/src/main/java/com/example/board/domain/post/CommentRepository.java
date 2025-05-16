@@ -24,9 +24,16 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
             "ORDER BY c.createdDate ASC")
     List<Comment> findAllByPostIdWithReplies(@Param("postId") Long postId);
 
-    @Query("SELECT new com.example.board.dto.comment.CommentResponse(c.id, c.content, c.author.nickname, c.createdDate, c.isDeleted) " +
+    @Query("SELECT new com.example.board.dto.comment.CommentResponse(" +
+            "c.id, " +
+            "c.content, " +
+            "c.author.id, " +
+            "COALESCE(c.teamMember.teamNickname, 'Unknown'), " +
+            "c.createdDate, " +
+            "c.isDeleted, " +
+            "null) " +
             "FROM Comment c " +
-            "LEFT JOIN c.replies r " +
+            "LEFT JOIN c.teamMember tm " +
             "JOIN c.author " +
             "WHERE c.post.id = :postId " +
             "AND c.parent IS NULL " +
