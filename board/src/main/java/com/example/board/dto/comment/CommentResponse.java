@@ -1,9 +1,11 @@
 package com.example.board.dto.comment;
 
 import com.example.board.domain.post.Comment;
+import com.example.board.domain.teamMember.TeamMember;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public record CommentResponse(
@@ -25,13 +27,16 @@ public record CommentResponse(
                 .collect(Collectors.toList()));
     }
 
-    // 새로운 from 메서드 (계층 구조 생성을 위한 오버로딩)
     public static CommentResponse from(Comment comment, List<CommentResponse> replies) {
+        String displayName = Optional.ofNullable(comment.getTeamMember())
+                .map(TeamMember::getTeamNickname)
+                .orElse("Unknown");
+
         return new CommentResponse(
                 comment.getId(),
                 comment.getContent(),
                 comment.getAuthor().getMemberId(),
-                comment.getTeamMember() != null ? comment.getTeamMember().getTeamNickname() : "Unknown",
+                displayName,
                 comment.getCreatedDate(),
                 comment.isDeleted(),
                 replies
