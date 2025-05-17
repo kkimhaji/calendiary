@@ -57,7 +57,7 @@ public class TestDataBuilder {
     }
 
     public TeamMember addMemberToTeam(Member member2, Team team){
-        AddMemberRequestDTO dto = new AddMemberRequestDTO(team.getId(), team.getBasicRoleId(), member2.getMemberId());
+        AddMemberRequestDTO dto = new AddMemberRequestDTO(team.getId(), member2.getMemberId());
         return teamService.addMember(dto);
     }
 

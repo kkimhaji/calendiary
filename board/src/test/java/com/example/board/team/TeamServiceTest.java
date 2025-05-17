@@ -56,7 +56,7 @@ public class TeamServiceTest extends AbstractTestSupport{
 
     @Test
     void addTeamMember_defaultRole() {
-        AddMemberRequestDTO dto = new AddMemberRequestDTO(team.getId(), team.getBasicRoleId(), member2.getMemberId());
+        AddMemberRequestDTO dto = new AddMemberRequestDTO(team.getId(), member2.getMemberId());
         TeamMember teamMember = teamService.addMember(dto);
 
         assertThat(teamMember.getRole().getId()).isEqualTo(team.getBasicRoleId());
@@ -64,7 +64,7 @@ public class TeamServiceTest extends AbstractTestSupport{
 
     @Test
     void addTeamMember_defaultNickname(){
-        AddMemberRequestDTO dto = new AddMemberRequestDTO(team.getId(), team.getBasicRoleId(), member2.getMemberId());
+        AddMemberRequestDTO dto = new AddMemberRequestDTO(team.getId(), member2.getMemberId());
         TeamMember teamMember = teamService.addMember(dto);
 
         assertThat(teamMember.getTeamNickname()).isEqualTo(member2.getNickname());
