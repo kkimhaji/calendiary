@@ -42,24 +42,9 @@ public class PermissionService {
         return permissionEvaluator.hasPermission(auth, targetId, targetType, permission);
     }
 
-//    public Map<String, Boolean> checkMultiplePermission(Long targetId, List<String> permissions){
-//        Map<String, Boolean> results = new HashMap<>();
-//
-//        for (String permission : permissions) {
-//            try {
-//                //문자열 -> PermissionType 변환
-//                PermissionType permissionType = conversionService.convert(permission, PermissionType.class);
-//                results.put(permission, checkPermission(targetId, permissionType));
-//            } catch (IllegalArgumentException e){
-//                results.put(permission, false);
-//            }
-//        }
-//        return results;
-//    }
-
-private PermissionType apply(String p) {
-    return conversionService.convert(p, PermissionType.class);
-}
+    private PermissionType apply(String p) {
+        return conversionService.convert(p, PermissionType.class);
+    }
 
     // 다중 권한 검사 최적화
     public Map<String, Boolean> checkMultiplePermission(Long targetId, List<String> permissions) {
@@ -125,7 +110,7 @@ private PermissionType apply(String p) {
         return checkPermission(categoryId, permission) || author.getMemberId().equals(getLoginMember().getMemberId());
     }
 
-    private Member getLoginMember(){
+    private Member getLoginMember() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return ((UserPrincipal) auth.getPrincipal()).getMember();
     }
