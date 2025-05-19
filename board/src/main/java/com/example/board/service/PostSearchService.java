@@ -34,15 +34,13 @@ public class PostSearchService {
     public Page<PostResponse> searchPosts(
             Long teamId,
             String keyword,
-            Long categoryId, 
+            Long categoryId,
             Pageable pageable,
             SearchType searchType
     ) {
         if (keyword == null || keyword.trim().isEmpty()) {
             return Page.empty(pageable);
         }
-
-        log.debug("search function");
         switch (searchType) {
             case TITLE:
                 // 제목만 검색
