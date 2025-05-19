@@ -6,6 +6,7 @@ import com.example.board.domain.post.PostRepository;
 import com.example.board.domain.post.enums.SearchType;
 import com.example.board.dto.post.PostResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -23,6 +24,7 @@ import java.util.stream.Stream;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class PostSearchService {
     private final PostRepository postRepository;
     private final AsyncConfig asyncConfig;
@@ -32,10 +34,15 @@ public class PostSearchService {
     public Page<PostResponse> searchPosts(
             Long teamId,
             String keyword,
-            Long categoryId,  // 추가된 카테고리 ID 파라미터
+            Long categoryId, 
             Pageable pageable,
             SearchType searchType
     ) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        log.debug("search function");
         switch (searchType) {
             case TITLE:
                 // 제목만 검색
@@ -47,18 +54,9 @@ public class PostSearchService {
                         .map(PostResponse::from);
             case BOTH:
             default:
-                // 기존 코드처럼 두 결과 합치기
-                CompletableFuture<Page<Post>> titleFuture = CompletableFuture.supplyAsync(
-                        () -> postRepository.searchByTitle(keyword, teamId, categoryId, pageable),
-                        asyncExecutor
-                );
-
-                CompletableFuture<Page<Post>> contentFuture = CompletableFuture.supplyAsync(
-                        () -> postRepository.searchByContent(keyword, teamId, categoryId, pageable),
-                        asyncExecutor
-                );
-
-                return processResults(titleFuture, contentFuture, pageable);
+                // 제목 또는 내용 검색 (단일 쿼리 사용 권장)
+                return postRepository.searchByTitleOrContent(keyword, teamId, categoryId, pageable)
+                        .map(PostResponse::from);
         }
     }
 
