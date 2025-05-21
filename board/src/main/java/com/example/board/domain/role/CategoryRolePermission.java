@@ -1,6 +1,6 @@
 package com.example.board.domain.role;
 
-import com.example.board.domain.team.TeamCategory;
+import com.example.board.domain.category.TeamCategory;
 import com.example.board.permission.CategoryPermission;
 import com.example.board.permission.utils.PermissionConverter;
 import com.example.board.permission.utils.PermissionUtils;

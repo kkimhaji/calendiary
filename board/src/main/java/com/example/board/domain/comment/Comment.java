@@ -1,7 +1,8 @@
-package com.example.board.domain.post;
+package com.example.board.domain.comment;
 
 import com.example.board.domain.BaseTimeEntity;
 import com.example.board.domain.member.Member;
+import com.example.board.domain.post.Post;
 import com.example.board.domain.teamMember.TeamMember;
 import jakarta.persistence.*;
 import lombok.Builder;

@@ -1,15 +1,11 @@
 package com.example.board.dto.post;
 
-import com.example.board.domain.post.Comment;
 import com.example.board.domain.post.Post;
 import com.example.board.domain.post.PostImage;
-import com.example.board.dto.comment.CommentResponse;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.example.board.dto.comment.CommentResponse.convertToResponse;
 
 public record PostDetailDTO(
         Long id,

@@ -1,7 +1,8 @@
-package com.example.board.domain.team;
+package com.example.board.domain.category;
 
 import com.example.board.domain.post.Post;
 import com.example.board.domain.role.CategoryRolePermission;
+import com.example.board.domain.team.Team;
 import jakarta.persistence.*;
 import lombok.*;
 

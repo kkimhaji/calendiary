@@ -1,6 +1,5 @@
 package com.example.board.controller;
 
-import com.example.board.domain.team.TeamCategory;
 import com.example.board.dto.category.CategoryListDTO;
 import com.example.board.dto.category.CategoryResponse;
 import com.example.board.dto.category.CreateCategoryRequest;
@@ -13,7 +12,6 @@ import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.ResourceBundle;
 
 @RestController
 @RequiredArgsConstructor

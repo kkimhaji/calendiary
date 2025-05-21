@@ -1,4 +1,4 @@
-package com.example.board.domain.post;
+package com.example.board.domain.comment;
 
 import com.example.board.dto.comment.CommentResponse;
 import com.example.board.dto.comment.MemberCommentResponse;

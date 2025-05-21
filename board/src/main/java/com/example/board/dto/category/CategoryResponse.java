@@ -1,9 +1,8 @@
 package com.example.board.dto.category;
 
-import com.example.board.domain.team.TeamCategory;
+import com.example.board.domain.category.TeamCategory;
 
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 public record CategoryResponse(

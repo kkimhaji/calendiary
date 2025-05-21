@@ -2,8 +2,8 @@ package com.example.board.service;
 
 import com.example.board.auth.UserPrincipal;
 import com.example.board.domain.member.Member;
-import com.example.board.domain.post.Comment;
-import com.example.board.domain.post.CommentRepository;
+import com.example.board.domain.comment.Comment;
+import com.example.board.domain.comment.CommentRepository;
 import com.example.board.domain.post.Post;
 import com.example.board.domain.post.PostRepository;
 import com.example.board.dto.role.EditAndDeletePermissionResponse;

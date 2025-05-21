@@ -1,7 +1,7 @@
 package com.example.board.dto.post;
 
 import com.example.board.domain.post.Post;
-import com.example.board.domain.team.TeamCategory;
+import com.example.board.domain.category.TeamCategory;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;

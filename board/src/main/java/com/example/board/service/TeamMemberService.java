@@ -1,7 +1,7 @@
 package com.example.board.service;
 
 import com.example.board.domain.member.Member;
-import com.example.board.domain.post.CommentRepository;
+import com.example.board.domain.comment.CommentRepository;
 import com.example.board.domain.post.Post;
 import com.example.board.domain.post.PostRepository;
 import com.example.board.domain.role.TeamRole;
@@ -15,7 +15,6 @@ import com.example.board.dto.teamMember.TeamMemberDTO;
 import com.example.board.dto.teamMember.TeamMemberInfoListDTO;
 import com.example.board.dto.team.TeamInfoResponse;
 import com.example.board.dto.team.TeamListDTO;
-import com.example.board.dto.teamMember.TeamMemberInfo;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -27,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service

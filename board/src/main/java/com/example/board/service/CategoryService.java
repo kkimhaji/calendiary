@@ -1,14 +1,14 @@
 package com.example.board.service;
 
 import com.example.board.domain.member.Member;
-import com.example.board.domain.post.CommentRepository;
+import com.example.board.domain.comment.CommentRepository;
 import com.example.board.domain.post.Post;
 import com.example.board.domain.post.PostRepository;
 import com.example.board.domain.role.CategoryPermissionRepository;
 import com.example.board.domain.role.CategoryRolePermission;
-import com.example.board.domain.team.CategoryRepository;
+import com.example.board.domain.category.CategoryRepository;
 import com.example.board.domain.team.Team;
-import com.example.board.domain.team.TeamCategory;
+import com.example.board.domain.category.TeamCategory;
 import com.example.board.domain.team.TeamRepository;
 import com.example.board.dto.category.*;
 import com.example.board.permission.CategoryPermission;

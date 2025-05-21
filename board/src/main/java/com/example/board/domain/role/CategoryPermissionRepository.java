@@ -1,6 +1,6 @@
 package com.example.board.domain.role;
 
-import com.example.board.domain.team.TeamCategory;
+import com.example.board.domain.category.TeamCategory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

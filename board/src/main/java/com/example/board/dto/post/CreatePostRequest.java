@@ -1,10 +1,9 @@
 package com.example.board.dto.post;
 
-import com.example.board.config.HtmlSanitizer;
 import com.example.board.domain.member.Member;
 import com.example.board.domain.post.Post;
 import com.example.board.domain.team.Team;
-import com.example.board.domain.team.TeamCategory;
+import com.example.board.domain.category.TeamCategory;
 import com.example.board.domain.teamMember.TeamMember;
 import org.springframework.web.multipart.MultipartFile;
 

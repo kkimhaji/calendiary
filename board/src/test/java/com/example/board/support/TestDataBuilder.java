@@ -4,7 +4,7 @@ import com.example.board.domain.member.Member;
 import com.example.board.domain.member.MemberRepository;
 import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.team.Team;
-import com.example.board.domain.team.TeamCategory;
+import com.example.board.domain.category.TeamCategory;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.teamMember.TeamMemberRepository;
 import com.example.board.dto.category.CategoryRolePermissionDTO;

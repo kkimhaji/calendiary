@@ -3,13 +3,10 @@ package com.example.board.dto.category;
 import com.example.board.domain.role.CategoryRolePermission;
 import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.team.Team;
-import com.example.board.domain.team.TeamCategory;
-import com.example.board.permission.TeamPermission;
+import com.example.board.domain.category.TeamCategory;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public record CreateCategoryRequest(

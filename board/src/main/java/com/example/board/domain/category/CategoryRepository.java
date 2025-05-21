@@ -1,16 +1,14 @@
-package com.example.board.domain.team;
+package com.example.board.domain.category;
 
 import com.example.board.domain.role.CategoryRolePermission;
+import com.example.board.domain.team.Team;
 import com.example.board.dto.category.CategoryListDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
-import java.util.OptionalInt;
 
 public interface CategoryRepository extends JpaRepository<TeamCategory, Long> {
     @Query("SELECT crp FROM CategoryRolePermission crp " +

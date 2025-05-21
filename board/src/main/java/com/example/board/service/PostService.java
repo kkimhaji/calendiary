@@ -2,11 +2,12 @@ package com.example.board.service;
 
 import com.example.board.auth.UserPrincipal;
 import com.example.board.config.HtmlSanitizer;
+import com.example.board.domain.comment.CommentRepository;
 import com.example.board.domain.member.Member;
 import com.example.board.domain.post.*;
-import com.example.board.domain.team.CategoryRepository;
+import com.example.board.domain.category.CategoryRepository;
 import com.example.board.domain.team.Team;
-import com.example.board.domain.team.TeamCategory;
+import com.example.board.domain.category.TeamCategory;
 import com.example.board.domain.team.TeamRepository;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.teamMember.TeamMemberRepository;

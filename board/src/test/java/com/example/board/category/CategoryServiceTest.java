@@ -2,17 +2,9 @@ package com.example.board.category;
 
 import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.team.Team;
-import com.example.board.domain.team.TeamCategory;
+import com.example.board.domain.category.TeamCategory;
 import com.example.board.domain.teamMember.TeamMember;
-import com.example.board.dto.category.CategoryRolePermissionDTO;
-import com.example.board.dto.category.CreateCategoryRequest;
-import com.example.board.dto.role.CreateRoleRequest;
-import com.example.board.dto.team.AddMemberRequestDTO;
-import com.example.board.dto.team.TeamCreateRequestDTO;
-import com.example.board.permission.TeamPermission;
 import com.example.board.service.CategoryService;
-import com.example.board.service.TeamRoleService;
-import com.example.board.service.TeamService;
 import com.example.board.support.AbstractTestSupport;
 import com.example.board.support.TestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,11 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import static com.example.board.permission.CategoryPermission.*;
 import static org.assertj.core.api.Assertions.assertThat;
