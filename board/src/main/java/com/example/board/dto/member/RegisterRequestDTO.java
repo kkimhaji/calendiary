@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+@Builder
 public record RegisterRequestDTO(
          String nickname,
          String email,
@@ -15,10 +16,6 @@ public record RegisterRequestDTO(
 ) {
 
     public Member toEntity(String pwd, String verificationCode, LocalDateTime codeExpiredAt, boolean enable){
-        return Member.builder()
-                .nickname(this.nickname).email(this.email).password(pwd)
-                .verificationCode(verificationCode).verificationCodeExpiredAt(codeExpiredAt)
-                .enabled(enable)
-                .build();
+        return Member.createMember(nickname, email, pwd, enable, verificationCode, codeExpiredAt);
     }
 }

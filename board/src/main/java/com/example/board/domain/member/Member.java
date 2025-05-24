@@ -23,6 +23,15 @@ public class Member {
     private String verificationCode;
     private LocalDateTime verificationCodeExpiredAt;
 
+    public Member(String email, String nickname, String password, boolean enabled, String verificationCode, LocalDateTime verificationCodeExpiredAt) {
+        this.email = email;
+        this.nickname = nickname;
+        this.password = password;
+        this.enabled = enabled;
+        this.verificationCode = verificationCode;
+        this.verificationCodeExpiredAt = verificationCodeExpiredAt;
+    }
+
     public void setVerified(){
         this.enabled = true;
         this.verificationCode = null;
@@ -43,15 +52,8 @@ public class Member {
         this.password = newPassword;
     }
 
-    //builder대신 다른 메서드로 대체할 것
-    @Builder
-    public Member(Long memberId, String email, String nickname, String password, boolean enabled, String verificationCode, LocalDateTime verificationCodeExpiredAt){
-        this.memberId = memberId;
-        this.email = email;
-        this.nickname = nickname;
-        this.password = password;
-        this.enabled = enabled;
-        this.verificationCode = verificationCode;
-        this.verificationCodeExpiredAt = verificationCodeExpiredAt;
+    public static Member createMember(String email, String nickname, String password, boolean enabled, String verificationCode, LocalDateTime verificationCodeExpiredAt){
+        return new Member(email, nickname, password,
+                enabled, verificationCode, verificationCodeExpiredAt);
     }
 }
