@@ -7,17 +7,14 @@ import com.example.board.domain.team.Team;
 import com.example.board.domain.category.TeamCategory;
 import com.example.board.domain.teamMember.TeamMember;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Post extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -53,16 +50,30 @@ public class Post extends BaseTimeEntity {
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostImage> images = new ArrayList<>();
 
-
-    @Builder
-    public Post(Long id, String title, String content, Member author, Team team, TeamCategory category, TeamMember teamMember){
-        this.id = id;
+    private Post(String title, String content, Member author, TeamCategory category, Team team, TeamMember teamMember) {
+        if (title == null || title.trim().isEmpty()) {
+            throw new IllegalArgumentException("Title cannot be null or empty.");
+        }
+        if (author == null) {
+            throw new IllegalArgumentException("Author cannot be null.");
+        }
+        if (category == null) {
+            throw new IllegalArgumentException("Category cannot be null.");
+        }
+        if (team == null) {
+            throw new IllegalArgumentException("Team cannot be null.");
+        }
         this.title = title;
         this.content = content;
         this.author = author;
+        this.category = category;
         this.team = team;
         this.teamMember = teamMember;
-        this.category = category;
+        this.viewCount = 0;
+    }
+
+    public static Post create(String title, String content, Member author, TeamCategory category, Team team, TeamMember teamMember) {
+        return new Post(title, content, author, category, team, teamMember);
     }
 
     public void update(String title, String content, TeamCategory category){
@@ -97,5 +108,4 @@ public class Post extends BaseTimeEntity {
         images.forEach(image -> image.setPost(null));
         images.clear();
     }
-
 }

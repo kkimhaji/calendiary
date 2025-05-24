@@ -15,14 +15,6 @@ public record CreatePostRequest(
         List<MultipartFile> images
 ) {
     public Post toEntity(String safeContent, Team team, TeamCategory category, Member author, TeamMember teamMember){
-
-        return Post.builder()
-                .title(title)
-                .content(safeContent)
-                .team(team)
-                .category(category)
-                .author(author)
-                .teamMember(teamMember)
-                .build();
+        return Post.create(title, safeContent, author, category, team, teamMember);
     }
 }
