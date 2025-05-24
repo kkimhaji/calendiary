@@ -23,7 +23,7 @@ public class Member {
     private String verificationCode;
     private LocalDateTime verificationCodeExpiredAt;
 
-    public Member(String email, String nickname, String password, boolean enabled, String verificationCode, LocalDateTime verificationCodeExpiredAt) {
+    private Member(String email, String nickname, String password, boolean enabled, String verificationCode, LocalDateTime verificationCodeExpiredAt) {
         this.email = email;
         this.nickname = nickname;
         this.password = password;
