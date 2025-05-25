@@ -22,10 +22,6 @@ public class Token {
     private TokenType tokenType = TokenType.BEARER;
 
     private boolean expired;
-
-    //in case you want to revoke manually
-    //or e.g. if you want to implement a mechanism when restart application/server - you want to revoke all the tokens
-    //flags for it
     private boolean revoked;
 
     @ManyToOne(fetch = FetchType.LAZY)

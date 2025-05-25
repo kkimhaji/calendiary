@@ -9,12 +9,12 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.security.core.parameters.P;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-@Setter
 @Entity
 @NoArgsConstructor
 public class Comment extends BaseTimeEntity {
@@ -47,14 +47,8 @@ public class Comment extends BaseTimeEntity {
 
     private boolean isDeleted = false;
 
-    @Builder
-    public Comment(String content, Post post, Member author, Comment parent, int depth, TeamMember teamMember) {
-        this.content = content;
+    public void setPost(Post post){
         this.post = post;
-        this.author = author;
-        this.teamMember = teamMember;
-        this.parent = parent;
-        this.depth = depth;
     }
 
     public void deleteByAuthor(){
