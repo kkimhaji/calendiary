@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.security.core.parameters.P;
 
 @Entity
 @Getter
@@ -19,14 +20,14 @@ public class PostImage {
     private String originalFileName;
     private String storedFileName;
 
-    private String fileUrl;
-
-    @Builder
-    public PostImage(Post post, String originalFileName, String storedFileName) {
+    private PostImage(Post post, String originalFileName, String storedFileName) {
         this.post = post;
         this.originalFileName = originalFileName;
         this.storedFileName = storedFileName;
-//        this.fileUrl = fileUrl;
+    }
+
+    public static PostImage createPostImage(Post post, String originalFileName, String storedFileName){
+        return new PostImage(post, originalFileName, storedFileName);
     }
 
     public String getImageUrl() {

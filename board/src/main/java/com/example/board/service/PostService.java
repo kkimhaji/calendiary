@@ -67,11 +67,7 @@ public class PostService {
 
         for (String permUrl: permUrls){
             String fileName = permUrl.replace("/perm-images/", "");
-            PostImage postImage = PostImage.builder()
-                    .post(post)
-                    .originalFileName(fileName)
-                    .storedFileName(fileName)
-                    .build();
+            PostImage postImage = PostImage.createPostImage(post, fileName, fileName);
             post.addImage(postImage);
         }
 
@@ -175,9 +171,7 @@ public class PostService {
 
         for (String url: newImageUrls){
             String fileName = url.replace("/perm-images/", "");
-            PostImage postImage = PostImage.builder()
-                    .post(updatedPost).originalFileName(fileName)
-                    .storedFileName(fileName).build();
+            PostImage postImage = PostImage.createPostImage(updatedPost, fileName, fileName);
             updatedPost.addImage(postImage);
         }
 
@@ -204,13 +198,7 @@ public class PostService {
     private void addNewImages(Post post, List<MultipartFile> newImages) throws FileUploadException {
         for (MultipartFile image : newImages) {
             String storedFileName = imageService.saveFile(image);
-
-            PostImage postImage = PostImage.builder()
-                    .post(post)
-                    .originalFileName(image.getOriginalFilename())
-                    .storedFileName(storedFileName)
-                    .build();
-
+            PostImage postImage = PostImage.createPostImage(post, image.getOriginalFilename(), storedFileName);
             post.addImage(postImage);
         }
     }
