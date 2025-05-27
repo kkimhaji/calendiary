@@ -12,13 +12,6 @@ public record CreateCommentRequest(
 //        int depth
 ) {
     public Comment toEntity(Post post, Member author, Comment parent, TeamMember teamMember){
-        return Comment.builder()
-                .content(content)
-                .post(post)
-                .author(author)
-                .teamMember(teamMember)
-                .parent(parent)
-//                .depth(depth)
-                .build();
+        return Comment.createComment(content, post, author, teamMember, parent);
     }
 }

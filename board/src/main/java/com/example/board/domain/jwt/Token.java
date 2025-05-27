@@ -5,10 +5,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Builder
 public class Token {
 
     @Id
@@ -33,6 +31,16 @@ public class Token {
         this.revoked = true;
     }
 
+    private Token(String token, TokenType tokenType, boolean expired, boolean revoked, Member member) {
+        this.token = token;
+        this.tokenType = tokenType;
+        this.expired = expired;
+        this.revoked = revoked;
+        this.member = member;
+    }
 
+    public static Token createToken(String token, TokenType tokenType, boolean expired, boolean revoked, Member member){
+        return new Token(token, tokenType, expired, revoked, member);
+    }
 }
 

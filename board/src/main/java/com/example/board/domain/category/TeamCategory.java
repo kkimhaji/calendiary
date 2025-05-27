@@ -28,18 +28,17 @@ public class TeamCategory {
     @OneToMany(mappedBy = "category")
     private Set<CategoryRolePermission> rolePermissions = new HashSet<>();
 
+    private TeamCategory(String name, String description, Team team) {
+        this.name = name;
+        this.description = description;
+        this.team = team;
+    }
+
     public void addPost(Post post) {
 //        this.posts.add(post);
         if (post.getCategory() != this) {
             post.setCategory(this);
         }
-    }
-
-    @Builder
-    public TeamCategory(String name, String description, Team team) {
-        this.name = name;
-        this.description = description;
-        this.team = team;
     }
 
     public void clearRolePermissions(){
@@ -60,10 +59,6 @@ public class TeamCategory {
     }
 
     public static TeamCategory createCategory(String name, String description, Team team) {
-        TeamCategory category = new TeamCategory();
-        category.name = name;
-        category.description = description;
-        category.team = team;
-        return category;
+        return new TeamCategory(name, description, team);
     }
 }

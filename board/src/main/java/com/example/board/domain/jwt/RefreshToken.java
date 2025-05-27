@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 @Getter
-@Setter
 @Entity
 @NoArgsConstructor
 public class RefreshToken {
@@ -31,7 +30,6 @@ public class RefreshToken {
     private boolean expired;
     @Column(nullable = false)
     private boolean autoLogin = false;
-
 
     public RefreshToken(String token, Member member, long expirationMs) {
         this.token = token;

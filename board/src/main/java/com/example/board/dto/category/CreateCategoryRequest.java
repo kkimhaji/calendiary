@@ -15,12 +15,7 @@ public record CreateCategoryRequest(
    List<CategoryRolePermissionDTO> rolePermissions // roleId -> permissions mapping
 ) {
     public TeamCategory toEntity(Team team){
-
-        return TeamCategory.builder()
-                .name(this.name)
-                .team(team)
-                .description(this.description)
-                .build();
+        return TeamCategory.createCategory(name,description, team);
     }
 
     public List<CategoryRolePermission> toCategoryRolePermissions(

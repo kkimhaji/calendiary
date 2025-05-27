@@ -162,12 +162,7 @@ public class AuthenticationService {
     }
 
     private void saveUserToken(Member member, String jwtToken) {
-        var token = Token.builder()
-                .member(member).token(jwtToken)
-                .tokenType(TokenType.BEARER)
-                .expired(false).revoked(false)
-                .build();
-
+        Token token = Token.createToken(jwtToken, TokenType.BEARER, false, false, member);
         tokenRepository.save(token);
     }
 
