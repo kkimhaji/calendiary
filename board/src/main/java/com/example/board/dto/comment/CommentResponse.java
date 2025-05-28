@@ -18,19 +18,18 @@ public record CommentResponse(
         List<CommentResponse> replies
 ) {
 
-    // 기존 from 메서드 (단일 댓글 변환)
+    /**
+     * 엔티티에서 관리되는 replies를 그대로 변환
+     */
     public static CommentResponse from(Comment comment) {
-        return from(comment, comment.getReplies().stream()
-                .map(reply -> from(reply, reply.getReplies().stream()
-                        .map(CommentResponse::from)
-                        .collect(Collectors.toList())))
-                .collect(Collectors.toList()));
-    }
+        // 엔티티에서 이미 정리된 replies를 단순 변환
+        List<CommentResponse> replyResponses = comment.getReplies().stream()
+                .map(CommentResponse::from)
+                .collect(Collectors.toList());
 
-    public static CommentResponse from(Comment comment, List<CommentResponse> replies) {
         String displayName = Optional.ofNullable(comment.getTeamMember())
                 .map(TeamMember::getTeamNickname)
-                .orElse("Unknown");
+                .orElse(comment.getAuthor().getNickname());
 
         return new CommentResponse(
                 comment.getId(),
@@ -39,16 +38,7 @@ public record CommentResponse(
                 displayName,
                 comment.getCreatedDate(),
                 comment.isDeleted(),
-                replies
+                replyResponses
         );
-    }
-
-    public static CommentResponse convertToResponse(Comment comment, List<Comment> allComments) {
-        List<CommentResponse> replies = allComments.stream()
-                .filter(c -> c.getParent() != null && c.getParent().getId().equals(comment.getId()))
-                .map(c -> convertToResponse(c, allComments))
-                .collect(Collectors.toList());
-
-        return CommentResponse.from(comment, replies);
     }
 }
