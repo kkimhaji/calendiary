@@ -1,21 +1,21 @@
 package com.example.board.service;
 
-import com.example.board.domain.member.Member;
+import com.example.board.domain.category.CategoryRepository;
+import com.example.board.domain.category.TeamCategory;
 import com.example.board.domain.comment.CommentRepository;
+import com.example.board.domain.member.Member;
 import com.example.board.domain.post.Post;
 import com.example.board.domain.post.PostRepository;
 import com.example.board.domain.role.CategoryPermissionRepository;
 import com.example.board.domain.role.CategoryRolePermission;
-import com.example.board.domain.category.CategoryRepository;
+import com.example.board.domain.role.TeamRole;
+import com.example.board.domain.role.TeamRoleRepository;
 import com.example.board.domain.team.Team;
-import com.example.board.domain.category.TeamCategory;
 import com.example.board.domain.team.TeamRepository;
 import com.example.board.dto.category.*;
 import com.example.board.permission.CategoryPermission;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import com.example.board.domain.role.TeamRole;
-import com.example.board.domain.role.TeamRoleRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,37 +42,69 @@ public class CategoryService {
     public TeamCategory createCategory(Long teamId, CreateCategoryRequest request) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new EntityNotFoundException("Team not found"));
-        TeamCategory category = request.toEntity(team);
+        TeamCategory category = TeamCategory.createCategory(
+                request.name(),
+                request.description(),
+                team
+        );
+
+        // 카테고리 저장 (ID 생성을 위해)
+        category = categoryRepository.save(category);
 
         Map<Long, TeamRole> teamRoles = getTeamRoles(team, request);
-        List<CategoryRolePermission> categoryRolePermissions = request.toCategoryRolePermissions(category, teamRoles);
+        List<CategoryRolePermission> categoryRolePermissions = createCategoryRolePermissions(
+                category,
+                request,
+                teamRoles
+        );
 
-        categoryRolePermissions.forEach(crp -> {
-            TeamRole role = crp.getRole();
-            if (role == null) {
-                throw new EntityNotFoundException("Role not found: " + crp.getRole().getId());
-            }
-            category.addRolePermission(crp);
-        });
-
+        categoryRolePermissions.forEach(category::addRolePermission);
         categoryPermissionRepository.saveAll(categoryRolePermissions);
 
-        return categoryRepository.save(category);
+        return category;
+    }
+
+    private List<CategoryRolePermission> createCategoryRolePermissions(
+            TeamCategory category,
+            CreateCategoryRequest request,
+            Map<Long, TeamRole> teamRoles) {
+
+        return request.rolePermissions().stream()
+                .map(rolePermDto -> {
+                    TeamRole role = teamRoles.get(rolePermDto.roleId());
+                    if (role == null) {
+                        throw new EntityNotFoundException("Role not found for ID: " + rolePermDto.roleId());
+                    }
+
+                    return CategoryRolePermission.create(
+                            category,
+                            role,
+                            rolePermDto.permissions()
+                    );
+                })
+                .collect(Collectors.toList());
     }
 
     private Map<Long, TeamRole> getTeamRoles(Team team, CreateCategoryRequest request) {
-        Set<Long> requestRoleIds = request.rolePermissions().stream()
-                .map(CategoryRolePermissionDTO::roleId).collect(Collectors.toSet());
 
-        Map<Long, TeamRole> teamRoles = roleRepository.findAllByTeam(team).stream()
-                .collect(Collectors.toMap(TeamRole::getId, role -> role));
+        List<TeamRole> teamRoles = roleRepository.findAllByTeamWithPermissions(team);
+        Map<Long, TeamRole> roleMap = teamRoles.stream()
+                .collect(Collectors.toMap(TeamRole::getId, Function.identity()));
 
-        requestRoleIds.forEach(roleId -> {
-            if (!teamRoles.containsKey(roleId))
-                throw new IllegalArgumentException("Invalid role ID: " + roleId);
-        });
+        // 요청된 모든 역할 ID가 유효한지 검증
+        Set<Long> requestedRoleIds = request.rolePermissions().stream()
+                .map(CategoryRolePermissionDTO::roleId)
+                .collect(Collectors.toSet());
 
-        return teamRoles;
+        Set<Long> invalidRoleIds = requestedRoleIds.stream()
+                .filter(roleId -> !roleMap.containsKey(roleId))
+                .collect(Collectors.toSet());
+
+        if (!invalidRoleIds.isEmpty()) {
+            throw new IllegalArgumentException("Invalid role IDs: " + invalidRoleIds);
+        }
+
+        return roleMap;
     }
 
     public boolean checkCategoryPermission(Long categoryId, Member member, CategoryPermission permission) {
@@ -130,8 +162,6 @@ public class CategoryService {
 
     private void updateCategoryPermissions(TeamCategory category, UpdateCategoryRequest request, Long teamId) {
         Team team = teamRepository.findById(teamId).orElseThrow();
-//        Map<Long, TeamRole> teamRoles = roleRepository.findAllByTeam(team)
-//                .stream().collect(Collectors.toMap(TeamRole::getId, role -> role));
         List<TeamRole> teamRoles = roleRepository.findAllByTeamWithPermissions(team);
         Map<Long, TeamRole> roleMap = teamRoles.stream()
                 .collect(Collectors.toMap(TeamRole::getId, Function.identity()));
@@ -149,7 +179,7 @@ public class CategoryService {
             });
 
             List<CategoryRolePermission> newPermissions = permissions.stream()
-                    .map(perm -> perm.toEntity(category, roleMap.get(perm.roleId())))
+                    .map(perm -> CategoryRolePermission.create(category, roleMap.get(perm.roleId()), perm.permissions()))
                     .collect(Collectors.toList());
 
             categoryPermissionRepository.saveAll(newPermissions);

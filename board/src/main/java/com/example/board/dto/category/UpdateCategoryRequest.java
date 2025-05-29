@@ -18,14 +18,4 @@ public record UpdateCategoryRequest(
         if (description != null)
             category.updateDescription(description);
     }
-
-    public List<CategoryRolePermission> toCategoryRolePermissions(
-            TeamCategory category, Map<Long, TeamRole> teamRoles
-    ){
-
-        return rolePermissions.map(permissions -> permissions.stream()
-                .map(rolePermissionDto -> rolePermissionDto.toEntity(category, teamRoles.get(rolePermissionDto.roleId())))
-                .collect(Collectors.toList()))
-                .orElse(Collections.emptyList());
-    }
 }

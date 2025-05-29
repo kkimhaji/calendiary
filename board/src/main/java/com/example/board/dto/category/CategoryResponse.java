@@ -11,7 +11,7 @@ public record CategoryResponse(
         String description,
         List<CategoryRolePermissionResponse> rolePermissions
 ) {
-    public static CategoryResponse from(TeamCategory category){
+    public static CategoryResponse from(TeamCategory category) {
         return new CategoryResponse(
                 category.getId(),
                 category.getName(),

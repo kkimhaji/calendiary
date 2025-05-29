@@ -7,6 +7,7 @@ import com.example.board.permission.utils.PermissionUtils;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -36,15 +37,28 @@ public class CategoryRolePermission {
         return PermissionUtils.hasPermission(this.permissions, permission);
     }
 
-    public static CategoryRolePermission createPermission(
+    private CategoryRolePermission(TeamCategory category, TeamRole role, Set<CategoryPermission> permissions) {
+        this.category = category;
+        this.role = role;
+//        this.permissions = PermissionUtils.createPermissionBits(permissions);
+        this.permissionBytes = PermissionUtils.createPermissionBytes(permissions);
+    }
+
+    public static CategoryRolePermission create(
             TeamCategory category,
             TeamRole role,
             Set<CategoryPermission> permissions) {
-        CategoryRolePermission permission = new CategoryRolePermission();
-        permission.category = category;
-        permission.role = role;
-        permission.permissions = PermissionUtils.createPermissionBits(permissions);
-        return permission;
+        if (category == null) {
+            throw new IllegalArgumentException("Category cannot be null");
+        }
+        if (role == null) {
+            throw new IllegalArgumentException("Role cannot be null");
+        }
+        if (permissions == null) {
+            permissions = new HashSet<>(); // 빈 권한 집합으로 초기화
+        }
+
+        return new CategoryRolePermission(category, role, permissions);
     }
 
     public void addPermission(CategoryPermission permission) {
