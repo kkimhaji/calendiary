@@ -11,8 +11,8 @@ import com.example.board.domain.team.TeamInviteRepository;
 import com.example.board.domain.team.TeamRepository;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.teamMember.TeamMemberRepository;
-import com.example.board.dto.teamMember.TeamMemberInfo;
 import com.example.board.dto.team.*;
+import com.example.board.dto.teamMember.TeamMemberInfo;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -37,13 +37,12 @@ public class TeamService {
     private final TeamInviteRepository inviteRepository;
 
     public TeamMember addMember(AddMemberRequestDTO dto) {
-
         Team team = teamRepository.findById(dto.teamId())
                 .orElseThrow(() -> new EntityNotFoundException("no such team"));
         TeamRole basicRole = teamRoleRepository.findById(team.getBasicRoleId())
                 .orElseThrow(() -> new EntityNotFoundException("no basic role"));
 
-        var newMember = memberRepository.findById(dto.memberId())
+        Member newMember = memberRepository.findById(dto.memberId())
                 .orElseThrow(() -> new UsernameNotFoundException("no such user"));
 
         TeamMember teamMember = TeamMember.addTeamMember(team, newMember, basicRole);
@@ -51,17 +50,15 @@ public class TeamService {
     }
 
     public Team createTeam(Member member, TeamCreateRequestDTO dto) {
-        Team newTeam = teamRepository.save(dto.toEntity(member));
+        Team newTeam = teamRepository.save(Team.create(dto.teamName(), dto.description(), member, LocalDateTime.now()));
         TeamRole admin = teamRoleService.createAdmin(newTeam);
 
         TeamMember teamMember = TeamMember.createTeam(newTeam, member, admin);
-        var basicRole = teamRoleRepository.save(teamRoleService.createBasic(newTeam));
+        TeamRole basicRole = teamRoleRepository.save(teamRoleService.createBasic(newTeam));
         newTeam.setBasicRoleId(basicRole.getId());
         newTeam.setAdminRoleId(admin.getId());
         teamMemberRepository.save(teamMember);
         return teamRepository.save(newTeam);
-
-//        return TeamCreateResponse.fromEntity(newTeam);
     }
 
     public TeamInfoPageResponse getTeamInfo(Long teamId, UserPrincipal principal, String inviteCode) {
@@ -122,15 +119,8 @@ public class TeamService {
     public InviteResponse createInvite(InviteCreateRequest request) {
         Team team = teamRepository.findById(request.teamId()).orElseThrow(() -> new EntityNotFoundException("team not found"));
         String code = UUID.randomUUID().toString().replace("-", "");
-        TeamInvite invite = TeamInvite.builder()
-                .code(code)
-                .team(team)
-                .expiresAt(request.expiresAt())
-                .maxUses(request.maxUses())
-                .build();
-
+        TeamInvite invite = TeamInvite.create(code, team, request.expiresAt(), request.maxUses());
         inviteRepository.save(invite);
-
         String inviteLink = "http://localhost:3000/teams/" + team.getId() + "/join?code=" + code;
         return new InviteResponse(inviteLink);
     }

@@ -33,6 +33,17 @@ public class Team {
     @JsonIgnore
     private Set<TeamMember> members = new HashSet<>();
 
+    private Team(String name, String description, Member created_by, LocalDateTime createdAt) {
+        this.name = name;
+        this.description = description;
+        this.created_by = created_by;
+        this.createdAt = createdAt;
+    }
+
+    public static Team create(String name, String description, Member member, LocalDateTime createdAt){
+        return new Team(name, description, member, createdAt);
+    }
+
     public void updateName(String name){
         if (name != null && !name.isBlank())
             this.name = name;
@@ -40,5 +51,13 @@ public class Team {
 
     public void updateDescription(String description){
         this.description = description;
+    }
+
+    public void setBasicRoleId(Long basicRoleId) {
+        this.basicRoleId = basicRoleId;
+    }
+
+    public void setAdminRoleId(Long adminRoleId) {
+        this.adminRoleId = adminRoleId;
     }
 }

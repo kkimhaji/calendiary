@@ -33,5 +33,16 @@ public class TeamInvite {
         }
         this.usedCount++;
     }
+
+    private TeamInvite(String code, Team team, LocalDateTime expiresAt, Integer maxUses) {
+        this.code = code;
+        this.team = team;
+        this.expiresAt = expiresAt;
+        this.maxUses = maxUses;
+    }
+
+    public static TeamInvite create(String code, Team team, LocalDateTime expiresAt, Integer maxUses){
+        return new TeamInvite(code, team, expiresAt, maxUses);
+    }
 }
 
