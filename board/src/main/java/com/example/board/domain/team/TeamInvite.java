@@ -33,14 +33,5 @@ public class TeamInvite {
         }
         this.usedCount++;
     }
-
-    @Builder
-    public TeamInvite(String code, Team team, LocalDateTime expiresAt, Integer maxUses){
-        this.code = code;
-        this.team = team;
-        this.expiresAt = expiresAt;
-        this.maxUses = maxUses;
-        this.usedCount = 0;
-    }
 }
 

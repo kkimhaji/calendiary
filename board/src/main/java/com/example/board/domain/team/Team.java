@@ -1,6 +1,5 @@
 package com.example.board.domain.team;
 
-import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.member.Member;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -13,7 +12,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Getter
-@Setter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Team {
@@ -34,15 +32,6 @@ public class Team {
     @OneToMany(mappedBy = "team")
     @JsonIgnore
     private Set<TeamMember> members = new HashSet<>();
-
-    @Builder
-    public Team(String name, String description, Member created_by, LocalDateTime createdAt, Long basicRoleId){
-        this.name = name;
-        this.description = description;
-        this.created_by = created_by;
-        this.createdAt = createdAt;
-        this.basicRoleId = basicRoleId;
-    }
 
     public void updateName(String name){
         if (name != null && !name.isBlank())

@@ -59,7 +59,6 @@ public class CategoryRolePermission {
         return permissions;
     }
 
-    // 새로운 게터/세터
     public byte[] getPermissionBytes() {
         return permissionBytes;
     }
@@ -92,10 +91,4 @@ public class CategoryRolePermission {
         this.role = role;
     }
 
-   @Builder
-    public CategoryRolePermission(TeamCategory category, TeamRole role, Set<CategoryPermission> permissions) {
-        this.category = category;
-        this.role = role;
-        this.permissions = PermissionUtils.createPermissionBits(permissions);
-    }
 }

@@ -90,12 +90,4 @@ public class TeamRole {
         this.description = description;
         this.permissions = permissions;
     }
-
-    @Builder
-    public TeamRole(String roleName, String description, Set<TeamPermission> permissions, Team team) {
-        this.roleName = roleName;
-        this.description = description;
-        this.permissions = PermissionUtils.createPermissionBits(permissions);
-        this.team = team;
-    }
 }
