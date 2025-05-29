@@ -243,17 +243,16 @@ public class TeamRoleService {
 
     @Transactional
     public void updateRole(Long teamId, Long roleId, RoleUpdateRequest request){
+        request.validate();
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new EntityNotFoundException("Team not found"));
         TeamRole role = teamRoleRepository.findById(roleId)
                 .orElseThrow(() -> new EntityNotFoundException("Role not found"));
 
-        String permissionBits = PermissionUtils.createPermissionBits(request.permissions());
-
         role.update(
                 request.roleName(),
                 request.description(),
-                permissionBits
+                request.permissions()
         );
 
         teamRoleRepository.save(role);

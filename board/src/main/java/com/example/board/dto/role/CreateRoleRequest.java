@@ -16,17 +16,9 @@ public record CreateRoleRequest(
     public CreateRoleRequest{
         Objects.requireNonNull(roleName, "Role name must not be null");
         Objects.requireNonNull(permissions, "Permissions must not be null");
-//        if (permissions.isEmpty()){
-//            throw new IllegalArgumentException("At least one permission is required");
-//        }
     }
 
     public TeamRole toEntity(Team team){
-        return TeamRole.builder()
-                .roleName(this.roleName)
-                .team(team)
-                .description(this.description)
-                .permissions(this.permissions)
-                .build();
+        return TeamRole.create(roleName, description, permissions, team);
     }
 }

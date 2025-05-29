@@ -41,7 +41,7 @@ public class TeamRole {
     }
 
     public boolean hasPermission(TeamPermission permission) {
-        return PermissionConverter.hasPermissionOptimized(getPermissionBytes(), permission);
+        return PermissionUtils.hasPermission(this.permissionBytes, permission);
     }
 
     public void addPermission(TeamPermission permission) {
@@ -82,12 +82,92 @@ public class TeamRole {
 
     // 권한 집합 가져오기
     public Set<TeamPermission> getPermissionSet() {
-        return PermissionConverter.getPermissionsFromBytes(getPermissionBytes(), TeamPermission.class);
+        return PermissionConverter.getPermissionsFromBytes(this.permissionBytes, TeamPermission.class);
     }
 
-    public void update(String roleName, String description, String permissions) {
+    public void update(String newRoleName, String description, Set<TeamPermission> newPermissions) {
+        // 역할명 업데이트
+        if (newRoleName != null && !newRoleName.trim().isEmpty()) {
+            this.roleName = newRoleName;
+        }
+
+        // 설명 업데이트
+        this.description = description;
+
+        // 권한 업데이트 - 엔티티 내부에서 변환 처리
+        if (newPermissions != null) {
+            this.permissionBytes = PermissionUtils.createPermissionBytes(newPermissions);
+//            this.permissions = PermissionUtils.createPermissionBits(newPermissions); // 호환성
+        }
+    }
+
+    //권한만 업데이트
+    public void updatePermissions(Set<TeamPermission> newPermissions) {
+        if (newPermissions != null) {
+            this.permissionBytes = PermissionUtils.createPermissionBytes(newPermissions);
+//            this.permissions = PermissionUtils.createPermissionBits(newPermissions);
+        }
+    }
+
+    //역할&설명만 업데이트
+    public void updateBasicInfo(String newRoleName, String description) {
+        if (newRoleName != null && !newRoleName.trim().isEmpty()) {
+            this.roleName = newRoleName;
+        }
+        this.description = description;
+    }
+
+    @PostLoad
+    private void syncPermissionsAfterLoad() {
+        // DB에서 로딩 후 byte[]를 기반으로 String permissions 동기화
+        if (this.permissionBytes != null && this.permissionBytes.length > 0) {
+            Set<TeamPermission> permissionSet = PermissionUtils.getPermissionsFromBytes(
+                    this.permissionBytes, TeamPermission.class);
+            this.permissions = PermissionUtils.createPermissionBits(permissionSet);
+        } else {
+            this.permissions = "0";
+        }
+    }
+
+    private TeamRole(String roleName, String description, Set<TeamPermission> permissions, Team team) {
+        if (roleName == null || roleName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Role name cannot be null or empty");
+        }
+        if (team == null) {
+            throw new IllegalArgumentException("Team cannot be null");
+        }
+        if (permissions == null) {
+            permissions = new HashSet<>(); // 빈 Set으로 초기화
+        }
+
         this.roleName = roleName;
         this.description = description;
-        this.permissions = permissions;
+        this.team = team;
+        this.permissionBytes = PermissionUtils.createPermissionBytes(permissions);
     }
+
+    private TeamRole(String roleName, String description, byte[] permissionBytes, Team team) {
+        if (roleName == null || roleName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Role name cannot be null or empty");
+        }
+        if (team == null) {
+            throw new IllegalArgumentException("Team cannot be null");
+        }
+
+        this.roleName = roleName;
+        this.description = description;
+        this.team = team;
+        this.permissionBytes = permissionBytes != null ? permissionBytes : new byte[0];
+
+        // 호환성을 위한 String 생성 (byte[]에서 역변환)
+        Set<TeamPermission> permissionSet = PermissionUtils.getPermissionsFromBytes(
+                this.permissionBytes, TeamPermission.class);
+        this.permissions = PermissionUtils.createPermissionBits(permissionSet);
+    }
+
+    public static TeamRole create(String roleName, String description,
+                                  Set<TeamPermission> permissions, Team team) {
+        return new TeamRole(roleName, description, permissions, team);
+    }
+
 }
