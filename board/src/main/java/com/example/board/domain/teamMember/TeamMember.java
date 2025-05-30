@@ -30,7 +30,15 @@ public class TeamMember {
 
     private LocalDateTime joinedAt;
 
-    public static TeamMember createTeam(Team team, Member member, TeamRole role){
+    private TeamMember(Team team, Member member, TeamRole role, String teamNickname, LocalDateTime joinedAt) {
+        this.team = team;
+        this.member = member;
+        this.role = role;
+        this.teamNickname = teamNickname;
+        this.joinedAt = joinedAt;
+    }
+
+    public static TeamMember createTeamMember(Team team, Member member, TeamRole role){
         return new TeamMember(
                 team, member, role,
                 "ADMIN", LocalDateTime.now()
@@ -39,15 +47,6 @@ public class TeamMember {
 
     public void updateTeamNickname(String teamNickname){
         this.teamNickname = teamNickname;
-    }
-
-    @Builder
-    private TeamMember(Team team, Member member, TeamRole role, String teamNickname, LocalDateTime joinedAt) {
-        this.team = team;
-        this.member = member;
-        this.role = role;
-        this.teamNickname = teamNickname;
-        this.joinedAt = joinedAt;
     }
 
     //새로운 멤버를 팀에 추가할 때

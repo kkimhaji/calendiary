@@ -53,7 +53,7 @@ public class TeamService {
         Team newTeam = teamRepository.save(Team.create(dto.teamName(), dto.description(), member, LocalDateTime.now()));
         TeamRole admin = teamRoleService.createAdmin(newTeam);
 
-        TeamMember teamMember = TeamMember.createTeam(newTeam, member, admin);
+        TeamMember teamMember = TeamMember.createTeamMember(newTeam, member, admin);
         TeamRole basicRole = teamRoleRepository.save(teamRoleService.createBasic(newTeam));
         newTeam.setBasicRoleId(basicRole.getId());
         newTeam.setAdminRoleId(admin.getId());
