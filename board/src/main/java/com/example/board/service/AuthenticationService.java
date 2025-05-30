@@ -12,23 +12,21 @@ import com.example.board.dto.member.RegisterRequestDTO;
 import com.example.board.dto.member.VerifyUserDTO;
 import com.example.board.exception.RefreshTokenExpiredException;
 import com.example.board.util.CookieUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.http.HttpHeaders;
 
 import java.io.IOException;
-import java.nio.file.attribute.UserPrincipalNotFoundException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -51,12 +49,9 @@ public class AuthenticationService {
     // save to the database and return the generated token
     public MemberRegisterResponseDTO register(RegisterRequestDTO request) {
         //create a user object out of the registerRequest
-        var member = request.toEntity(
-                passwordEncoder.encode(request.password()),
-                emailService.generateRandomCode(),
-                LocalDateTime.now().plusMinutes(15),
-                false
-        );
+        Member member = Member.createMember(request.email(), request.nickname(), passwordEncoder.encode(request.password()),
+                false, emailService.generateRandomCode(),
+                LocalDateTime.now().plusMinutes(15));
 
         emailService.sendVerificationEmail(member);
         memberRepository.save(member);
@@ -96,7 +91,7 @@ public class AuthenticationService {
         var member = memberRepository.findByEmail(request.email())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        if (!member.isEnabled()){
+        if (!member.isEnabled()) {
             throw new RuntimeException("Account is not verified. Please verify your account first");
         }
 
@@ -135,7 +130,7 @@ public class AuthenticationService {
         var member = memberRepository.findByEmail(request.email())
                 .orElseThrow();
 
-        if (!member.isEnabled()){
+        if (!member.isEnabled()) {
             throw new RuntimeException("Account is not verified. Please verify your account first");
         }
 
@@ -174,7 +169,7 @@ public class AuthenticationService {
         tokenRepository.saveAll(validUserTokens);
     }
 
-    private void revokeRefreshToken(Member member){
+    private void revokeRefreshToken(Member member) {
         var validRefreshTokens = refreshTokenRepository.findAllByMemberId(member.getMemberId());
         if (validRefreshTokens.isEmpty()) return;
 
@@ -182,10 +177,11 @@ public class AuthenticationService {
         refreshTokenRepository.saveAll(validRefreshTokens);
     }
 
-    public void revokeAllTokens(Member member){
+    public void revokeAllTokens(Member member) {
         revokeToken(member);
         revokeRefreshToken(member);
     }
+
     //refresh token을 기반으로 새로 access token 발행
     public AuthenticationResponse refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
@@ -245,14 +241,14 @@ public class AuthenticationService {
         refreshTokenRepository.save(newToken);
     }
 
-    public boolean validateToken(String authHeader){
+    public boolean validateToken(String authHeader) {
         String token = authHeader.substring(7);
-        try{
+        try {
 
             String username = jwtService.extractUsername(token);
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-            if (!jwtService.isTokenValid(token, userDetails)){
+            if (!jwtService.isTokenValid(token, userDetails)) {
                 throw new MalformedJwtException("token is not valid");
             }
 

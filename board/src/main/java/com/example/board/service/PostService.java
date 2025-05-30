@@ -2,12 +2,15 @@ package com.example.board.service;
 
 import com.example.board.auth.UserPrincipal;
 import com.example.board.config.HtmlSanitizer;
+import com.example.board.domain.category.CategoryRepository;
+import com.example.board.domain.category.TeamCategory;
 import com.example.board.domain.comment.CommentRepository;
 import com.example.board.domain.member.Member;
-import com.example.board.domain.post.*;
-import com.example.board.domain.category.CategoryRepository;
+import com.example.board.domain.post.Post;
+import com.example.board.domain.post.PostImage;
+import com.example.board.domain.post.PostImageRepository;
+import com.example.board.domain.post.PostRepository;
 import com.example.board.domain.team.Team;
-import com.example.board.domain.category.TeamCategory;
 import com.example.board.domain.team.TeamRepository;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.teamMember.TeamMemberRepository;
@@ -60,12 +63,12 @@ public class PostService {
         TeamMember teamMember = teamMemberRepository.findByTeamIdAndMember(teamId, author)
                 .orElseThrow(() -> new EntityNotFoundException("team member not found"));
 
-        Post post = request.toEntity(processedContent, team, category, author, teamMember);
+        Post post = Post.create(request.title(), request.content(), author, category, team, teamMember);
 
         List<String> permUrls = imageService.extractImageUrlsFromContent(processedContent).stream()
                 .filter(url -> url.contains("/perm-images/")).toList();
 
-        for (String permUrl: permUrls){
+        for (String permUrl : permUrls) {
             String fileName = permUrl.replace("/perm-images/", "");
             PostImage postImage = PostImage.createPostImage(post, fileName, fileName);
             post.addImage(postImage);
@@ -86,7 +89,7 @@ public class PostService {
     }
 
     public TeamRecentPostsResponse getRecentPosts(Long teamId, Pageable pageable) {
-        String teamName = teamRepository.findById(teamId).orElseThrow(()->new EntityNotFoundException("team not found")).getName();
+        String teamName = teamRepository.findById(teamId).orElseThrow(() -> new EntityNotFoundException("team not found")).getName();
         Page<PostListResponse> posts = postRepository.findRecentPostsByTeamId(teamId, pageable);
 
         return new TeamRecentPostsResponse(teamName, posts);
@@ -94,7 +97,7 @@ public class PostService {
 
     @Transactional(readOnly = true)
     @Cacheable(key = "{#teamId, #categoryId, #pageable.pageNumber, #pageable.pageSize}") // 캐시 키 설정
-    public CategoryRecentPostsResponse getPostsByCategory(Long teamId, Long categoryId,Pageable pageable) {
+    public CategoryRecentPostsResponse getPostsByCategory(Long teamId, Long categoryId, Pageable pageable) {
         String categoryName = categoryRepository.findById(categoryId).orElseThrow(() -> new EntityNotFoundException("category not found")).getName();
         Page<PostListResponse> posts = postRepository.findByTeamAndCategory(teamId, categoryId, pageable);
         return new CategoryRecentPostsResponse(categoryName, posts);
@@ -150,32 +153,39 @@ public class PostService {
         postRepository.deleteById(postId);
     }
 
-    public PostResponse updatePost(Long categoryId, Long postId,UpdatePostRequestDTO requestDTO) throws IOException {
+    public PostResponse updatePost(Long categoryId, Long postId, UpdatePostRequestDTO requestDTO) throws IOException {
         Post post = postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("post not found"));
         TeamCategory category = categoryRepository.findById(categoryId).orElseThrow(() -> new EntityNotFoundException("category not found"));
+        // 요청 데이터 유효성 검증
+        requestDTO.validate();
 
         //이미지 처리
         String sanitizedContent = htmlSanitizer.sanitize(requestDTO.content());
         String processedContent = imageService.processContentImages(sanitizedContent);
 
         //기존 이미지 중 삭제 대상 처리
-        if (requestDTO.deleteImageIds() != null && !requestDTO.deleteImageIds().isEmpty()){
+        if (requestDTO.deleteImageIds() != null && !requestDTO.deleteImageIds().isEmpty()) {
             deleteImages(post, requestDTO.deleteImageIds());
         }
-        Post updatedPost = requestDTO.toEntity(post, category, processedContent);
+        post.update(requestDTO.title(), processedContent, category);
+        // 새로운 이미지 처리
+        processNewImages(post, processedContent);
 
+        return PostResponse.from(postRepository.save(post));
+    }
+
+    // 새로운 이미지 처리 로직을 별도 메서드로 분리
+    private void processNewImages(Post post, String processedContent) {
         List<String> newImageUrls = imageService.extractImageUrlsFromContent(processedContent).stream()
-                        .filter(url -> !post.getImages().stream()
-                                .anyMatch(img -> url.contains(img.getStoredFileName())))
-                        .toList();
+                .filter(url -> !post.getImages().stream()
+                        .anyMatch(img -> url.contains(img.getStoredFileName())))
+                .toList();
 
-        for (String url: newImageUrls){
+        for (String url : newImageUrls) {
             String fileName = url.replace("/perm-images/", "");
-            PostImage postImage = PostImage.createPostImage(updatedPost, fileName, fileName);
-            updatedPost.addImage(postImage);
+            PostImage postImage = PostImage.createPostImage(post, fileName, fileName);
+            post.addImage(postImage);
         }
-
-        return PostResponse.from(postRepository.save(updatedPost));
     }
 
     private void deleteImages(Post post, List<Long> imageIds) {

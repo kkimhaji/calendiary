@@ -51,7 +51,8 @@ public class CommentService {
                     .orElseThrow(() -> new EntityNotFoundException("Parent comment not found"));
         }
 
-        Comment comment = request.toEntity(post, member, parent, teamMember);
+        Comment comment = Comment.createComment(request.content(), post, member, teamMember, parent);
+//        Comment comment = request.toEntity(post, member, parent, teamMember);
         post.addComment(comment);
 
         return CommentResponse.from(commentRepository.save(comment));

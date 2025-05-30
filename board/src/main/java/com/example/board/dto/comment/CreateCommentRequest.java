@@ -11,7 +11,4 @@ public record CreateCommentRequest(
         @Nullable Long parentCommentId //대댓글인 경우
 //        int depth
 ) {
-    public Comment toEntity(Post post, Member author, Comment parent, TeamMember teamMember){
-        return Comment.createComment(content, post, author, teamMember, parent);
-    }
 }

@@ -9,12 +9,14 @@ import java.util.List;
 public record UpdatePostRequestDTO(
         String title,
         String content,
-        List<MultipartFile> images,
         List<Long> deleteImageIds
 ) {
-    public Post toEntity(Post post, TeamCategory category, String processedContent){
-        post.update(this.title, processedContent, category);
-
-        return post;
+    public void validate() {
+        if (title == null || title.trim().isEmpty()) {
+            throw new IllegalArgumentException("Post title cannot be empty");
+        }
+        if (content == null || content.trim().isEmpty()) {
+            throw new IllegalArgumentException("Post content cannot be empty");
+        }
     }
 }
