@@ -12,10 +12,4 @@ public record UpdateCategoryRequest(
         String description,
         Optional<List<CategoryRolePermissionDTO>> rolePermissions //권한 수정 선택적
 ) {
-    public void updateEntity(TeamCategory category){
-        if (name != null)
-            category.updateName(name);
-        if (description != null)
-            category.updateDescription(description);
-    }
 }

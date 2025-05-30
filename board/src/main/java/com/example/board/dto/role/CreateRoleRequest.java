@@ -17,8 +17,4 @@ public record CreateRoleRequest(
         Objects.requireNonNull(roleName, "Role name must not be null");
         Objects.requireNonNull(permissions, "Permissions must not be null");
     }
-
-    public TeamRole toEntity(Team team){
-        return TeamRole.create(roleName, description, permissions, team);
-    }
 }

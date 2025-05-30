@@ -47,7 +47,7 @@ public class TeamRoleService {
         if (teamRoleRepository.existsByTeamAndRoleName(team, request.roleName())) {
             throw new RuntimeException("Role name already exists in this team");
         }
-        TeamRole newRole = teamRoleRepository.save(request.toEntity(team));
+        TeamRole newRole = teamRoleRepository.save(TeamRole.create(request.roleName(), request.description(), request.permissions(), team));
         //category role permission에 기본 저장
         int insertedRows = categoryPermissionRepository.createDefaultPermissionsForNewRole(teamId, newRole.getId());
 

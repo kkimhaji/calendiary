@@ -10,9 +10,4 @@ public record TeamRoleDetailResponse(
         Set<TeamPermission> permissions,
         long memberCount
 ) {
-//    public static TeamRoleDetailResponse of(TeamRoleDetailDto dto){
-//        Set<TeamPermission> permissions = PermissionUtils.getPermissionsFromBits(dto.permissionBits(), TeamPermission.class);
-//        return new TeamRoleDetailResponse(dto.id(), dto.name(), permissions, dto.memberCount());
-//    }
-
 }
