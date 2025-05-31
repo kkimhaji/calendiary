@@ -110,14 +110,6 @@ public class TeamMemberService {
     }
 
     @Transactional(readOnly = true)
-    public List<AddTeamMemberToRoleDTO> getTeamMembers(Long teamId) {
-        return teamMemberRepository.findAllWithDetailsByTeamId(teamId)
-                .stream()
-                .map(AddTeamMemberToRoleDTO::new)
-                .collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
     public Page<AddTeamMemberToRoleDTO> getTeamMembers(
             Long teamId,
             int page,
