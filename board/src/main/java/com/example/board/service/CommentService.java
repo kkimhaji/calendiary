@@ -84,8 +84,8 @@ public class CommentService {
     }
 
     @Transactional(readOnly = true)
-    public Page<MemberCommentResponse> findCommentsByTeamAndMember(Long teamId, Long memberId, int page, int size) {
+    public Page<MemberCommentResponse> findCommentsByTeamAndMember(Long teamMemberId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
-        return commentRepository.findCommentsByMemberIdAndTeamId(memberId, teamId, pageable);
+        return commentRepository.findCommentsByTeamMemberId(teamMemberId, pageable);
     }
 }

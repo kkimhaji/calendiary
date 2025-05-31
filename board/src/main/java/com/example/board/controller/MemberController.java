@@ -72,28 +72,28 @@ public class MemberController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/{memberId}/teams/{teamId}/posts")
+    @GetMapping("/teams/{teamId}/{teamMemberId}/posts")
     public ResponseEntity<Page<PostListResponse>> getMemberPosts(
-            @PathVariable("teamId") Long teamId, @PathVariable("memberId") Long memberId,
+            @PathVariable("teamId") Long teamId, @PathVariable("teamMemberId") Long teamMemberId,
             @RequestParam(defaultValue = "0", name="page") int page,
             @RequestParam(defaultValue = "10", name = "size") int size){
-        return ResponseEntity.ok(postService.findPostsByTeamAndMember(teamId, memberId, page, size));
+        return ResponseEntity.ok(postService.findPostsByTeamAndMember(teamMemberId, page, size));
     }
 
-    @GetMapping("/{memberId}/teams/{teamId}/comments")
+    @GetMapping("/teams/{teamId}/{teamMemberId}/comments")
     public ResponseEntity<Page<MemberCommentResponse>> getMemberComments(
             @PathVariable("teamId") Long teamId,
-            @PathVariable("memberId") Long memberId,
+            @PathVariable("teamMemberId") Long teamMemberId,
             @RequestParam(defaultValue = "0", name="page") int page,
             @RequestParam(defaultValue = "10", name="size") int size) {
 
-        return ResponseEntity.ok(commentService.findCommentsByTeamAndMember(teamId, memberId, page, size));
+        return ResponseEntity.ok(commentService.findCommentsByTeamAndMember(teamMemberId, page, size));
     }
 
-    @GetMapping("/{memberId}/teams/{teamId}")
+    @GetMapping("/teams/{teamId}/member/{teamMemberId}")
     public ResponseEntity<MemberProfileResponse> getTeamMemberProfile(
-            @PathVariable("teamId") Long teamId, @PathVariable("memberId") Long memberId
+            @PathVariable("teamId") Long teamId, @PathVariable("teamMemberId") Long teamMemberId
     ){
-        return ResponseEntity.ok(teamMemberService.getTeamMemberProfile(teamId, memberId));
+        return ResponseEntity.ok(teamMemberService.getTeamMemberProfile(teamMemberId));
     }
 }

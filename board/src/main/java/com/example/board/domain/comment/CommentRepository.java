@@ -73,18 +73,18 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     @Query("SELECT new com.example.board.dto.comment.MemberCommentResponse(" +
             "c.id, c.content, c.author.id, " +
-            "COALESCE(c.teamMember.teamNickname, c.author.nickname, '익명'), " + // teamNickname 우선 사용, null이면 기본 닉네임
+            "COALESCE(c.teamMember.teamNickname, c.author.nickname, '익명'), " +
             "c.createdDate, c.isDeleted, " +
             "p.id, p.title, cat.id, t.id) " +
             "FROM Comment c " +
-            "LEFT JOIN c.teamMember tm " + // teamMember에 LEFT JOIN 추가
+            "JOIN c.teamMember tm " +  // teamMember 직접 조인
             "JOIN c.post p " +
             "JOIN p.category cat " +
             "JOIN cat.team t " +
-            "WHERE c.author.memberId = :memberId AND t.id = :teamId " +
+            "WHERE c.teamMember.id = :teamMemberId " +  // TeamMember 단독 기준
             "ORDER BY c.createdDate DESC")
-    Page<MemberCommentResponse> findCommentsByMemberIdAndTeamId(
-            @Param("memberId") Long memberId,
-            @Param("teamId") Long teamId,
+    Page<MemberCommentResponse> findCommentsByTeamMemberId(
+            @Param("teamMemberId") Long teamMemberId,
             Pageable pageable);
+
 }

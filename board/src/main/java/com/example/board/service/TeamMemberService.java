@@ -62,8 +62,8 @@ public class TeamMemberService {
         return teamMemberRepository.findMembersByRoleId(roleId);
     }
 
-    public MemberProfileResponse getTeamMemberProfile(Long teamId, Long memberId){
-        MemberProfileResponse dto = teamMemberRepository.findMemberProfileByTeamIdAndMemberId(teamId, memberId)
+    public MemberProfileResponse getTeamMemberProfile(Long teamMemberId){
+        MemberProfileResponse dto = teamMemberRepository.findMemberProfileByTeamMemberId(teamMemberId)
                 .orElseThrow(() -> new EntityNotFoundException("team member not found"));
 
         return new MemberProfileResponse(

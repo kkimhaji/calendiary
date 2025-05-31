@@ -122,8 +122,8 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
             "FROM TeamMember tm " +
             "JOIN tm.member m " +
             "JOIN tm.role r " +
-            "WHERE tm.team.id = :teamId AND m.id = :memberId")
-    Optional<MemberProfileResponse> findMemberProfileByTeamIdAndMemberId(
-            @Param("teamId") Long teamId,
-            @Param("memberId") Long memberId);
+            "WHERE tm.id = :teamMemberId")
+    Optional<MemberProfileResponse> findMemberProfileByTeamMemberId(
+            @Param("teamMemberId") Long teamMemberId);
+
 }

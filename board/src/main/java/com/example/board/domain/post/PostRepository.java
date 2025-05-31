@@ -54,18 +54,17 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     //사용자의 작성 게시글 목록
     @Query("SELECT new com.example.board.dto.post.PostListResponse(" +
             "p.id, p.title, " +
-            "COALESCE(p.teamMember.teamNickname, 'Unknown'), " + // 팀 닉네임 우선, null이면 일반 닉네임
+            "COALESCE(p.teamMember.teamNickname, 'Unknown'), " +
             "p.team.id, c.name, c.id, p.viewCount, p.createdDate, " +
             "(SELECT COUNT(cm) FROM Comment cm WHERE cm.post = p)) " +
             "FROM Post p " +
-            "JOIN p.author a " +
-            "LEFT JOIN p.teamMember tm " + // LEFT JOIN으로 변경
+            "JOIN p.teamMember tm " +  // teamMember 직접 조인
             "JOIN p.category c " +
-            "WHERE c.team.id = :teamId AND a.id = :authorId")
-    Page<PostListResponse> findPostListResponseByTeamIdAndAuthorId(
-            @Param("teamId") Long teamId,
-            @Param("authorId") Long authorId,
+            "WHERE p.teamMember.id = :teamMemberId")  // TeamMember 단독 기준
+    Page<PostListResponse> findPostListResponseByTeamMemberId(
+            @Param("teamMemberId") Long teamMemberId,
             Pageable pageable);
+
 
     @Modifying(clearAutomatically = true)
     @Query("UPDATE Post p SET p.viewCount = p.viewCount + :count WHERE p.id = :postId")
