@@ -42,7 +42,10 @@ public class CategoryService {
     public TeamCategory createCategory(Long teamId, CreateCategoryRequest request) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new EntityNotFoundException("Team not found"));
-
+        request.validate();
+        if (categoryRepository.existsByTeamAndName(team, request.name())){
+            throw new IllegalArgumentException("Category name '" + request.name() + "' already exists in this team");
+        }
         TeamCategory category = TeamCategory.createCategory(
                 request.name(),
                 request.description(),
@@ -154,7 +157,12 @@ public class CategoryService {
                 .orElseThrow(() -> new EntityNotFoundException("category not found"));
 
         category.updateDescription(request.description());
-        category.updateName(request.name());
+        if (categoryRepository.existsByTeamAndNameAndIdNot(category.getTeam(), request.name(), categoryId)){
+            throw new IllegalArgumentException("Category name already exists: " + request.name());
+        }
+        if (!category.getName().equals(request.name()) && request.name() != null){
+            category.updateName(request.name());
+        }
 
         //권한 업데이트 내용이 있을 때만(Optional 존재) 권한 정보 업데이트
         request.rolePermissions().ifPresent(permissions -> updateCategoryPermissions(category, request, teamId));

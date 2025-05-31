@@ -28,4 +28,7 @@ public interface CategoryRepository extends JpaRepository<TeamCategory, Long> {
     @Query("SELECT new com.example.board.dto.category.CategoryListDTO(c.id, c.name) " +
             "FROM TeamCategory c WHERE c.team.id = :teamId")
     List<CategoryListDTO> findCategoryListByTeamId(@Param("teamId") Long teamId);
+
+    boolean existsByTeamAndName(Team team, String name);
+    boolean existsByTeamAndNameAndIdNot(Team team, String name, Long id);
 }

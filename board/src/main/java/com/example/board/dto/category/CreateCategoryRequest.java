@@ -7,4 +7,9 @@ public record CreateCategoryRequest(
         String description,
         List<CategoryRolePermissionDTO> rolePermissions // roleId -> permissions mapping
 ) {
+    public void validate(){
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Category name cannot be empty");
+        }
+    }
 }
