@@ -34,7 +34,7 @@ public record CommentResponse(
         return new CommentResponse(
                 comment.getId(),
                 comment.getContent(),
-                comment.getAuthor().getMemberId(),
+                comment.getTeamMember().getId(),
                 displayName,
                 comment.getCreatedDate(),
                 comment.isDeleted(),

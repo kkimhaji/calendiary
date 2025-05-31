@@ -27,7 +27,7 @@ public record MemberCommentResponse(
         return new MemberCommentResponse(
                 comment.getId(),
                 comment.getContent(),
-                comment.getAuthor().getMemberId(),
+                comment.getTeamMember().getId(),
                 nickname,
                 comment.getCreatedDate(),
                 comment.isDeleted(),

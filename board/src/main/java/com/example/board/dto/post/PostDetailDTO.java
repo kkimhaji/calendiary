@@ -23,7 +23,7 @@ public record PostDetailDTO(
                 post.getId(),
                 post.getTitle(),
                 post.getContent(),
-                AuthorDTO.from(post.getAuthor(), post.getTeamMember()),
+                AuthorDTO.from(post.getTeamMember()),
                 post.getCategory().getName(),
                 post.getViewCount(),
                 post.getCreatedDate(),
