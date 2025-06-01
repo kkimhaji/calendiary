@@ -22,7 +22,7 @@ public class Team {
     private String description;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
-    private Member created_by;
+    private Member createdBy;
     @CreatedDate
     private LocalDateTime createdAt;
 
@@ -33,10 +33,10 @@ public class Team {
     @JsonIgnore
     private Set<TeamMember> members = new HashSet<>();
 
-    private Team(String name, String description, Member created_by, LocalDateTime createdAt) {
+    private Team(String name, String description, Member createdBy, LocalDateTime createdAt) {
         this.name = name;
         this.description = description;
-        this.created_by = created_by;
+        this.createdBy = createdBy;
         this.createdAt = createdAt;
     }
 
