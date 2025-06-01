@@ -126,4 +126,6 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
     Optional<MemberProfileResponse> findMemberProfileByTeamMemberId(
             @Param("teamMemberId") Long teamMemberId);
 
+    boolean existsByTeamAndMember(Team team, Member member);
+    boolean existsByTeamAndTeamNickname(Team team, String teamNickname);
 }

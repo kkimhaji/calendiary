@@ -50,10 +50,10 @@ public class TeamMember {
     }
 
     //새로운 멤버를 팀에 추가할 때
-    public static TeamMember addTeamMember(Team team, Member newMember, TeamRole basicRole){
+    public static TeamMember addTeamMember(Team team, Member newMember, TeamRole basicRole, String teamNickname){
         return new TeamMember(
                 team, newMember, basicRole,
-                newMember.getNickname(), LocalDateTime.now()
+                teamNickname, LocalDateTime.now()
         );
     }
 

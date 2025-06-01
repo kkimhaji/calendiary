@@ -13,6 +13,7 @@ import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.domain.teamMember.TeamMemberRepository;
 import com.example.board.dto.team.*;
 import com.example.board.dto.teamMember.TeamMemberInfo;
+import com.example.board.exception.TeamNicknameDuplicationException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -45,7 +46,7 @@ public class TeamService {
         Member newMember = memberRepository.findById(dto.memberId())
                 .orElseThrow(() -> new UsernameNotFoundException("no such user"));
 
-        TeamMember teamMember = TeamMember.addTeamMember(team, newMember, basicRole);
+        TeamMember teamMember = TeamMember.addTeamMember(team, newMember, basicRole, newMember.getNickname());
         return teamMemberRepository.save(teamMember);
     }
 
@@ -116,6 +117,23 @@ public class TeamService {
         return targetTeam.getId();
     }
 
+    public boolean isTeamNicknameDuplicate(Team team, String teamNickname) {
+        if (teamNickname == null || teamNickname.trim().isEmpty()) {
+            return false;  // 빈 닉네임은 중복이 아님
+        }
+        return teamMemberRepository.existsByTeamAndTeamNickname(team, teamNickname.trim());
+    }
+
+    // 팀 ID로 중복 검사하는 오버로딩 메서드
+    public boolean isTeamNicknameDuplicate(Long teamId, String teamNickname) {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new EntityNotFoundException("Team not found"));
+        if (teamNickname == null || teamNickname.trim().isEmpty()) {
+            throw new IllegalArgumentException("닉네임을 입력해주세요");
+        }
+        return isTeamNicknameDuplicate(team, teamNickname);
+    }
+
     public InviteResponse createInvite(InviteCreateRequest request) {
         Team team = teamRepository.findById(request.teamId()).orElseThrow(() -> new EntityNotFoundException("team not found"));
         String code = UUID.randomUUID().toString().replace("-", "");
@@ -143,21 +161,32 @@ public class TeamService {
 
     @Transactional
     public void joinTeam(Long teamId, TeamJoinRequest request, Member newMember) {
+        request.validate();
         TeamInvite invite = inviteRepository.findByCode(request.code())
                 .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 코드"));
 
         validateInvite(invite);
 
-        invite.incrementUsedCount();
-        inviteRepository.save(invite);
-
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new EntityNotFoundException("no such team"));
+
+        // 이미 팀 멤버인지 확인
+        if (teamMemberRepository.existsByTeamAndMember(team, newMember)) {
+            throw new IllegalArgumentException("이미 팀의 멤버입니다");
+        }
+
+        // 팀 내 닉네임 중복 검사
+        if (isTeamNicknameDuplicate(team, request.teamNickname())) {
+            throw new TeamNicknameDuplicationException("이미 사용 중인 팀 닉네임입니다");
+        }
+
         TeamRole basicRole = teamRoleRepository.findById(team.getBasicRoleId())
                 .orElseThrow(() -> new EntityNotFoundException("no basic role"));
 
-        TeamMember teamMember = TeamMember.addTeamMember(team, newMember, basicRole);
+        TeamMember teamMember = TeamMember.addTeamMember(team, newMember, basicRole, request.teamNickname());
         teamMemberRepository.save(teamMember);
+        invite.incrementUsedCount();
+        inviteRepository.save(invite);
     }
 
     // 검증 헬퍼 메서드

@@ -7,8 +7,10 @@ import com.example.board.dto.member.AddTeamMemberToRoleDTO;
 import com.example.board.dto.teamMember.TeamMemberInfoListDTO;
 import com.example.board.dto.team.*;
 import com.example.board.dto.teamMember.ChangeTeamNicknameRequest;
+import com.example.board.dto.teamMember.TeamNicknameCheckResponse;
 import com.example.board.service.TeamMemberService;
 import com.example.board.service.TeamService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.event.spi.ResolveNaturalIdEvent;
 import org.springframework.data.domain.Page;
@@ -100,5 +102,28 @@ public class TeamController {
     public ResponseEntity<?> updateTeamNickname(@PathVariable("teamId") Long teamId,
             @AuthenticationPrincipal UserPrincipal userPrincipal, @RequestBody ChangeTeamNicknameRequest request){
         return ResponseEntity.ok(teamMemberService.updateTeamNickname(teamId, userPrincipal.getMember(), request.newNickname()));
+    }
+
+    @GetMapping("/{teamId}/nickname/check")
+    public ResponseEntity<?> checkTeamNicknameDuplicate(
+            @PathVariable("teamId") Long teamId,
+            @RequestParam("teamNickname") String teamNickname
+    ){
+        try {
+            boolean isDuplicate = teamService.isTeamNicknameDuplicate(teamId, teamNickname);
+            return ResponseEntity.ok(TeamNicknameCheckResponse.of(isDuplicate));
+
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(TeamNicknameCheckResponse.error("팀을 찾을 수 없습니다"));
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(TeamNicknameCheckResponse.error(e.getMessage()));
+
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body(TeamNicknameCheckResponse.error("서버 오류가 발생했습니다"));
+        }
     }
 }
