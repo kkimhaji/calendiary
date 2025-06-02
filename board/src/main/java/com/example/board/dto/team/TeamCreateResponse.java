@@ -18,7 +18,7 @@ public record TeamCreateResponse(
                 team.getName(),
                 team.getDescription(),
                 team.getCreatedAt(),
-                team.getCreated_by()
+                team.getCreatedBy()
         );
     }
 

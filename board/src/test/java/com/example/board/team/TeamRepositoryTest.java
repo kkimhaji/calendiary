@@ -35,6 +35,6 @@ public class TeamRepositoryTest {
         Team resultTeam = teamRepository.save(team);
 
         assertThat(team.getName()).isEqualTo(resultTeam.getName());
-        assertThat(team.getCreated_by()).isEqualTo(resultTeam.getCreated_by());
+        assertThat(team.getCreatedBy()).isEqualTo(resultTeam.getCreatedBy());
     }
 }

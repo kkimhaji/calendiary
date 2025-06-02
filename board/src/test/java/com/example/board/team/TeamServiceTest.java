@@ -1,7 +1,6 @@
 package com.example.board.team;
 
 import com.example.board.domain.member.Member;
-import com.example.board.domain.member.MemberRepository;
 import com.example.board.domain.role.TeamRole;
 import com.example.board.domain.teamMember.TeamMember;
 import com.example.board.dto.team.AddMemberRequestDTO;
@@ -18,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,7 +44,7 @@ public class TeamServiceTest extends AbstractTestSupport{
 
     @Test
     void createTeam_adminPermission() {
-        assertThat(team.getCreated_by()).isEqualTo(member1);
+        assertThat(team.getCreatedBy()).isEqualTo(member1);
         TeamRole role = teamMemberService.getCurrentUserRole(team.getId(), member1);
         assertThat(role.getRoleName()).isEqualTo("ADMIN");
 
