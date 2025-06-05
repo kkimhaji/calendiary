@@ -4,6 +4,9 @@ import com.example.board.auth.UserPrincipal;
 import com.example.board.team.enums.UserTeamStatus;
 import com.example.board.common.dto.PageResponse;
 import com.example.board.member.dto.AddTeamMemberToRoleDTO;
+import com.example.board.teamInvite.dto.InviteCreateRequest;
+import com.example.board.teamInvite.dto.InviteResponse;
+import com.example.board.teamInvite.dto.TeamJoinRequest;
 import com.example.board.teamMember.dto.TeamMemberInfoListDTO;
 import com.example.board.teamMember.dto.ChangeTeamNicknameRequest;
 import com.example.board.teamMember.dto.TeamNicknameCheckResponse;
@@ -84,18 +87,6 @@ public class TeamController {
         ));
     }
 
-    @PostMapping("/invite")
-    public ResponseEntity<InviteResponse> createInvite(@RequestBody InviteCreateRequest request){
-        return ResponseEntity.ok(teamService.createInvite(request));
-    }
-
-    @PostMapping("/{teamId}/join")
-    public ResponseEntity<Void> joinTeam(@PathVariable("teamId") Long teamId, @RequestBody TeamJoinRequest request,
-                                         @AuthenticationPrincipal UserPrincipal userPrincipal){
-        teamService.joinTeam(teamId, request, userPrincipal.getMember());
-        return ResponseEntity.ok().build();
-    }
-
     @PutMapping("/{teamId}/nickname")
     public ResponseEntity<?> updateTeamNickname(@PathVariable("teamId") Long teamId,
             @AuthenticationPrincipal UserPrincipal userPrincipal, @RequestBody ChangeTeamNicknameRequest request){
@@ -108,7 +99,7 @@ public class TeamController {
             @RequestParam("teamNickname") String teamNickname
     ){
         try {
-            boolean isDuplicate = teamService.isTeamNicknameDuplicate(teamId, teamNickname);
+            boolean isDuplicate = teamMemberService.isTeamNicknameDuplicate(teamId, teamNickname);
             return ResponseEntity.ok(TeamNicknameCheckResponse.of(isDuplicate));
 
         } catch (EntityNotFoundException e) {

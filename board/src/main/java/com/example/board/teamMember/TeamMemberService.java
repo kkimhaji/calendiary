@@ -174,4 +174,21 @@ public class TeamMemberService {
             }
         }
     }
+
+    // 팀 ID로 중복 검사하는 오버로딩 메서드
+    public boolean isTeamNicknameDuplicate(Long teamId, String teamNickname) {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new EntityNotFoundException("Team not found"));
+        if (teamNickname == null || teamNickname.trim().isEmpty()) {
+            throw new IllegalArgumentException("닉네임을 입력해주세요");
+        }
+        return isTeamNicknameDuplicate(team, teamNickname);
+    }
+
+    public boolean isTeamNicknameDuplicate(Team team, String teamNickname) {
+        if (teamNickname == null || teamNickname.trim().isEmpty()) {
+            return false;  // 빈 닉네임은 중복이 아님
+        }
+        return teamMemberRepository.existsByTeamAndTeamNickname(team, teamNickname.trim());
+    }
 }

@@ -1,4 +1,4 @@
-package com.example.board.team;
+package com.example.board.teamInvite;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

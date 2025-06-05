@@ -1,4 +1,4 @@
-package com.example.board.team.dto;
+package com.example.board.teamInvite.dto;
 
 import java.time.LocalDateTime;
 

@@ -1,5 +1,6 @@
-package com.example.board.team;
+package com.example.board.teamInvite;
 
+import com.example.board.team.Team;
 import jakarta.persistence.*;
 import lombok.*;
 
