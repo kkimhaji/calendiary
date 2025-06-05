@@ -1,9 +1,7 @@
 package com.example.board.team;
 
-import com.example.board.domain.member.Member;
-import com.example.board.domain.member.MemberRepository;
-import com.example.board.domain.team.Team;
-import com.example.board.domain.team.TeamRepository;
+import com.example.board.member.Member;
+import com.example.board.member.MemberRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;

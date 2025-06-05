@@ -1,7 +1,5 @@
 package com.example.board.member;
 
-import com.example.board.domain.member.Member;
-import com.example.board.service.MemberService;
 import com.example.board.support.AbstractTestSupport;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

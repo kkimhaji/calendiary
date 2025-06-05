@@ -1,15 +1,13 @@
 package com.example.board.support;
 
-import com.example.board.domain.member.Member;
-import com.example.board.domain.member.MemberRepository;
-import com.example.board.domain.team.Team;
+import com.example.board.member.Member;
+import com.example.board.member.MemberRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithSecurityContextFactory;

@@ -1,6 +1,6 @@
 package com.example.board.auth;
 
-import com.example.board.domain.member.Member;
+import com.example.board.member.Member;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -8,7 +8,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 @Getter
 @RequiredArgsConstructor

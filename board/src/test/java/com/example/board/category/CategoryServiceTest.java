@@ -1,10 +1,8 @@
 package com.example.board.category;
 
-import com.example.board.domain.role.TeamRole;
-import com.example.board.domain.team.Team;
-import com.example.board.domain.category.TeamCategory;
-import com.example.board.domain.teamMember.TeamMember;
-import com.example.board.service.CategoryService;
+import com.example.board.role.TeamRole;
+import com.example.board.team.Team;
+import com.example.board.teamMember.TeamMember;
 import com.example.board.support.AbstractTestSupport;
 import com.example.board.support.TestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;

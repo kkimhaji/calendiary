@@ -1,0 +1,227 @@
+package com.example.board.post;
+
+import com.example.board.auth.UserPrincipal;
+import com.example.board.config.HtmlSanitizer;
+import com.example.board.category.CategoryRepository;
+import com.example.board.category.TeamCategory;
+import com.example.board.comment.CommentRepository;
+import com.example.board.member.Member;
+import com.example.board.post.dto.*;
+import com.example.board.permission.PermissionService;
+import com.example.board.team.Team;
+import com.example.board.team.TeamRepository;
+import com.example.board.teamMember.TeamMember;
+import com.example.board.teamMember.TeamMemberRepository;
+import com.example.board.permission.CategoryPermission;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.apache.tomcat.util.http.fileupload.FileUploadException;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
+
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class PostService {
+    private final PostRepository postRepository;
+    private final TeamRepository teamRepository;
+    private final CategoryRepository categoryRepository;
+    private final ConcurrentHashMap<Long, AtomicLong> viewCountCache = new ConcurrentHashMap<>();
+    private final ImageService imageService;
+    private final HtmlSanitizer htmlSanitizer;
+    private final PostImageRepository postImageRepository;
+    private final PermissionService permissionService;
+    private final TeamMemberRepository teamMemberRepository;
+    private final CommentRepository commentRepository;
+
+    public Post createPost(Long teamId, Long categoryId, CreatePostRequest request, Member author) throws AccessDeniedException, IOException {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new EntityNotFoundException("Team not found"));
+        TeamCategory category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new EntityNotFoundException("Category not found"));
+        //이미지 처리
+        String processedContent = imageService.processContentImages(htmlSanitizer.sanitize(request.content()));
+
+        TeamMember teamMember = teamMemberRepository.findByTeamIdAndMember(teamId, author)
+                .orElseThrow(() -> new EntityNotFoundException("team member not found"));
+
+        Post post = Post.create(request.title(), request.content(), author, category, team, teamMember);
+
+        List<String> permUrls = imageService.extractImageUrlsFromContent(processedContent).stream()
+                .filter(url -> url.contains("/perm-images/")).toList();
+
+        for (String permUrl : permUrls) {
+            String fileName = permUrl.replace("/perm-images/", "");
+            PostImage postImage = PostImage.createPostImage(post, fileName, fileName);
+            post.addImage(postImage);
+        }
+
+        return postRepository.save(post);
+    }
+
+    //게시글 상세 조회
+    @Transactional(readOnly = true)
+    public PostDetailDTO getPostDetail(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new EntityNotFoundException("Post not found"));
+        //조회수 증가: 비동기로 처리
+        increaseViewCount(postId);
+
+        return PostDetailDTO.from(post);
+    }
+
+    public TeamRecentPostsResponse getRecentPosts(Long teamId, Pageable pageable) {
+        String teamName = teamRepository.findById(teamId).orElseThrow(() -> new EntityNotFoundException("team not found")).getName();
+        Page<PostListResponse> posts = postRepository.findRecentPostsByTeamId(teamId, pageable);
+
+        return new TeamRecentPostsResponse(teamName, posts);
+    }
+
+    @Transactional(readOnly = true)
+    @Cacheable(key = "{#teamId, #categoryId, #pageable.pageNumber, #pageable.pageSize}") // 캐시 키 설정
+    public CategoryRecentPostsResponse getPostsByCategory(Long teamId, Long categoryId, Pageable pageable) {
+        String categoryName = categoryRepository.findById(categoryId).orElseThrow(() -> new EntityNotFoundException("category not found")).getName();
+        Page<PostListResponse> posts = postRepository.findByTeamAndCategory(teamId, categoryId, pageable);
+        return new CategoryRecentPostsResponse(categoryName, posts);
+    }
+
+    @Async
+    public CompletableFuture<Void> increaseViewCount(Long postId) {
+        return CompletableFuture.runAsync(() -> {
+            // 캐시에 조회수 증가
+            AtomicLong viewCount = viewCountCache.computeIfAbsent(postId, k -> new AtomicLong(0));
+            viewCount.incrementAndGet();
+
+            // 임계값(10)에 도달하면 즉시 DB에 반영
+            if (viewCount.get() >= 10) {
+                syncSinglePostViewCount(postId);
+            }
+        });
+    }
+
+    @Transactional
+    public void syncSinglePostViewCount(Long postId) {
+        AtomicLong countAtomic = viewCountCache.get(postId);
+        if (countAtomic != null) {
+            long count = countAtomic.getAndSet(0);
+            if (count > 0) {
+                postRepository.updateViewCount(postId, count);
+            }
+        }
+    }
+
+    // 주기적으로 캐시된 조회수를 DB에 반영
+    @Scheduled(fixedRate = 60000) // 1분마다 실행
+    public void syncViewCountsToDatabase() {
+        viewCountCache.forEach((postId, viewCount) -> {
+            long count = viewCount.get();
+            if (count > 0) {
+                postRepository.updateViewCount(postId, count);
+                viewCount.addAndGet(-count);
+            }
+        });
+    }
+
+    public void deletePost(Long postId, Long categoryId) throws IOException {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new EntityNotFoundException("there is no such post"));
+
+        if (!permissionService.hasPermissionOrAuthor(categoryId, postId, CategoryPermission.DELETE_POST))
+            throw new AccessDeniedException("게시글을 삭제할 권한이 없습니다.");
+
+        commentRepository.deleteAllByPostId(postId);
+        imageService.deleteAllPostImages(post);
+
+        postRepository.deleteById(postId);
+    }
+
+    public PostResponse updatePost(Long categoryId, Long postId, UpdatePostRequestDTO requestDTO) throws IOException {
+        Post post = postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("post not found"));
+        TeamCategory category = categoryRepository.findById(categoryId).orElseThrow(() -> new EntityNotFoundException("category not found"));
+        // 요청 데이터 유효성 검증
+        requestDTO.validate();
+
+        //이미지 처리
+        String sanitizedContent = htmlSanitizer.sanitize(requestDTO.content());
+        String processedContent = imageService.processContentImages(sanitizedContent);
+
+        //기존 이미지 중 삭제 대상 처리
+        if (requestDTO.deleteImageIds() != null && !requestDTO.deleteImageIds().isEmpty()) {
+            deleteImages(post, requestDTO.deleteImageIds());
+        }
+        post.update(requestDTO.title(), processedContent, category);
+        // 새로운 이미지 처리
+        processNewImages(post, processedContent);
+
+        return PostResponse.from(postRepository.save(post));
+    }
+
+    // 새로운 이미지 처리 로직을 별도 메서드로 분리
+    private void processNewImages(Post post, String processedContent) {
+        List<String> newImageUrls = imageService.extractImageUrlsFromContent(processedContent).stream()
+                .filter(url -> !post.getImages().stream()
+                        .anyMatch(img -> url.contains(img.getStoredFileName())))
+                .toList();
+
+        for (String url : newImageUrls) {
+            String fileName = url.replace("/perm-images/", "");
+            PostImage postImage = PostImage.createPostImage(post, fileName, fileName);
+            post.addImage(postImage);
+        }
+    }
+
+    private void deleteImages(Post post, List<Long> imageIds) {
+        List<PostImage> imagesToDelete = postImageRepository.findAllByIdIn(imageIds);
+
+        for (PostImage image : imagesToDelete) {
+            // 이미지가 해당 게시글의 것인지 확인
+            if (!image.getPost().getId().equals(post.getId())) {
+                throw new IllegalArgumentException("잘못된 이미지 ID입니다.");
+            }
+            // 파일 시스템에서 파일 삭제
+            imageService.deleteImage(image.getStoredFileName());
+            // 게시글에서 이미지 제거
+            post.removeImage(image);
+            // DB에서 이미지 정보 삭제
+            postImageRepository.delete(image);
+        }
+    }
+
+    private void addNewImages(Post post, List<MultipartFile> newImages) throws FileUploadException {
+        for (MultipartFile image : newImages) {
+            String storedFileName = imageService.saveFile(image);
+            PostImage postImage = PostImage.createPostImage(post, image.getOriginalFilename(), storedFileName);
+            post.addImage(postImage);
+        }
+    }
+
+    public Page<PostListResponse> getLatestPostsByUserTeams(UserPrincipal user, Pageable pageable) {
+        // 1. 사용자가 속한 팀 ID 목록 조회
+        List<Long> teamIds = teamMemberRepository.findTeamIdsByMemberId(user.getMember().getMemberId());
+
+        // 2. 팀 ID 목록으로 게시글 조회
+        return postRepository.findByTeamIds(teamIds, pageable)
+                .map(PostListResponse::from);
+    }
+
+    public Page<PostListResponse> findPostsByTeamAndMember(Long authorId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
+        return postRepository.findPostListResponseByTeamMemberId(authorId, pageable);
+    }
+
+}

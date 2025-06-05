@@ -1,14 +1,12 @@
 package com.example.board.team;
 
-import com.example.board.domain.member.Member;
-import com.example.board.domain.role.TeamRole;
-import com.example.board.domain.teamMember.TeamMember;
-import com.example.board.dto.team.AddMemberRequestDTO;
+import com.example.board.member.Member;
+import com.example.board.role.TeamRole;
+import com.example.board.teamMember.TeamMember;
+import com.example.board.team.dto.AddMemberRequestDTO;
 import com.example.board.support.AbstractTestSupport;
-import com.example.board.domain.team.Team;
-import com.example.board.dto.team.TeamCreateRequestDTO;
-import com.example.board.service.TeamMemberService;
-import com.example.board.service.TeamService;
+import com.example.board.team.dto.TeamCreateRequestDTO;
+import com.example.board.teamMember.TeamMemberService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,7 +1,7 @@
 package com.example.board.permission.evaluator;
 
-import com.example.board.domain.team.Team;
-import com.example.board.domain.category.TeamCategory;
+import com.example.board.team.Team;
+import com.example.board.category.TeamCategory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;

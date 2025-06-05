@@ -1,13 +1,13 @@
 package com.example.board.permission.evaluator;
 
 import com.example.board.auth.UserPrincipal;
-import com.example.board.domain.member.Member;
-import com.example.board.domain.role.CategoryPermissionRepository;
-import com.example.board.domain.role.CategoryRolePermission;
-import com.example.board.domain.category.CategoryRepository;
-import com.example.board.domain.category.TeamCategory;
-import com.example.board.domain.teamMember.TeamMember;
-import com.example.board.domain.teamMember.TeamMemberRepository;
+import com.example.board.member.Member;
+import com.example.board.role.CategoryPermissionRepository;
+import com.example.board.role.CategoryRolePermission;
+import com.example.board.category.CategoryRepository;
+import com.example.board.category.TeamCategory;
+import com.example.board.teamMember.TeamMember;
+import com.example.board.teamMember.TeamMemberRepository;
 import com.example.board.permission.CategoryPermission;
 import com.example.board.permission.utils.PermissionConverter;
 import jakarta.persistence.EntityNotFoundException;

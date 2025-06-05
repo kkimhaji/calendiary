@@ -1,20 +1,18 @@
 package com.example.board.category;
 
-import com.example.board.domain.member.Member;
-import com.example.board.domain.member.MemberRepository;
-import com.example.board.domain.role.TeamRole;
-import com.example.board.domain.team.Team;
-import com.example.board.domain.teamMember.TeamMember;
-import com.example.board.dto.category.CategoryRolePermissionDTO;
-import com.example.board.dto.category.CreateCategoryRequest;
-import com.example.board.service.TeamMemberService;
+import com.example.board.member.Member;
+import com.example.board.member.MemberRepository;
+import com.example.board.role.TeamRole;
+import com.example.board.team.Team;
+import com.example.board.teamMember.TeamMember;
+import com.example.board.category.dto.CategoryRolePermissionDTO;
+import com.example.board.category.dto.CreateCategoryRequest;
+import com.example.board.teamMember.TeamMemberService;
 import com.example.board.support.TestDataBuilder;
 import com.example.board.support.WithMockCustomUser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -22,15 +20,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.nio.file.attribute.UserPrincipal;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 
 import static com.example.board.permission.CategoryPermission.*;
 import static com.example.board.permission.CategoryPermission.DELETE_COMMENT;

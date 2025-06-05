@@ -1,13 +1,8 @@
 package com.example.board.support;
 
-import com.example.board.domain.member.Member;
-import com.example.board.domain.member.MemberRepository;
-import com.example.board.domain.role.TeamRoleRepository;
-import com.example.board.domain.team.Team;
-import com.example.board.domain.team.TeamRepository;
-import com.example.board.service.TeamService;
+import com.example.board.member.Member;
+import com.example.board.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.test.context.TestComponent;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 

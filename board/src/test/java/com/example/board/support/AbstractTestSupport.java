@@ -1,8 +1,7 @@
 package com.example.board.support;
 
-import com.example.board.domain.member.Member;
-import com.example.board.domain.member.MemberRepository;
-import com.example.board.domain.team.Team;
+import com.example.board.member.Member;
+import com.example.board.member.MemberRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;

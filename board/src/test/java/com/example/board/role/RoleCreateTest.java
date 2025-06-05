@@ -1,14 +1,11 @@
 package com.example.board.role;
 
-import com.example.board.domain.role.TeamRole;
-import com.example.board.domain.role.TeamRoleRepository;
-import com.example.board.domain.team.Team;
-import com.example.board.domain.teamMember.TeamMember;
-import com.example.board.dto.role.CreateRoleRequest;
+import com.example.board.team.Team;
+import com.example.board.teamMember.TeamMember;
+import com.example.board.role.dto.CreateRoleRequest;
 import com.example.board.permission.utils.PermissionUtils;
 import com.example.board.permission.TeamPermission;
-import com.example.board.service.TeamRoleService;
-import com.example.board.service.TeamService;
+import com.example.board.team.TeamService;
 import com.example.board.support.AbstractTestSupport;
 import com.example.board.support.TestDataBuilder;
 import jakarta.transaction.Transactional;

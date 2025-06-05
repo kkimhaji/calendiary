@@ -1,17 +1,14 @@
 package com.example.board.role;
 
-import com.example.board.domain.role.TeamRole;
-import com.example.board.domain.team.Team;
-import com.example.board.domain.teamMember.TeamMember;
-import com.example.board.dto.role.AddMembersToRoleRequest;
-import com.example.board.dto.role.CreateRoleRequest;
+import com.example.board.team.Team;
+import com.example.board.teamMember.TeamMember;
+import com.example.board.role.dto.AddMembersToRoleRequest;
+import com.example.board.role.dto.CreateRoleRequest;
 import com.example.board.permission.TeamPermission;
-import com.example.board.service.CategoryService;
-import com.example.board.service.TeamRoleService;
-import com.example.board.service.TeamService;
+import com.example.board.category.CategoryService;
+import com.example.board.team.TeamService;
 import com.example.board.support.AbstractTestSupport;
 import com.example.board.support.TestDataBuilder;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,7 +22,6 @@ import org.springframework.context.annotation.ComponentScan;
 import java.util.*;
 
 import static com.example.board.permission.TeamPermission.*;
-import static com.example.board.permission.CategoryPermission.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
