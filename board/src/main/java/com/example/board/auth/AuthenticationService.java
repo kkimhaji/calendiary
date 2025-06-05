@@ -8,7 +8,7 @@ import com.example.board.member.dto.MemberRegisterResponseDTO;
 import com.example.board.member.dto.RegisterRequestDTO;
 import com.example.board.member.dto.VerifyUserDTO;
 import com.example.board.common.exception.RefreshTokenExpiredException;
-import com.example.board.team.EmailService;
+import com.example.board.teamMember.EmailService;
 import com.example.board.common.util.CookieUtil;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.MalformedJwtException;

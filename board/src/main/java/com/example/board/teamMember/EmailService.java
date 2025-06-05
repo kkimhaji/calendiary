@@ -1,4 +1,4 @@
-package com.example.board.team;
+package com.example.board.teamMember;
 
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;

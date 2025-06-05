@@ -1,7 +1,7 @@
 package com.example.board.auth;
 
 import com.example.board.member.dto.*;
-import com.example.board.team.EmailService;
+import com.example.board.teamMember.EmailService;
 import com.example.board.member.MemberService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;

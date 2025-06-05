@@ -4,7 +4,7 @@ import com.example.board.auth.UserPrincipal;
 import com.example.board.member.dto.MemberInfoResponse;
 import com.example.board.member.dto.MemberInfoSummaryResponse;
 import com.example.board.member.dto.PasswordResetRequest;
-import com.example.board.team.EmailService;
+import com.example.board.teamMember.EmailService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
