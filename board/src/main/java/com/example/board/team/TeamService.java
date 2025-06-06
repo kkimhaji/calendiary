@@ -1,25 +1,18 @@
 package com.example.board.team;
 
 import com.example.board.auth.UserPrincipal;
+import com.example.board.category.CategoryService;
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
 import com.example.board.role.TeamRole;
 import com.example.board.role.TeamRoleRepository;
-import com.example.board.teamInvite.TeamInvite;
-import com.example.board.teamInvite.TeamInviteRepository;
-import com.example.board.teamInvite.TeamInviteService;
-import com.example.board.teamInvite.dto.InviteCreateRequest;
-import com.example.board.teamInvite.dto.InviteResponse;
-import com.example.board.teamInvite.dto.InviteValidationResponse;
-import com.example.board.teamInvite.dto.TeamJoinRequest;
-import com.example.board.teamMember.TeamMember;
-import com.example.board.teamMember.TeamMemberRepository;
-import com.example.board.teamMember.TeamMemberService;
-import com.example.board.teamMember.dto.TeamMemberInfo;
-import com.example.board.common.exception.TeamNicknameDuplicationException;
-import com.example.board.category.CategoryService;
 import com.example.board.role.TeamRoleService;
 import com.example.board.team.dto.*;
+import com.example.board.teamInvite.TeamInviteService;
+import com.example.board.teamInvite.dto.InviteValidationResponse;
+import com.example.board.teamMember.TeamMember;
+import com.example.board.teamMember.TeamMemberRepository;
+import com.example.board.teamMember.dto.TeamMemberInfo;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -29,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @Transactional

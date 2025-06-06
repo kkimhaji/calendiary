@@ -3,12 +3,12 @@ package com.example.board.teamMember;
 import com.example.board.member.Member;
 import com.example.board.role.TeamRole;
 import com.example.board.team.Team;
-import com.example.board.teamMember.dto.MemberProfileResponse;
-import com.example.board.teamMember.dto.TeamMemberDTO;
-import com.example.board.teamMember.dto.TeamMemberInfoListDTO;
-import com.example.board.teamMember.dto.TeamMemberInfo;
 import com.example.board.team.dto.TeamInfoResponse;
 import com.example.board.team.dto.TeamListDTO;
+import com.example.board.teamMember.dto.MemberProfileResponse;
+import com.example.board.teamMember.dto.TeamMemberDTO;
+import com.example.board.teamMember.dto.TeamMemberInfo;
+import com.example.board.teamMember.dto.TeamMemberInfoListDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,6 +20,7 @@ import java.util.Optional;
 
 public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
     List<TeamMember> findAllByTeamId(Long teamId);
+
     Optional<TeamMember> findByTeamAndMember(Team team, Member member);
 
     @Query("SELECT tm FROM TeamMember tm " +
@@ -90,7 +91,8 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
             "JOIN FETCH tm.member m " +
             "JOIN FETCH tm.role r " +
             "WHERE tm.role.id = :roleId " + // 역할 ID 조건 추가
-            "AND (m.email LIKE %:keyword% OR tm.teamNickname LIKE %:keyword%)") // 검색 조건
+            "AND (m.email LIKE %:keyword% OR tm.teamNickname LIKE %:keyword%)")
+    // 검색 조건
     Page<TeamMember> findByRoleId(
             @Param("roleId") Long roleId,
             @Param("keyword") String keyword,
@@ -127,5 +129,6 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
             @Param("teamMemberId") Long teamMemberId);
 
     boolean existsByTeamAndMember(Team team, Member member);
+
     boolean existsByTeamAndTeamNickname(Team team, String teamNickname);
 }
