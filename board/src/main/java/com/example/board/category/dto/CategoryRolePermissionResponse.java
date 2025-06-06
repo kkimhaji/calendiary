@@ -15,7 +15,7 @@ public record CategoryRolePermissionResponse(
         return new CategoryRolePermissionResponse(
                 permission.getRole().getId(),
                 permission.getRole().getRoleName(),
-                PermissionUtils.getPermissionsFromBits(permission.getPermissions(), CategoryPermission.class)
+                PermissionUtils.getPermissionsFromBytes(permission.getPermissionBytes(), CategoryPermission.class)
         );
     }
 }
