@@ -48,11 +48,6 @@ public class TeamRoleService {
         //category role permission에 기본 저장
         int insertedRows = categoryPermissionRepository.createDefaultPermissionsForNewRole(teamId, newRole.getId());
 
-        // 4. (선택) 결과 확인
-        if(insertedRows == 0) {
-            throw new IllegalStateException("카테고리가 존재하지 않아 권한을 생성할 수 없습니다");
-        }
-
         return newRole;
     }
 
