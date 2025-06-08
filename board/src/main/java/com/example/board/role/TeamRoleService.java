@@ -36,6 +36,7 @@ public class TeamRoleService {
     private final TeamMemberService teamMemberService;
     private final TeamPermissionEvaluator teamPermissionEvaluator;
 
+    @Transactional
     public TeamRole createRole(Long teamId, CreateRoleRequest request) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new EntityNotFoundException("Team not found"));
@@ -46,11 +47,12 @@ public class TeamRoleService {
         }
         TeamRole newRole = teamRoleRepository.save(TeamRole.create(request.roleName(), request.description(), request.permissions(), team));
         //category role permission에 기본 저장
-        int insertedRows = categoryPermissionRepository.createDefaultPermissionsForNewRole(teamId, newRole.getId());
+        categoryPermissionRepository.createDefaultPermissionsForNewRole(teamId, newRole.getId());
 
         return newRole;
     }
 
+    @Transactional
     public TeamRole updateRolePermissions(Long roleId, Set<TeamPermission> newPermissions) {
         TeamRole role = teamRoleRepository.findById(roleId)
                 .orElseThrow(() -> new EntityNotFoundException("Role not found"));
@@ -179,6 +181,7 @@ public class TeamRoleService {
     //지정 역할로 변경하는 코드 따로 뺄 것
 
     //팀 삭제 시 사용되는 것 (기본 역할도 상관 없이 삭제)
+    @Transactional
     public void deleteRole(Long teamId){
         //teamMember의 role 수정
         List<TeamMember> teamMembers = teamMemberRepository.findAllByTeamId(teamId);
@@ -268,8 +271,8 @@ public class TeamRoleService {
         return teamRoles.stream()
                 .map(role -> {
                     Set<CategoryPermission> permissions = existingPermissions.containsKey(role.getId())
-                            ? PermissionUtils.getPermissionsFromBits(
-                            existingPermissions.get(role.getId()).getPermissions(),
+                            ? PermissionUtils.getPermissionsFromBytes(
+                            existingPermissions.get(role.getId()).getPermissionBytes(),
                             CategoryPermission.class
                     )
                             : Collections.emptySet();

@@ -29,18 +29,14 @@ public class CategoryRolePermission {
     @Column(name = "permissions", columnDefinition = "BLOB")
     @Lob
     private byte[] permissionBytes;
-    // permissions 문자열 호환을 위한 필드 (마이그레이션 후 제거 가능)
-    @Transient
-    private String permissions = "0";
 
     public boolean hasPermission(CategoryPermission permission) {
-        return PermissionUtils.hasPermission(this.permissions, permission);
+        return PermissionUtils.hasPermission(this.permissionBytes, permission);
     }
 
     private CategoryRolePermission(TeamCategory category, TeamRole role, Set<CategoryPermission> permissions) {
         this.category = category;
         this.role = role;
-//        this.permissions = PermissionUtils.createPermissionBits(permissions);
         this.permissionBytes = PermissionUtils.createPermissionBytes(permissions);
     }
 
@@ -57,20 +53,7 @@ public class CategoryRolePermission {
         if (permissions == null) {
             permissions = new HashSet<>(); // 빈 권한 집합으로 초기화
         }
-
         return new CategoryRolePermission(category, role, permissions);
-    }
-
-    public void addPermission(CategoryPermission permission) {
-        this.permissions = PermissionUtils.addPermission(this.permissions, permission);
-    }
-
-    public String getPermissions() {
-        if (permissions == null && permissionBytes != null) {
-            // 바이트 배열을 문자열로 변환 (읽기 전용)
-            permissions = PermissionConverter.bytesToString(permissionBytes);
-        }
-        return permissions;
     }
 
     public byte[] getPermissionBytes() {
@@ -79,22 +62,11 @@ public class CategoryRolePermission {
 
     public void setPermissionBytes(byte[] permissionBytes) {
         this.permissionBytes = permissionBytes;
-        // 문자열 캐시 초기화
-        this.permissions = null;
     }
 
     // 기존 세터는 내부적으로 바이트 배열로 변환
     public void setPermissions(String permissions) {
-        this.permissions = permissions;
         this.permissionBytes = PermissionConverter.stringToBytes(permissions);
-    }
-
-    public void setPermissions(Set<CategoryPermission> permissions) {
-        String permissionBits = "0";
-        for (CategoryPermission permission : permissions) {
-            permissionBits = PermissionUtils.addPermission(permissionBits, permission);
-        }
-        this.permissions = permissionBits;
     }
 
     public void setCategory(TeamCategory category){
