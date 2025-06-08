@@ -92,15 +92,13 @@ public class TeamService {
                 .orElseThrow(() -> new EntityNotFoundException("team not found"));
         //team에 속한 카테고리 삭제
         categoryService.deleteAllCategoriesInTeam(team);
-
         //teamMember 수정
         List<TeamMember> teamMembers = teamMemberRepository.findAllByTeamId(teamId);
         teamMembers.forEach(TeamMember::reset);
         teamMemberRepository.deleteAll(teamMembers);
-
         //team의 role 삭제
         teamRoleService.deleteRole(teamId);
-
+        inviteService.deleteInvitesByTeamId(teamId);
         teamRepository.delete(team);
     }
 

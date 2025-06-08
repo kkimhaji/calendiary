@@ -109,4 +109,8 @@ public class TeamInviteService {
         if (isOverused(invite)) return "사용 횟수를 초과했습니다";
         return "알 수 없는 오류";
     }
+
+    public void deleteInvitesByTeamId(Long teamId){
+        inviteRepository.deleteByTeamId(teamId);
+    }
 }
