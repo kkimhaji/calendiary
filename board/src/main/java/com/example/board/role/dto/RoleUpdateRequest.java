@@ -21,16 +21,6 @@ public record RoleUpdateRequest(
     }
 
     /**
-     * 권한을 String으로 변환하는 메서드 (호환성)
-     */
-    public String toPermissionBits() {
-        if (permissions == null || permissions.isEmpty()) {
-            return "0";
-        }
-        return PermissionUtils.createPermissionBits(permissions);
-    }
-
-    /**
      * 유효성 검증 메서드
      */
     public void validate() {

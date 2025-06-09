@@ -22,13 +22,6 @@ public class PermissionUtils {
     }
 
     /**
-     * 기본 권한 비트열 생성
-     */
-    public static String createDefaultPermissionBits() {
-        return "0"; // 모든 권한 비활성화
-    }
-
-    /**
      * 권한 비트열에서 특정 권한 확인 (문자열 기반)
      */
     public static <T extends Enum<T> & PermissionType> boolean hasPermission(String permissions, T permission) {
@@ -47,43 +40,12 @@ public class PermissionUtils {
     }
 
     /**
-     * 권한 목록으로부터 권한 비트열 생성
-     */
-    public static <T extends PermissionType> String createPermissionBits(Set<T> permissions) {
-        if (permissions.isEmpty()) return "0";
-
-        int maxPosition = permissions.stream()
-                .mapToInt(PermissionType::getPosition)
-                .max()
-                .orElse(0);
-
-        char[] bits = new char[maxPosition + 1];
-        Arrays.fill(bits, '0');
-        permissions.forEach(p -> bits[bits.length - 1 - p.getPosition()] = '1');
-        return new String(bits);
-    }
-
-    /**
      * 권한 목록으로부터 권한 바이트 배열 생성 (최적화)
      */
     public static <T extends PermissionType> byte[] createPermissionBytes(Set<T> permissions) {
         return PermissionConverter.createPermissionBytes(permissions);
     }
 
-    /**
-     * 권한 비트열로부터 권한 목록 추출
-     */
-    public static <T extends Enum<T> & PermissionType> Set<T> getPermissionsFromBits(
-            String permissionBits, Class<T> enumClass) {
-
-        Set<T> permissions = new HashSet<>();
-        for (T permission : enumClass.getEnumConstants()) {
-            if (hasPermission(permissionBits, permission)) {
-                permissions.add(permission);
-            }
-        }
-        return permissions;
-    }
 
     /**
      * 권한 바이트 배열로부터 권한 목록 추출 (최적화)
