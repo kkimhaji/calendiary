@@ -76,6 +76,7 @@ public class TeamRoleController {
     }
 
     @PutMapping("/{roleId}/update")
+    @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_ROLES)")
     public void updateRoleInfo(@PathVariable(name="teamId") Long teamId, @PathVariable(name = "roleId") Long roleId, @RequestBody RoleUpdateRequest request){
         teamRoleService.updateRole(teamId, roleId, request);
     }

@@ -5,6 +5,7 @@ import com.example.board.comment.dto.CommentResponse;
 import com.example.board.comment.dto.CreateCommentRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +18,7 @@ public class CommentController {
     private final CommentService commentService;
 
     @PostMapping
+    @PreAuthorize("hasPermission(#categoryId, 'TeamCategory', T(com.example.board.permission.CategoryPermission).CREATE_COMMENT)")
     public ResponseEntity<CommentResponse> createComment(@PathVariable("postId") Long postId, @RequestBody CreateCommentRequest request, @AuthenticationPrincipal UserPrincipal user){
         return ResponseEntity.ok(commentService.createComment(user.getMember(), postId, request));
     }
