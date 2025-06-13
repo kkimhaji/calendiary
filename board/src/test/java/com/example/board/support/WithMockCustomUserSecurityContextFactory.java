@@ -28,12 +28,9 @@ public class WithMockCustomUserSecurityContextFactory implements WithSecurityCon
     public SecurityContext createSecurityContext(WithMockCustomUser customUser) {
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         Member admin = memberRepository.save(
-                Member.builder()
-                        .email(customUser.email())
-                        .nickname(customUser.nickname())
-                        .password(passwordEncoder.encode(customUser.password()))
-                        .enabled(true)
-                        .build());
+                Member.createMember(
+                        customUser.email(), customUser.nickname(), passwordEncoder.encode(customUser.password()), true, null, null
+                ));
         //Authentication 객체 생성
 //        UserDetails userDetails = userDetailsService.loadUserByUsername(admin.getEmail());
         Authentication auth = new UsernamePasswordAuthenticationToken(admin.getEmail(), admin.getPassword());

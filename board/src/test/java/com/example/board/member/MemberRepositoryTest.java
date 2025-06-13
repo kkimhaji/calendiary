@@ -22,9 +22,7 @@ public class MemberRepositoryTest {
     @DisplayName("멤버 생성 테스트")
     public void memberCreateTest(){
         //given
-        Member member1 = Member.builder()
-                .email("aaa").password("123456").nickname("hello")
-                .build();
+        Member member1 = Member.createMember("aaa", "hello", "123456");
         //when
         Member result1 = memberRepository.save(member1);
         //then

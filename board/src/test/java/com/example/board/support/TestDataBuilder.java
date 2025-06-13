@@ -42,13 +42,9 @@ public class TestDataBuilder {
 
     public Member createMember(String email, String nickname, String password) {
         return memberRepository.save(
-                Member.builder()
-                        .email(email)
-                        .nickname(nickname)
-                        .password(passwordEncoder.encode(password))
-                        .enabled(true)
-                        .build()
-        );
+                Member.createMember(
+                        email, nickname, passwordEncoder.encode(password), true, null, null
+                ));
     }
 
     public Team createTeam(Member member1){
