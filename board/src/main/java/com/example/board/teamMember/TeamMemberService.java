@@ -128,6 +128,7 @@ public class TeamMemberService {
         return teamMemberRepository.findTeamInfoAndNicknameByMemberId(memberId);
     }
 
+    @Transactional
     public void leaveTeam(Long teamId, Member member, boolean deleteContents) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new EntityNotFoundException("team not found"));
@@ -150,6 +151,8 @@ public class TeamMemberService {
     private boolean isLastOwner(Long teamId, Long roleId) {
         return teamMemberRepository.countByTeamIdAndRoleId(teamId, roleId) <= 1;
     }
+
+    @Transactional
     private void deleteTeamMemberContents(Long teamId, Long memberId) {
         // 1. 사용자가 작성한 댓글 삭제
         commentRepository.deleteAllByTeamIdAndMemberId(teamId, memberId);

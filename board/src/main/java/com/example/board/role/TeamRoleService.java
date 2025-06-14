@@ -67,6 +67,7 @@ public class TeamRoleService {
                 .orElseThrow(()-> new AccessDeniedException("권한이 없습니다."));
     }
 
+    @Transactional(readOnly = true)
     public TeamRole getRoleById(Long roleId){
         var role = teamRoleRepository.findById(roleId);
         if (role.isEmpty())
@@ -74,12 +75,14 @@ public class TeamRoleService {
         return role.get();
     }
 
+    @Transactional
     public TeamRole createAdmin(Team team){
         Set<TeamPermission> adminPermissions = new HashSet<>(Arrays.asList(TeamPermission.values()));
         CreateRoleRequest request = new CreateRoleRequest("ADMIN", adminPermissions, "who made this team");
         return createRole(team.getId(), request);
     }
 
+    @Transactional
     public TeamRole createBasic(Team team){
         return createRole(team.getId(), new CreateRoleRequest("Member", new HashSet<>(List.of()), "member of this team"));
     }
@@ -108,6 +111,7 @@ public class TeamRoleService {
         }
     }
 
+    @Transactional
     //특정 역할의 멤버들 역할을 일괄적으로 기본 역할로 변경 (역할을 삭제하기 전에 사용)
     private void updateMembersRole(Team team, TeamRole targetRole){
         TeamRole basicRole = teamRoleRepository.findById(team.getBasicRoleId())
@@ -119,6 +123,7 @@ public class TeamRoleService {
         teamMemberRepository.saveAll(membersWithRole);
     }
 
+    @Transactional
     private void deleteCategoryPermissions(Long roleId){
         categoryPermissionRepository.deleteAllByRoleId(roleId);
     }
@@ -157,6 +162,8 @@ public class TeamRoleService {
             changeToDefaultRole(teamId, memberId);
         }
     }
+
+    @Transactional
     // 특정 역할로 변경
     private void changeMemberRole(Long teamId, Long memberId, Long newRoleId) {
         TeamMember teamMember = teamMemberRepository.findByTeamIdAndMemberId(teamId, memberId)
@@ -168,6 +175,7 @@ public class TeamRoleService {
         teamMember.updateRole(newRole);
     }
 
+    @Transactional
     private void changeToDefaultRole(Long teamId, Long memberId) {
         TeamMember teamMember = teamMemberRepository.findByTeamIdAndMemberId(teamId, memberId)
                 .orElseThrow(() -> new EntityNotFoundException("TeamMember not found"));
@@ -194,6 +202,7 @@ public class TeamRoleService {
     }
 
     //팀 정보 페이지에서 - TeamPermission을 가져옴
+    @Transactional(readOnly = true)
     public List<TeamRoleDetailResponse> getRolesByTeam(Long teamId){
         List<TeamRoleDetailDto> teamDetailDtos = teamRoleRepository.findTeamRoleDetailsWithMemberCount(teamId);
         return teamDetailDtos.stream().map(this::convertToResponse)
@@ -213,10 +222,12 @@ public class TeamRoleService {
         );
     }
 
+    @Transactional(readOnly = true)
     public List<TeamRoleInfoDTO> getRolesInfo(Long teamId){
         return teamRoleRepository.findTeamRoleInfo(teamId);
     }
 
+    @Transactional(readOnly = true)
     public TeamRoleResponse getMembersRole(Long teamId, Member member){
         TeamRole role = teamMemberService.getCurrentUserRole(teamId, member);
         return TeamRoleResponse.from(role);
@@ -253,6 +264,7 @@ public class TeamRoleService {
         teamRoleRepository.save(role);
     }
 
+    @Transactional(readOnly = true)
     //카테고리 정보 수정 시 역할 목록 받아올 때 사용
     public List<CategoryRolePermissionDTO> getRolesWithPermissions(Long teamId, Long categoryId) {
         // 1. 팀의 모든 역할 조회
@@ -286,6 +298,7 @@ public class TeamRoleService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public Page<TeamMemberOfRoleDTO> getRoleMembers(Long teamId, Long roleId, int page, int size, String keyword) {
         PageRequest pageRequest = PageRequest.of(page, size);
         return teamMemberRepository.findByRoleId(roleId, keyword, pageRequest)

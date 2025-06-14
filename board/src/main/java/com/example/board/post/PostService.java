@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional(readOnly = true)
 public class PostService {
     private final PostRepository postRepository;
     private final TeamRepository teamRepository;
@@ -49,6 +49,7 @@ public class PostService {
     private final TeamMemberRepository teamMemberRepository;
     private final CommentRepository commentRepository;
 
+    @Transactional
     public Post createPost(Long teamId, Long categoryId, CreatePostRequest request, Member author) throws AccessDeniedException, IOException {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new EntityNotFoundException("Team not found"));
@@ -75,7 +76,6 @@ public class PostService {
     }
 
     //게시글 상세 조회
-    @Transactional(readOnly = true)
     public PostDetailDTO getPostDetail(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("Post not found"));
@@ -92,7 +92,6 @@ public class PostService {
         return new TeamRecentPostsResponse(teamName, posts);
     }
 
-    @Transactional(readOnly = true)
     @Cacheable(key = "{#teamId, #categoryId, #pageable.pageNumber, #pageable.pageSize}") // 캐시 키 설정
     public CategoryRecentPostsResponse getPostsByCategory(Long teamId, Long categoryId, Pageable pageable) {
         String categoryName = categoryRepository.findById(categoryId).orElseThrow(() -> new EntityNotFoundException("category not found")).getName();
@@ -101,6 +100,7 @@ public class PostService {
     }
 
     @Async
+    @Transactional
     public CompletableFuture<Void> increaseViewCount(Long postId) {
         return CompletableFuture.runAsync(() -> {
             // 캐시에 조회수 증가
@@ -114,7 +114,6 @@ public class PostService {
         });
     }
 
-    @Transactional
     public void syncSinglePostViewCount(Long postId) {
         AtomicLong countAtomic = viewCountCache.get(postId);
         if (countAtomic != null) {
@@ -137,6 +136,7 @@ public class PostService {
         });
     }
 
+    @Transactional
     public void deletePost(Long postId, Long categoryId) throws IOException {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("there is no such post"));
@@ -150,6 +150,7 @@ public class PostService {
         postRepository.deleteById(postId);
     }
 
+    @Transactional
     public PostResponse updatePost(Long categoryId, Long postId, UpdatePostRequestDTO requestDTO) throws IOException {
         Post post = postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("post not found"));
         TeamCategory category = categoryRepository.findById(categoryId).orElseThrow(() -> new EntityNotFoundException("category not found"));
@@ -185,6 +186,7 @@ public class PostService {
         }
     }
 
+    @Transactional
     private void deleteImages(Post post, List<Long> imageIds) {
         List<PostImage> imagesToDelete = postImageRepository.findAllByIdIn(imageIds);
 
@@ -202,6 +204,7 @@ public class PostService {
         }
     }
 
+    @Transactional
     private void addNewImages(Post post, List<MultipartFile> newImages) throws FileUploadException {
         for (MultipartFile image : newImages) {
             String storedFileName = imageService.saveFile(image);

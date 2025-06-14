@@ -24,6 +24,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class CommentService {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
@@ -75,14 +76,12 @@ public class CommentService {
             comment.delete();
     }
 
-    @Transactional(readOnly = true)
     public List<CommentResponse> getCommentsInPost(Long postId){
         postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("post not found"));
         return commentRepository.findByPostIdAndParentIsNull(postId).stream()
                 .map(CommentResponse::from).toList();
     }
 
-    @Transactional(readOnly = true)
     public Page<MemberCommentResponse> findCommentsByTeamAndMember(Long teamMemberId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
         return commentRepository.findCommentsByTeamMemberId(teamMemberId, pageable);

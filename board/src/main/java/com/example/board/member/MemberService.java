@@ -24,6 +24,7 @@ public class MemberService {
         member.updateName(newNickname);
     }
 
+    @Transactional(readOnly = true)
     //비밀번호 변경 시 먼저 현재 사용자의 비밀번호 확인 후 비밀번호 변경 기능으로 넘어감
     public boolean checkPassword(Member member, String currentPwd){
         return passwordEncoder.matches(currentPwd, member.getPassword());
@@ -43,6 +44,7 @@ public class MemberService {
         emailService.sendTempPasswordEmail(member, tmpPwd);
     }
 
+    @Transactional(readOnly = true)
     //헤더에서 닉네임 표시 및 계정 정보 페이지 이동을 위해
     public MemberInfoSummaryResponse getMemberInfoSummary(UserPrincipal userPrincipal){
         Member member = userPrincipal.getMember();

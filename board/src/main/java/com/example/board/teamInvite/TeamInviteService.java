@@ -30,6 +30,7 @@ public class TeamInviteService {
     private final TeamRoleRepository teamRoleRepository;
     private final TeamMemberService teamMemberService;
 
+    @Transactional
     public InviteResponse createInvite(InviteCreateRequest request) {
         Team team = teamRepository.findById(request.teamId()).orElseThrow(() -> new EntityNotFoundException("team not found"));
         String code = UUID.randomUUID().toString().replace("-", "");
@@ -110,6 +111,7 @@ public class TeamInviteService {
         return "알 수 없는 오류";
     }
 
+    @Transactional
     public void deleteInvitesByTeamId(Long teamId){
         inviteRepository.deleteByTeamId(teamId);
     }
