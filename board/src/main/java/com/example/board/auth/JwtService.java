@@ -20,48 +20,49 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class JwtService {
 
-    private final CustomUserDetailsService userDetailsService;
-
-    @Value("${security.jwt.secret-key}")
-    private String SECRET_KEY;
-
-    @Value("${security.jwt.expiration}")
-    private long jwtExpiration;
-
-    @Value("${security.jwt.refresh-token.expiration}")
-    private long refreshTokenExpiration;
-
-    @Value("${security.jwt.auto-login.expiration:2592000000}") // 30일 기본값
-    private long autoLoginExpiration;
     // 세션 기반 로그인을 위한 짧은 만료 시간 (30분)
     private static final long SESSION_EXPIRATION = 1800000; // 30분
+    private final CustomUserDetailsService userDetailsService;
+    @Value("${security.jwt.secret-key}")
+    private String SECRET_KEY;
+    @Value("${security.jwt.expiration}")
+    private long jwtExpiration;
+    @Value("${security.jwt.refresh-token.expiration}")
+    private long refreshTokenExpiration;
+    @Value("${security.jwt.auto-login.expiration:2592000000}") // 30일 기본값
+    private long autoLoginExpiration;
+
     public String extractUsername(String token) {
         return extractClaims(token, Claims::getSubject);
     }
 
-    public <T> T extractClaims(String token, Function<Claims, T> claimsResolver){
+    public <T> T extractClaims(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
     public String generateToken(UserDetails userDetails, boolean rememberMe) {
         long expiration = rememberMe ? jwtExpiration : SESSION_EXPIRATION;
-        return generateToken(new HashMap<>(), userDetails);
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("rememberMe", rememberMe); // 토큰에 rememberMe 정보 포함
+        return createToken(claims, userDetails, expiration);
     }
 
-    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+    public String generateTokenWithClaims(Map<String, Object> extraClaims, UserDetails userDetails) {
         return createToken(extraClaims, userDetails, jwtExpiration);
     }
-    public String generateRefreshToken(UserDetails userDetails){
+
+    public String generateRefreshToken(UserDetails userDetails) {
         return createToken(new HashMap<>(), userDetails, refreshTokenExpiration);
     }
+
     public String generateAutoLoginRefreshToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("autoLogin", true);
         return createToken(claims, userDetails, autoLoginExpiration);
     }
 
-    public String createToken(Map<String, Object> extraClaims, UserDetails userDetails, long expiration){
+    public String createToken(Map<String, Object> extraClaims, UserDetails userDetails, long expiration) {
         return Jwts.builder()
                 .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername())
@@ -74,6 +75,16 @@ public class JwtService {
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
         return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+    }
+
+    public boolean isRememberMeToken(String token) {
+        try {
+            Boolean rememberMe = extractClaims(token, claims ->
+                    claims.get("rememberMe", Boolean.class));
+            return rememberMe != null && rememberMe;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private boolean isTokenExpired(String token) {
@@ -96,13 +107,14 @@ public class JwtService {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(SECRET_KEY));
     }
 
-    public long getRefreshTokenExpiration(){
+    public long getRefreshTokenExpiration() {
         return refreshTokenExpiration;
     }
 
     public long getAutoLoginExpiration() {
         return autoLoginExpiration;
     }
+
     public boolean isAutoLoginToken(String token) {
         try {
             Boolean autoLogin = extractClaims(token, claims ->

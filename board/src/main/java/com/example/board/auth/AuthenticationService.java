@@ -1,15 +1,15 @@
 package com.example.board.auth;
 
 import com.example.board.auth.token.*;
+import com.example.board.common.exception.RefreshTokenExpiredException;
+import com.example.board.common.util.CookieUtil;
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
 import com.example.board.member.dto.AuthenticationRequestDTO;
 import com.example.board.member.dto.MemberRegisterResponseDTO;
 import com.example.board.member.dto.RegisterRequestDTO;
 import com.example.board.member.dto.VerifyUserDTO;
-import com.example.board.common.exception.RefreshTokenExpiredException;
 import com.example.board.teamMember.EmailService;
-import com.example.board.common.util.CookieUtil;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +23,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -31,6 +32,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class AuthenticationService {
 
     private final MemberRepository memberRepository;
@@ -42,7 +44,6 @@ public class AuthenticationService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final CustomUserDetailsService userDetailsService;
     private final CookieUtil cookieUtil;
-
 
     // save to the database and return the generated token
     public MemberRegisterResponseDTO register(RegisterRequestDTO request) {
@@ -141,6 +142,9 @@ public class AuthenticationService {
 
         var jwtToken = jwtService.generateToken(user, rememberMe);
         //rememberMe 선택 시만 refreshToken 생성
+        revokeToken(member);
+        saveUserToken(member, jwtToken);
+
         String refreshToken = null;
         if (rememberMe) {
             refreshToken = jwtService.generateRefreshToken(user);
@@ -148,9 +152,7 @@ public class AuthenticationService {
             saveRefreshToken(member, refreshToken);
         }
 
-        revokeToken(member);
-        saveUserToken(member, jwtToken);
-        cookieUtil.addRefreshTokenCookie(response, refreshToken, jwtService.getRefreshTokenExpiration());
+//        cookieUtil.addRefreshTokenCookie(response, refreshToken, jwtService.getRefreshTokenExpiration());
         return new AuthenticationResponse(jwtToken, refreshToken);
     }
 
@@ -239,6 +241,7 @@ public class AuthenticationService {
         refreshTokenRepository.save(newToken);
     }
 
+    @Transactional(readOnly = true)
     public boolean validateToken(String authHeader) {
         String token = authHeader.substring(7);
         try {
@@ -309,7 +312,6 @@ public class AuthenticationService {
 
         log.info("로그아웃 처리 완료");
     }
-
 
     /**
      * 자동 로그인 처리
