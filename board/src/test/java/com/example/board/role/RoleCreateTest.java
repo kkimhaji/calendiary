@@ -57,7 +57,7 @@ public class RoleCreateTest extends AbstractTestSupport {
         TeamRole createdRole = teamRoleService.createRole(team.getId(), request);
 
         assertThat(createdRole.getRoleName()).isEqualTo(request.roleName());
-        assertThat(createdRole.getPermissions()).isEqualTo(PermissionUtils.createPermissionBits(request.permissions()));
+        assertThat(createdRole.getPermissionBytes()).isEqualTo(PermissionUtils.createPermissionBytes(request.permissions()));
         assertThat(createdRole.getPermissionSet()).isEqualTo(request.permissions());
     }
 

@@ -56,6 +56,6 @@ public class CategoryCreateTest extends AbstractTestSupport {
         assertThat(newCategory.getName()).isEqualTo("testCategory");
         assertThat(newCategory.getTeam()).isEqualTo(team);
         newCategory.getRolePermissions()
-                .forEach(rolePermission -> System.out.println(rolePermission.getPermissions()));
+                .forEach(rolePermission -> System.out.println(Arrays.toString(rolePermission.getPermissionBytes())));
     }
 }
