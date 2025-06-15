@@ -40,8 +40,8 @@ public class Team {
         this.createdAt = createdAt;
     }
 
-    public static Team create(String name, String description, Member member, LocalDateTime createdAt){
-        return new Team(name, description, member, createdAt);
+    public static Team create(String name, String description, Member member){
+        return new Team(name, description, member, LocalDateTime.now());
     }
 
     public void updateName(String name){
