@@ -18,17 +18,9 @@ public class TeamRepositoryTest {
 
     @Test
     void createTeamTest(){
+        Member member = Member.createMember("test@test.com", "test", "1234", true, null, null);
 
-        Member member = Member.builder()
-                .email("test@test.com")
-                .nickname("test")
-                .password("1234")
-                .build();
-        Team team = Team.builder()
-                .name("testTeam")
-                .created_by(member)
-                .description("test")
-                .build();
+        Team team = Team.create("testTeam", "test", member);
 
         Team resultTeam = teamRepository.save(team);
 

@@ -8,8 +8,6 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.hamcrest.Matchers.nullValue;
 
 @DataJpaTest
 @Transactional
@@ -20,9 +18,9 @@ public class MemberRepositoryTest {
 
     @Test
     @DisplayName("멤버 생성 테스트")
-    public void memberCreateTest(){
+    public void memberCreateTest() {
         //given
-        Member member1 = Member.createMember("aaa", "hello", "123456");
+        Member member1 = Member.createMember("aaa", "hello", "123456", true, null, null);
         //when
         Member result1 = memberRepository.save(member1);
         //then
@@ -31,9 +29,9 @@ public class MemberRepositoryTest {
 
     @Test
     @DisplayName("멤버 삭제 테스트")
-    void memberDeleteTest(){
+    void memberDeleteTest() {
         //given
-        Member member1 = Member.builder().email("aaa").password("123456").nickname("hello").build();
+        Member member1 = Member.createMember("aaa", "hello", "1234", true, null, null);
         //when
         Member result1 = memberRepository.save(member1);
         memberRepository.delete(result1);
@@ -42,7 +40,4 @@ public class MemberRepositoryTest {
 //        assertThatThrownBy(()->memberRepository.findById(member1.getMemberId())).isInstanceOf(IllegalArgumentException.class);
         assertThat(memberRepository.findById(member1.getMemberId())).isEmpty();
     }
-
-
-
 }
