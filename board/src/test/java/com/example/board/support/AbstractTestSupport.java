@@ -7,10 +7,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @Transactional
+@ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
 public abstract class AbstractTestSupport {
 
@@ -23,13 +25,13 @@ public abstract class AbstractTestSupport {
     protected Member member2;
 
     @BeforeEach
-    public void setUp(){
+    public void setUp() {
         member1 = testDataFactory.createMember("test1@test.com", "test1", "1234");
         member2 = testDataFactory.createMember("test2@test.com", "test2", "1234");
     }
 
     @AfterEach
-    void cleanUp(){
+    void cleanUp() {
         memberRepository.deleteAll();
     }
 

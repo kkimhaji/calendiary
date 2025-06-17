@@ -4,12 +4,13 @@ import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.ActiveProfiles;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@ActiveProfiles("test")
 public class TeamRepositoryTest {
 
     @Autowired
@@ -19,7 +20,7 @@ public class TeamRepositoryTest {
     private MemberRepository memberRepository;
 
     @Test
-    void createTeamTest(){
+    void createTeamTest() {
         Member member = Member.createMember("test@test.com", "test", "1234", true, null, null);
 
         Team team = Team.create("testTeam", "test", member);
