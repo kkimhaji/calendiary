@@ -65,6 +65,10 @@ public class TestDataBuilder {
         return teamRoleService.createRole(team.getId(), roleRequest);
     }
 
+    public TeamRole createNewRoleWithPermissions(Team team, String roleName, Set<TeamPermission> permissions){
+        return teamRoleService.createRole(team.getId(), new CreateRoleRequest(roleName, permissions, "new role with permissions"));
+    }
+
     public void addMemberToRole(Member member, TeamRole teamRole) {
         var addRequest = new AddMembersToRoleRequest(teamRole.getId(), Collections.singletonList(member.getMemberId()));
         teamRoleService.addMemberToRole(teamRole.getTeam().getId(), addRequest);
