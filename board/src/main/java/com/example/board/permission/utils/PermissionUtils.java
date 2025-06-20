@@ -3,8 +3,6 @@ package com.example.board.permission.utils;
 import com.example.board.permission.PermissionType;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 
 @Component
@@ -45,7 +43,6 @@ public class PermissionUtils {
     public static <T extends PermissionType> byte[] createPermissionBytes(Set<T> permissions) {
         return PermissionConverter.createPermissionBytes(permissions);
     }
-
 
     /**
      * 권한 바이트 배열로부터 권한 목록 추출 (최적화)

@@ -8,9 +8,6 @@ import com.example.board.teamMember.TeamMember;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 import static com.example.board.permission.CategoryPermission.CREATE_COMMENT;
 import static com.example.board.permission.CategoryPermission.VIEW_POST;

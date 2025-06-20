@@ -3,12 +3,10 @@ package com.example.board.config.security;
 import com.example.board.auth.UserPrincipal;
 import com.example.board.member.Member;
 import com.example.board.permission.TeamPermission;
-import com.example.board.permission.utils.PermissionConverter;
 import com.example.board.role.TeamRole;
 import com.example.board.support.TestDataBuilder;
 import com.example.board.support.TestDataFactory;
 import com.example.board.team.Team;
-import com.example.board.teamMember.TeamMember;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -16,14 +14,15 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithSecurityContextFactory;
 
-import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-public class WithMockTeamPermissionSecurityContextFactory implements WithSecurityContextFactory<WithMockTeamPermission>{
-    @Autowired private TestDataBuilder builder;
-    @Autowired private TestDataFactory factory;
+public class WithMockTeamPermissionSecurityContextFactory implements WithSecurityContextFactory<WithMockTeamPermission> {
+    @Autowired
+    private TestDataBuilder builder;
+    @Autowired
+    private TestDataFactory factory;
 
     @Override
     public SecurityContext createSecurityContext(WithMockTeamPermission annotation) {
