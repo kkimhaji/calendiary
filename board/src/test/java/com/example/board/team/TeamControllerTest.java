@@ -16,8 +16,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -50,6 +49,13 @@ public class TeamControllerTest extends AbstractControllerTestSupport {
         mockMvc.perform(put("/team/{teamId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockTeamPermission
+    void deleteTeamTest() throws Exception {
+        mockMvc.perform(delete("/team/delete/{teamId}", 1L))
                 .andExpect(status().isOk());
     }
 
