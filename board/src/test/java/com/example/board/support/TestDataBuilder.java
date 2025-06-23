@@ -24,6 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.example.board.permission.CategoryPermission.*;
 import static com.example.board.permission.TeamPermission.MANAGE_MEMBERS;
@@ -39,6 +40,7 @@ public class TestDataBuilder {
     private final TeamMemberRepository teamMemberRepository;
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final TestDataFactory factory;
 
     public Member createMember(String email, String nickname, String password) {
         return memberRepository.save(
@@ -65,7 +67,7 @@ public class TestDataBuilder {
         return teamRoleService.createRole(team.getId(), roleRequest);
     }
 
-    public TeamRole createNewRoleWithPermissions(Team team, String roleName, Set<TeamPermission> permissions){
+    public TeamRole createNewRoleWithPermissions(Team team, String roleName, Set<TeamPermission> permissions) {
         return teamRoleService.createRole(team.getId(), new CreateRoleRequest(roleName, permissions, "new role with permissions"));
     }
 
@@ -85,5 +87,9 @@ public class TestDataBuilder {
 
     public TeamMember getAdminMember(Team team, Member admin) {
         return teamMemberRepository.findByTeamAndMember(team, admin).orElseThrow(() -> new EntityNotFoundException("admin member not found"));
+    }
+
+    public void updateRolePermission(Long roleId, Set<TeamPermission> permissions) {
+        teamRoleService.updateRolePermissions(roleId, permissions);
     }
 }

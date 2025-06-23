@@ -11,5 +11,5 @@ public @interface WithMockTeamPermission {
     String email() default "test@example.com";
     String nickname() default "테스트사용자";
     String password() default "1234";
-    String[] teamPermissions() default {};
+    String[] teamPermissions() default {"MANAGE_TEAM"};
 }
