@@ -12,7 +12,7 @@ public class TestDataFactory {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public Member createMember(String email, String nickname, String password){
+    public Member createMember(String email, String nickname, String password) {
         return memberRepository.save(
                 Member.createMember(
                         email, nickname, passwordEncoder.encode(password), true, null, null
