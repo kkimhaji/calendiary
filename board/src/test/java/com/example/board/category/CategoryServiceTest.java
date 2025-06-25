@@ -9,8 +9,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static com.example.board.permission.CategoryPermission.CREATE_COMMENT;
-import static com.example.board.permission.CategoryPermission.VIEW_POST;
+import java.util.Arrays;
+import java.util.HashSet;
+
+import static com.example.board.permission.CategoryPermission.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class CategoryServiceTest extends AbstractTestSupport {
@@ -29,7 +31,7 @@ public class CategoryServiceTest extends AbstractTestSupport {
         team = testDataBuilder.createTeam(member1);
         teamMember = testDataBuilder.addMemberToTeam(member2, team);
         teamRole = testDataBuilder.createNewRole(team, "test role");
-        category = testDataBuilder.createCategory(teamRole, team, member1);
+        category = testDataBuilder.createCategory(teamRole.getId(), team, member1,new HashSet<>(Arrays.asList(VIEW_POST, DELETE_POST)));
     }
 
     @Test

@@ -6,6 +6,7 @@ import com.example.board.category.dto.CategoryRolePermissionDTO;
 import com.example.board.category.dto.CreateCategoryRequest;
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
+import com.example.board.permission.CategoryPermission;
 import com.example.board.permission.TeamPermission;
 import com.example.board.role.TeamRole;
 import com.example.board.role.TeamRoleService;
@@ -76,9 +77,9 @@ public class TestDataBuilder {
         teamRoleService.addMemberToRole(teamRole.getTeam().getId(), addRequest);
     }
 
-    public TeamCategory createCategory(TeamRole teamRole, Team team, Member admin) {
+    public TeamCategory createCategory(Long roleId, Team team, Member admin, Set<CategoryPermission> categoryPermissions) {
         TeamMember adminMember = teamMemberRepository.findByTeamAndMember(team, admin).orElseThrow(() -> new EntityNotFoundException("teamMember not found"));
-        CategoryRolePermissionDTO dto1 = new CategoryRolePermissionDTO(teamRole.getId(), new HashSet<>(Arrays.asList(VIEW_POST, DELETE_POST)));
+        CategoryRolePermissionDTO dto1 = new CategoryRolePermissionDTO(roleId, categoryPermissions);
         //admin 권한 추가
         CategoryRolePermissionDTO dto2 = new CategoryRolePermissionDTO(adminMember.getRole().getId(), new HashSet<>(Arrays.asList(VIEW_POST, DELETE_POST, CREATE_POST, CREATE_COMMENT, DELETE_COMMENT)));
         CreateCategoryRequest categoryRequest = new CreateCategoryRequest("testCategory", "create category test", List.of(dto1, dto2));
