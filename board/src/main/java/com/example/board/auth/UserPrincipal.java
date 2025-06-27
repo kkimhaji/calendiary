@@ -10,9 +10,20 @@ import java.util.Collection;
 import java.util.Collections;
 
 @Getter
-@RequiredArgsConstructor
 public class UserPrincipal implements UserDetails {
     private final Member member;
+    private Long testTeamId; // 테스트용 팀 ID 추가
+
+    // 기존 생성자
+    public UserPrincipal(Member member) {
+        this.member = member;
+    }
+
+    // 테스트용 생성자
+    public UserPrincipal(Member member, Long testTeamId) {
+        this.member = member;
+        this.testTeamId = testTeamId;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -48,5 +59,15 @@ public class UserPrincipal implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    // 팀 ID setter (테스트용)
+    public void setTestTeamId(Long testTeamId) {
+        this.testTeamId = testTeamId;
+    }
+
+    // 팀 ID getter
+    public Long getTestTeamId() {
+        return testTeamId;
     }
 }
