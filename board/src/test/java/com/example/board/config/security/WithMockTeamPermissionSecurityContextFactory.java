@@ -40,8 +40,8 @@ public class WithMockTeamPermissionSecurityContextFactory implements WithSecurit
 
         builder.updateRolePermission(team.getBasicRoleId(), teamPermissions);
 
-        // UserPrincipal 생성 및 설정
-        UserPrincipal userPrincipal = new UserPrincipal(member);
+        // UserPrincipal 생성 및 설정(Team id 포함)
+        UserPrincipal userPrincipal = new UserPrincipal(member, team.getId());
 
         Authentication auth = new UsernamePasswordAuthenticationToken(
                 userPrincipal, "password", Collections.emptyList());
