@@ -35,6 +35,11 @@ public class WithMockCategoryPermissionSecurityContextFactory implements WithSec
         Member member = factory.createMember(annotation.email(), annotation.nickname(), annotation.password());
         Team team = builder.createTeam(admin);
         builder.addMemberToTeam(member, team);
+        Set<TeamPermission> teamPermissions = Arrays.stream(annotation.teamPermissions())
+                .map(TeamPermission::fromCode).collect(Collectors.toSet());
+
+        builder.updateRolePermission(team.getBasicRoleId(), teamPermissions);
+
         Set<CategoryPermission> permissions = Arrays.stream(annotation.categoryPermissions())
                 .map(CategoryPermission::fromCode).collect(Collectors.toSet());
         //카테고리 생성
