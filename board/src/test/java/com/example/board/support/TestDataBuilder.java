@@ -13,6 +13,7 @@ import com.example.board.role.TeamRoleService;
 import com.example.board.role.dto.AddMembersToRoleRequest;
 import com.example.board.role.dto.CreateRoleRequest;
 import com.example.board.team.Team;
+import com.example.board.team.TeamRepository;
 import com.example.board.team.TeamService;
 import com.example.board.team.dto.AddMemberRequestDTO;
 import com.example.board.team.dto.TeamCreateRequestDTO;
@@ -41,6 +42,7 @@ public class TestDataBuilder {
     private final TeamMemberRepository teamMemberRepository;
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final TeamRepository teamRepository;
     private final TestDataFactory factory;
 
     public Member createMember(String email, String nickname, String password) {
@@ -77,20 +79,22 @@ public class TestDataBuilder {
         teamRoleService.addMemberToRole(teamRole.getTeam().getId(), addRequest);
     }
 
-    public TeamCategory createCategory(Long roleId, Team team, Member admin, Set<CategoryPermission> categoryPermissions) {
-        TeamMember adminMember = teamMemberRepository.findByTeamAndMember(team, admin).orElseThrow(() -> new EntityNotFoundException("teamMember not found"));
-        CategoryRolePermissionDTO dto1 = new CategoryRolePermissionDTO(roleId, categoryPermissions);
-        //admin 권한 추가
-        CategoryRolePermissionDTO dto2 = new CategoryRolePermissionDTO(adminMember.getRole().getId(), new HashSet<>(Arrays.asList(VIEW_POST, DELETE_POST, CREATE_POST, CREATE_COMMENT, DELETE_COMMENT)));
-        CreateCategoryRequest categoryRequest = new CreateCategoryRequest("testCategory", "create category test", List.of(dto1, dto2));
-        return categoryService.createCategory(team.getId(), categoryRequest);
-    }
-
-    public TeamMember getAdminMember(Team team, Member admin) {
-        return teamMemberRepository.findByTeamAndMember(team, admin).orElseThrow(() -> new EntityNotFoundException("admin member not found"));
+    public TeamCategory createCategory(Long roleId, Team team, Set<CategoryPermission> categoryPermissions) {
+        return categoryService.createCategory(team.getId(), forCreateCategoryRequest(team.getId(), roleId, categoryPermissions));
     }
 
     public void updateRolePermission(Long roleId, Set<TeamPermission> permissions) {
         teamRoleService.updateRolePermissions(roleId, permissions);
+    }
+
+    public CreateCategoryRequest forCreateCategoryRequest(Long teamId, Long roleId, Set<CategoryPermission> permissions){
+        Team team = teamRepository.findById(teamId).orElseThrow();
+        if (roleId==null){
+            roleId = team.getBasicRoleId();
+        }
+        //admin 설정 - 모든 권한 허용
+        CategoryRolePermissionDTO adminDTO = new CategoryRolePermissionDTO(team.getAdminRoleId(), new HashSet<>(Arrays.asList(CategoryPermission.values())));
+        CategoryRolePermissionDTO basicDTO = new CategoryRolePermissionDTO(roleId, permissions);
+        return new CreateCategoryRequest("TestCategory", "category for test", List.of(adminDTO, basicDTO));
     }
 }

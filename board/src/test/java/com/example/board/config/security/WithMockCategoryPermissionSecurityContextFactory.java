@@ -27,23 +27,21 @@ public class WithMockCategoryPermissionSecurityContextFactory implements WithSec
     @Autowired
     private TestDataFactory factory;
 
+    private Member createAdmin(){
+        return factory.createMember("admin@test.com", "admin", "1234");
+    }
+
     @Override
     public SecurityContext createSecurityContext(WithMockCategoryPermission annotation) {
         SecurityContext context = SecurityContextHolder.createEmptyContext();
-        Member admin = factory.createMember("admin@test.com", "admin", "1234");
         //테스트용 멤버
         Member member = factory.createMember(annotation.email(), annotation.nickname(), annotation.password());
-        Team team = builder.createTeam(admin);
+        Team team = builder.createTeam(createAdmin());
+        //테스트용 멤버는 basic role로만 진행
         builder.addMemberToTeam(member, team);
         Set<TeamPermission> teamPermissions = Arrays.stream(annotation.teamPermissions())
                 .map(TeamPermission::fromCode).collect(Collectors.toSet());
-
         builder.updateRolePermission(team.getBasicRoleId(), teamPermissions);
-
-        Set<CategoryPermission> permissions = Arrays.stream(annotation.categoryPermissions())
-                .map(CategoryPermission::fromCode).collect(Collectors.toSet());
-        //카테고리 생성
-        TeamCategory category = builder.createCategory(team.getBasicRoleId(), team, member, permissions);
 
         UserPrincipal userPrincipal = new UserPrincipal(member);
         Authentication authentication = new UsernamePasswordAuthenticationToken(userPrincipal, "password", Collections.emptyList());
