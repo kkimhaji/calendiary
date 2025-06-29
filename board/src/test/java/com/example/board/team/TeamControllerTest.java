@@ -38,7 +38,7 @@ public class TeamControllerTest extends AbstractControllerTestSupport {
 
     @Test
     @WithMockTeamPermission
-    void updateTeamTest() throws Exception {
+    void updateTeamTest_withPermission() throws Exception {
         var request = objectMapper.writeValueAsString(new TeamUpdateRequestDTO("test team", "update test"));
         //팀 수정 요청을 하기 위해서는 teamId가 필요함
         var userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -50,12 +50,34 @@ public class TeamControllerTest extends AbstractControllerTestSupport {
     }
 
     @Test
+    @WithMockTeamPermission(teamPermissions = {})
+    void updateTeamTest_withoutPermission() throws Exception {
+        var request = objectMapper.writeValueAsString(new TeamUpdateRequestDTO("test team", "update test"));
+        //팀 수정 요청을 하기 위해서는 teamId가 필요함
+        var userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        mockMvc.perform(put("/team/{teamId}", userPrincipal.getTestTeamId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     @WithMockTeamPermission
-    void deleteTeamTest() throws Exception {
+    void deleteTeamTest_withPermission() throws Exception {
         var userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         mockMvc.perform(delete("/team/delete/{teamId}", userPrincipal.getTestTeamId()))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockTeamPermission(teamPermissions = {})
+    void deleteTeamTest_withoutPermission() throws Exception {
+        var userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        mockMvc.perform(delete("/team/delete/{teamId}", userPrincipal.getTestTeamId()))
+                .andExpect(status().isForbidden());
     }
 
 }
