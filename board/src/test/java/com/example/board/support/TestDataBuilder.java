@@ -79,8 +79,8 @@ public class TestDataBuilder {
         teamRoleService.addMemberToRole(teamRole.getTeam().getId(), addRequest);
     }
 
-    public TeamCategory createCategory(Long roleId, Team team, Set<CategoryPermission> categoryPermissions) {
-        return categoryService.createCategory(team.getId(), forCreateCategoryRequest(team.getId(), roleId, categoryPermissions));
+    public TeamCategory createCategory(Long roleId, Long teamId, Set<CategoryPermission> categoryPermissions) {
+        return categoryService.createCategory(teamId, forCreateCategoryRequest(teamId, roleId, categoryPermissions));
     }
 
     public void updateRolePermission(Long roleId, Set<TeamPermission> permissions) {
