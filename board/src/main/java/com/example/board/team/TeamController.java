@@ -19,12 +19,10 @@ public class TeamController {
 
     @PostMapping("/create")
     public ResponseEntity<TeamCreateResponse> createTeam(@AuthenticationPrincipal UserPrincipal user, @RequestBody TeamCreateRequestDTO dto) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         return ResponseEntity.ok(TeamCreateResponse.fromEntity(teamService.createTeam(user.getMember(), dto)));
-    }
-
-    @PostMapping("/addmember")
-    public ResponseEntity<?> addMember(@RequestBody AddMemberRequestDTO dto) {
-        return ResponseEntity.ok(teamService.addMember(dto));
     }
 
     @DeleteMapping("/delete/{teamId}")

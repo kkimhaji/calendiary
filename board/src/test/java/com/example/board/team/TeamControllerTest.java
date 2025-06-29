@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -34,6 +33,33 @@ public class TeamControllerTest extends AbstractControllerTestSupport {
                         .with(user(principal1))
                         .content(request))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void createTeamTestWithoutUserPrincipal() throws Exception {
+        var request = objectMapper.writeValueAsString(new TeamCreateRequestDTO("test team", ""));
+        mockMvc.perform(post("/team/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void getTeamInfoTest_teamMember() throws Exception {
+        Team team = builder.createTeam(member1);
+        principal1.setTestTeamId(team.getId());
+        mockMvc.perform(get("/team/{teamId}", principal1.getTestTeamId())
+                        .with(user(principal1)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void getTeamInfoTest_notTeamMember() throws Exception {
+        Team team = builder.createTeam(member1);
+        principal1.setTestTeamId(team.getId());
+        mockMvc.perform(get("/team/{teamId}", principal1.getTestTeamId())
+                        .with(user(principal2)))
+                .andExpect(status().isForbidden());
     }
 
     @Test
