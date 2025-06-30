@@ -1,6 +1,5 @@
 package com.example.board.category;
 
-import com.example.board.auth.UserPrincipal;
 import com.example.board.category.dto.UpdateCategoryRequest;
 import com.example.board.config.security.WithMockTeamPermission;
 import com.example.board.permission.CategoryPermission;
@@ -12,8 +11,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.HashSet;
@@ -36,9 +33,7 @@ public class CategoryControllerTest extends AbstractControllerTestSupport {
 
     @BeforeEach
     void init() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        teamId = userPrincipal.getTestTeamId();
+        teamId = builder.getCurrentTestTeamId();
     }
 
     @Test

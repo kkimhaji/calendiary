@@ -1,5 +1,6 @@
 package com.example.board.support;
 
+import com.example.board.auth.UserPrincipal;
 import com.example.board.category.CategoryService;
 import com.example.board.category.TeamCategory;
 import com.example.board.category.dto.CategoryRolePermissionDTO;
@@ -19,16 +20,15 @@ import com.example.board.team.dto.AddMemberRequestDTO;
 import com.example.board.team.dto.TeamCreateRequestDTO;
 import com.example.board.teamMember.TeamMember;
 import com.example.board.teamMember.TeamMemberRepository;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
-import static com.example.board.permission.CategoryPermission.*;
 import static com.example.board.permission.TeamPermission.MANAGE_MEMBERS;
 import static com.example.board.permission.TeamPermission.MANAGE_ROLES;
 
@@ -87,14 +87,35 @@ public class TestDataBuilder {
         teamRoleService.updateRolePermissions(roleId, permissions);
     }
 
-    public CreateCategoryRequest forCreateCategoryRequest(Long teamId, Long roleId, Set<CategoryPermission> permissions){
+    public CreateCategoryRequest forCreateCategoryRequest(Long teamId, Long roleId, Set<CategoryPermission> permissions) {
         Team team = teamRepository.findById(teamId).orElseThrow();
-        if (roleId==null){
+        if (roleId == null) {
             roleId = team.getBasicRoleId();
         }
         //admin 설정 - 모든 권한 허용
         CategoryRolePermissionDTO adminDTO = new CategoryRolePermissionDTO(team.getAdminRoleId(), new HashSet<>(Arrays.asList(CategoryPermission.values())));
         CategoryRolePermissionDTO basicDTO = new CategoryRolePermissionDTO(roleId, permissions);
         return new CreateCategoryRequest("TestCategory", "category for test", List.of(adminDTO, basicDTO));
+    }
+
+    public UserPrincipal getCurrentUserPrincipal() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null) {
+            throw new IllegalStateException("인증 정보가 없습니다.");
+        }
+
+        Object principal = authentication.getPrincipal();
+        if (!(principal instanceof UserPrincipal)) {
+            throw new IllegalStateException(
+                    "Principal이 UserPrincipal 타입이 아닙니다. 실제 타입: " +
+                            principal.getClass().getName());
+        }
+
+        return (UserPrincipal) principal;
+    }
+
+    public Long getCurrentTestTeamId() {
+        return getCurrentUserPrincipal().getTestTeamId();
     }
 }

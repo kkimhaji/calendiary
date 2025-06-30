@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -66,10 +67,7 @@ public class TeamControllerTest extends AbstractControllerTestSupport {
     @WithMockTeamPermission
     void updateTeamTest_withPermission() throws Exception {
         var request = objectMapper.writeValueAsString(new TeamUpdateRequestDTO("test team", "update test"));
-        //팀 수정 요청을 하기 위해서는 teamId가 필요함
-        var userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        mockMvc.perform(put("/team/{teamId}", userPrincipal.getTestTeamId())
+        mockMvc.perform(put("/team/{teamId}", builder.getCurrentTestTeamId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request))
                 .andExpect(status().isOk());
@@ -79,10 +77,7 @@ public class TeamControllerTest extends AbstractControllerTestSupport {
     @WithMockTeamPermission(teamPermissions = {})
     void updateTeamTest_withoutPermission() throws Exception {
         var request = objectMapper.writeValueAsString(new TeamUpdateRequestDTO("test team", "update test"));
-        //팀 수정 요청을 하기 위해서는 teamId가 필요함
-        var userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        mockMvc.perform(put("/team/{teamId}", userPrincipal.getTestTeamId())
+        mockMvc.perform(put("/team/{teamId}", builder.getCurrentTestTeamId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request))
                 .andExpect(status().isForbidden());
@@ -91,18 +86,14 @@ public class TeamControllerTest extends AbstractControllerTestSupport {
     @Test
     @WithMockTeamPermission
     void deleteTeamTest_withPermission() throws Exception {
-        var userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        mockMvc.perform(delete("/team/delete/{teamId}", userPrincipal.getTestTeamId()))
+        mockMvc.perform(delete("/team/delete/{teamId}", builder.getCurrentTestTeamId()))
                 .andExpect(status().isOk());
     }
 
     @Test
     @WithMockTeamPermission(teamPermissions = {})
     void deleteTeamTest_withoutPermission() throws Exception {
-        var userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        mockMvc.perform(delete("/team/delete/{teamId}", userPrincipal.getTestTeamId()))
+        mockMvc.perform(delete("/team/delete/{teamId}", builder.getCurrentTestTeamId()))
                 .andExpect(status().isForbidden());
     }
 
