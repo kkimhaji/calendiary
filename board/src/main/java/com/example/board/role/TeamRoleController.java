@@ -47,7 +47,7 @@ public class TeamRoleController {
     //역할에 팀 멤버 추가하기
     @PostMapping("/manage/member")
     @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_ROLES)")
-    public ResponseEntity<AddMembersToRoleResponse> addMembersToRole(@PathVariable(name="teamId") Long teamId, @RequestBody AddMembersToRoleRequest request){
+    public ResponseEntity<AddMembersToRoleResponse> addMembersToRole(@PathVariable(name="teamId") @P("teamId") Long teamId, @RequestBody AddMembersToRoleRequest request){
         return ResponseEntity.ok(teamRoleService.addMemberToRole(teamId, request));
     }
 
