@@ -47,8 +47,8 @@ public class RoleServiceTest extends AbstractTestSupport {
     @BeforeEach
     void init(){
         team = testDataBuilder.createTeam(member1);
-        teamMember = testDataBuilder.addMemberToTeam(member2, team);
-        teamRole = testDataBuilder.createNewRole(team, "test role");
+        teamMember = testDataBuilder.addMemberToTeam(member2, team.getId());
+        teamRole = testDataBuilder.createNewRole(team.getId(), "test role");
     }
 
     @Test
@@ -93,11 +93,12 @@ public class RoleServiceTest extends AbstractTestSupport {
 
     @Test
     void deleteMemberFromRole_changeRole(){
+        Long teamId = team.getId();
         var addRequest = new AddMembersToRoleRequest(teamRole.getId(), Collections.singletonList(member2.getMemberId()));
-        teamRoleService.addMemberToRole(team.getId(), addRequest);
+        teamRoleService.addMemberToRole(teamId, addRequest);
 
-        TeamRole newRole = testDataBuilder.createNewRole(team, "test role2");
-        teamRoleService.removeMemberFromRole(team.getId(), member2.getMemberId(), newRole.getId());
+        TeamRole newRole = testDataBuilder.createNewRole(teamId, "test role2");
+        teamRoleService.removeMemberFromRole(teamId, member2.getMemberId(), newRole.getId());
 
         assertThat(teamMember.getRole().getId()).isEqualTo(newRole.getId());
     }

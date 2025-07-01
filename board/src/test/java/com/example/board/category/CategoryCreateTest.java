@@ -43,8 +43,8 @@ public class CategoryCreateTest extends AbstractTestSupport {
     @BeforeEach
     void init(){
         team = testDataBuilder.createTeam(member1);
-        teamMember = testDataBuilder.addMemberToTeam(member2, team);
-        teamRole = testDataBuilder.createNewRole(team, "test role");
+        teamMember = testDataBuilder.addMemberToTeam(member2, team.getId());
+        teamRole = testDataBuilder.createNewRole(team.getId(), "test role");
     }
 
     @Test

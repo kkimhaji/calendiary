@@ -24,7 +24,7 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
     @BeforeEach
     void init() {
         team = testDataBuilder.createTeam(member1);
-        teamMember = testDataBuilder.addMemberToTeam(member2, team);
+        teamMember = testDataBuilder.addMemberToTeam(member2, team.getId());
     }
 
     @Test

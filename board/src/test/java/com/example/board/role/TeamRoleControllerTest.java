@@ -1,7 +1,9 @@
 package com.example.board.role;
 
 import com.example.board.config.security.WithMockTeamPermission;
+import com.example.board.role.dto.AddMembersToRoleRequest;
 import com.example.board.role.dto.CreateRoleRequest;
+import com.example.board.role.dto.RoleUpdateRequest;
 import com.example.board.support.AbstractControllerTestSupport;
 import com.example.board.support.TestDataBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,9 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Collections;
 import java.util.HashSet;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class TeamRoleControllerTest extends AbstractControllerTestSupport {
@@ -50,15 +53,83 @@ public class TeamRoleControllerTest extends AbstractControllerTestSupport {
     void createRoleTest_roleNameNull() throws Exception {
         Long teamId = builder.getCurrentTestTeamId();
         String request = """
-        {
-            "roleName": null,
-            "permissions": [],
-            "description": "role for test"
-        }
-        """;
+                {
+                    "roleName": null,
+                    "permissions": [],
+                    "description": "role for test"
+                }
+                """;
         mockMvc.perform(post("/teams/{teamId}/roles/manage/create", teamId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request)
         ).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockTeamPermission(teamPermissions = {"MANAGE_ROLES"})
+    void deleteRoleTest_withPermission() throws Exception {
+        Long teamId = builder.getCurrentTestTeamId();
+        TeamRole role = builder.createNewRole(teamId, "test role");
+        mockMvc.perform(delete("/teams/{teamId}/roles/manage/delete/{roleId}", teamId, role.getId()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockTeamPermission
+    void deleteRoleTest_withoutPermission() throws Exception {
+        Long teamId = builder.getCurrentTestTeamId();
+        TeamRole role = builder.createNewRole(teamId, "test role");
+        mockMvc.perform(delete("/teams/{teamId}/roles/manage/delete/{roleId}", teamId, role.getId()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockTeamPermission(teamPermissions = {"MANAGE_ROLES"})
+    void addMemberToRole_withPermission() throws Exception {
+        Long teamId = builder.getCurrentTestTeamId();
+        builder.addMemberToTeam(member1, teamId);
+        TeamRole role = builder.createNewRole(teamId, "test role");
+        var request = mapper.writeValueAsString(new AddMembersToRoleRequest(role.getId(), Collections.singletonList(member1.getMemberId())));
+        mockMvc.perform(post("/teams/{teamId}/roles/manage/member", teamId)
+                        .content(request)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockTeamPermission
+    void addMemberToRole_withoutPermission() throws Exception {
+        Long teamId = builder.getCurrentTestTeamId();
+        builder.addMemberToTeam(member1, teamId);
+        TeamRole role = builder.createNewRole(teamId, "test role");
+        var request = mapper.writeValueAsString(new AddMembersToRoleRequest(role.getId(), Collections.singletonList(member1.getMemberId())));
+        mockMvc.perform(post("/teams/{teamId}/roles/manage/member", teamId)
+                        .content(request)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockTeamPermission(teamPermissions = {"MANAGE_ROLES"})
+    void updateRoleTest_withPermission() throws Exception {
+        Long teamId = builder.getCurrentTestTeamId();
+        TeamRole role = builder.createNewRole(teamId, "test role");
+        var request = mapper.writeValueAsString(new RoleUpdateRequest("test role", "role update test", new HashSet<>()));
+        mockMvc.perform(put("/teams/{teamId}/roles/{roleId}/update", teamId, role.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockTeamPermission
+    void updateRoleTest_withoutPermission() throws Exception {
+        Long teamId = builder.getCurrentTestTeamId();
+        TeamRole role = builder.createNewRole(teamId, "test role");
+        var request = mapper.writeValueAsString(new RoleUpdateRequest("test role", "role update test", new HashSet<>()));
+        mockMvc.perform(put("/teams/{teamId}/roles/{roleId}/update", teamId, role.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isForbidden());
     }
 }

@@ -19,7 +19,6 @@ import com.example.board.team.TeamService;
 import com.example.board.team.dto.AddMemberRequestDTO;
 import com.example.board.team.dto.TeamCreateRequestDTO;
 import com.example.board.teamMember.TeamMember;
-import com.example.board.teamMember.TeamMemberRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -39,11 +38,9 @@ public class TestDataBuilder {
     private final TeamService teamService;
     private final TeamRoleService teamRoleService;
     private final CategoryService categoryService;
-    private final TeamMemberRepository teamMemberRepository;
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final TeamRepository teamRepository;
-    private final TestDataFactory factory;
 
     public Member createMember(String email, String nickname, String password) {
         return memberRepository.save(
@@ -57,17 +54,17 @@ public class TestDataBuilder {
         return teamService.createTeam(member1, request);
     }
 
-    public TeamMember addMemberToTeam(Member member2, Team team) {
-        AddMemberRequestDTO dto = new AddMemberRequestDTO(team.getId(), member2.getMemberId());
+    public TeamMember addMemberToTeam(Member member2, Long teamId) {
+        AddMemberRequestDTO dto = new AddMemberRequestDTO(teamId, member2.getMemberId());
         return teamService.addMember(dto);
     }
 
-    public TeamRole createNewRole(Team team, String roleName) {
+    public TeamRole createNewRole(Long teamId, String roleName) {
         Set<TeamPermission> permissions = new HashSet<>(Arrays.asList(
                 MANAGE_ROLES, MANAGE_MEMBERS
         ));
         var roleRequest = new CreateRoleRequest(roleName, permissions, "role for test");
-        return teamRoleService.createRole(team.getId(), roleRequest);
+        return teamRoleService.createRole(teamId, roleRequest);
     }
 
     public TeamRole createNewRoleWithPermissions(Team team, String roleName, Set<TeamPermission> permissions) {

@@ -1,9 +1,7 @@
 package com.example.board.config.security;
 
 import com.example.board.auth.UserPrincipal;
-import com.example.board.category.TeamCategory;
 import com.example.board.member.Member;
-import com.example.board.permission.CategoryPermission;
 import com.example.board.permission.TeamPermission;
 import com.example.board.support.TestDataBuilder;
 import com.example.board.support.TestDataFactory;
@@ -27,7 +25,7 @@ public class WithMockCategoryPermissionSecurityContextFactory implements WithSec
     @Autowired
     private TestDataFactory factory;
 
-    private Member createAdmin(){
+    private Member createAdmin() {
         return factory.createMember("admin@test.com", "admin", "1234");
     }
 
@@ -38,7 +36,7 @@ public class WithMockCategoryPermissionSecurityContextFactory implements WithSec
         Member member = factory.createMember(annotation.email(), annotation.nickname(), annotation.password());
         Team team = builder.createTeam(createAdmin());
         //테스트용 멤버는 basic role로만 진행
-        builder.addMemberToTeam(member, team);
+        builder.addMemberToTeam(member, team.getId());
         Set<TeamPermission> teamPermissions = Arrays.stream(annotation.teamPermissions())
                 .map(TeamPermission::fromCode).collect(Collectors.toSet());
         builder.updateRolePermission(team.getBasicRoleId(), teamPermissions);

@@ -34,7 +34,7 @@ public class WithMockTeamPermissionSecurityContextFactory implements WithSecurit
         //테스트용 멤버
         Member member = factory.createMember(annotation.email(), annotation.nickname(), annotation.password());
 
-        builder.addMemberToTeam(member, team);
+        builder.addMemberToTeam(member, team.getId());
         Set<TeamPermission> teamPermissions = Arrays.stream(annotation.teamPermissions())
                 .map(TeamPermission::fromCode).collect(Collectors.toSet());
 
