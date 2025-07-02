@@ -31,8 +31,9 @@ public class TeamInviteService {
     private final TeamMemberService teamMemberService;
 
     @Transactional
-    public InviteResponse createInvite(InviteCreateRequest request) {
-        Team team = teamRepository.findById(request.teamId()).orElseThrow(() -> new EntityNotFoundException("team not found"));
+    public InviteResponse createInvite(InviteCreateRequest request, Long teamId) {
+//        Team team = teamRepository.findById(request.teamId()).orElseThrow(() -> new EntityNotFoundException("team not found"));
+        Team team = teamRepository.findById(teamId).orElseThrow(() -> new EntityNotFoundException("team not found"));
         String code = UUID.randomUUID().toString().replace("-", "");
         TeamInvite invite = TeamInvite.create(code, team, request.expiresAt(), request.maxUses());
         inviteRepository.save(invite);
