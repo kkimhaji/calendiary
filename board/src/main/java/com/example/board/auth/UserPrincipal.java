@@ -2,7 +2,6 @@ package com.example.board.auth;
 
 import com.example.board.member.Member;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -13,6 +12,7 @@ import java.util.Collections;
 public class UserPrincipal implements UserDetails {
     private final Member member;
     private Long testTeamId; // 테스트용 팀 ID 추가
+    private Long testCategoryId;
 
     // 기존 생성자
     public UserPrincipal(Member member) {
@@ -23,6 +23,12 @@ public class UserPrincipal implements UserDetails {
     public UserPrincipal(Member member, Long testTeamId) {
         this.member = member;
         this.testTeamId = testTeamId;
+    }
+
+    public UserPrincipal(Member member, Long testTeamId, Long testCategoryId) {
+        this.member = member;
+        this.testTeamId = testTeamId;
+        this.testCategoryId = testCategoryId;
     }
 
     @Override
@@ -69,5 +75,13 @@ public class UserPrincipal implements UserDetails {
     // 팀 ID getter
     public Long getTestTeamId() {
         return testTeamId;
+    }
+
+    public void setTestCategoryId(Long testCategoryId){
+        this.testCategoryId = testCategoryId;
+    }
+
+    public Long getTestCategoryId(){
+        return testCategoryId;
     }
 }
