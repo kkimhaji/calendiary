@@ -3,7 +3,6 @@ package com.example.board.category;
 import com.example.board.category.dto.UpdateCategoryRequest;
 import com.example.board.config.security.WithMockTeamPermission;
 import com.example.board.permission.CategoryPermission;
-import com.example.board.role.TeamRoleRepository;
 import com.example.board.support.AbstractControllerTestSupport;
 import com.example.board.support.TestDataBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,8 +26,6 @@ public class CategoryControllerTest extends AbstractControllerTestSupport {
     private TestDataBuilder builder;
     @Autowired
     private ObjectMapper objectMapper;
-    @Autowired
-    private TeamRoleRepository teamRoleRepository;
     private Long teamId;
 
     @BeforeEach
