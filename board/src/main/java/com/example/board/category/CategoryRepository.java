@@ -33,4 +33,11 @@ public interface CategoryRepository extends JpaRepository<TeamCategory, Long> {
 
     boolean existsByTeamAndName(Team team, String name);
     boolean existsByTeamAndNameAndIdNot(Team team, String name, Long id);
+
+    @Query("SELECT c FROM TeamCategory c " +
+            "LEFT JOIN FETCH c.rolePermissions rp " +
+            "LEFT JOIN FETCH rp.role " +
+            "WHERE c.id = :categoryId")
+    Optional<TeamCategory> findByIdWithPermissions(@Param("categoryId") Long categoryId);
+
 }

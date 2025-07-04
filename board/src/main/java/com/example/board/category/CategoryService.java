@@ -14,6 +14,7 @@ import com.example.board.team.Team;
 import com.example.board.team.TeamRepository;
 import com.example.board.permission.CategoryPermission;
 import com.example.board.teamMember.TeamMemberService;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -38,6 +39,7 @@ public class CategoryService {
     private final TeamMemberService teamMemberService;
     private final CommentRepository commentRepository;
     private final ImageService imageService;
+    private final EntityManager entityManager;
 
     @Transactional
     public TeamCategory createCategory(Long teamId, CreateCategoryRequest request) {
@@ -167,19 +169,29 @@ public class CategoryService {
 
         //권한 업데이트 내용이 있을 때만(Optional 존재) 권한 정보 업데이트
         request.rolePermissions().ifPresent(permissions -> updateCategoryPermissions(category, request, teamId));
+        // 카테고리 저장 후 권한 정보와 함께 재조회
+        categoryRepository.save(category);
 
-        return CategoryResponse.from(categoryRepository.save(category));
+        entityManager.flush();
+        entityManager.clear(); // 1차 캐시 클리어
+
+        TeamCategory updatedCategory = categoryRepository.findByIdWithPermissions(categoryId)
+                .orElseThrow(() -> new EntityNotFoundException("category not found"));
+
+        return CategoryResponse.from(updatedCategory);
     }
 
+    @Transactional
     private void updateCategoryPermissions(TeamCategory category, UpdateCategoryRequest request, Long teamId) {
+        categoryPermissionRepository.deleteAllByCategoryId(category.getId());
+        entityManager.flush(); // 즉시 삭제 반영
+        category.getRolePermissions().clear(); // 엔티티 상태 동기화
+
         Team team = teamRepository.findById(teamId).orElseThrow();
         List<TeamRole> teamRoles = roleRepository.findAllByTeamWithPermissions(team);
+
         Map<Long, TeamRole> roleMap = teamRoles.stream()
                 .collect(Collectors.toMap(TeamRole::getId, Function.identity()));
-
-        // 기존 권한 삭제
-        category.clearRolePermissions();
-        categoryPermissionRepository.deleteAllByCategoryId(category.getId());
 
         // 유효한 역할 ID 검증
         request.rolePermissions().ifPresent(permissions -> {

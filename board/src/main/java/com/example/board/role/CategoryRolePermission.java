@@ -53,6 +53,8 @@ public class CategoryRolePermission {
         if (permissions == null) {
             permissions = new HashSet<>(); // 빈 권한 집합으로 초기화
         }
+        CategoryRolePermission permission = new CategoryRolePermission(category, role, permissions);
+        category.getRolePermissions().add(permission);
         return new CategoryRolePermission(category, role, permissions);
     }
 
