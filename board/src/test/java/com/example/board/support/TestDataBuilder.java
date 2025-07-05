@@ -5,10 +5,14 @@ import com.example.board.category.CategoryService;
 import com.example.board.category.TeamCategory;
 import com.example.board.category.dto.CategoryRolePermissionDTO;
 import com.example.board.category.dto.CreateCategoryRequest;
+import com.example.board.comment.Comment;
+import com.example.board.comment.CommentRepository;
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
 import com.example.board.permission.CategoryPermission;
 import com.example.board.permission.TeamPermission;
+import com.example.board.post.Post;
+import com.example.board.post.PostRepository;
 import com.example.board.role.TeamRole;
 import com.example.board.role.TeamRoleService;
 import com.example.board.role.dto.AddMembersToRoleRequest;
@@ -41,6 +45,8 @@ public class TestDataBuilder {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final TeamRepository teamRepository;
+    private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
 
     public Member createMember(String email, String nickname, String password) {
         return memberRepository.save(
@@ -114,5 +120,16 @@ public class TestDataBuilder {
 
     public Long getCurrentTestTeamId() {
         return getCurrentUserPrincipal().getTestTeamId();
+    }
+
+    public Post creaetePost(String title, String content, Member author, TeamCategory category, Team team, TeamMember teamMember){
+        return postRepository.save(
+                Post.create(title, content, author, category, team, teamMember));
+    }
+
+    public Comment createComment(String content, Post post, Member author, TeamMember teamMember){
+        return commentRepository.save(
+                Comment.createComment(content, post, author, teamMember, null)
+        );
     }
 }

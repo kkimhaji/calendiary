@@ -3,6 +3,10 @@ package com.example.board.category;
 import com.example.board.category.dto.CategoryRolePermissionDTO;
 import com.example.board.category.dto.CategoryRolePermissionResponse;
 import com.example.board.category.dto.UpdateCategoryRequest;
+import com.example.board.comment.Comment;
+import com.example.board.comment.CommentRepository;
+import com.example.board.post.Post;
+import com.example.board.post.PostRepository;
 import com.example.board.role.TeamRole;
 import com.example.board.support.AbstractTestSupport;
 import com.example.board.support.TestDataBuilder;
@@ -29,6 +33,12 @@ public class CategoryServiceTest extends AbstractTestSupport {
     private TeamMember teamMember;
     @Autowired
     private TestDataBuilder testDataBuilder;
+    @Autowired
+    private CategoryRepository categoryRepository;
+    @Autowired
+    private PostRepository postRepository;
+    @Autowired
+    private CommentRepository commentRepository;
     private TeamCategory category;
 
     @BeforeEach
@@ -66,5 +76,18 @@ public class CategoryServiceTest extends AbstractTestSupport {
         assertThat(rolePermission.roleId()).isEqualTo(teamRole.getId());
         assertThat(rolePermission.roleName()).isEqualTo(teamRole.getRoleName());
         assertThat(rolePermission.permissions()).contains(CREATE_POST);
+    }
+
+    @Test
+    void deleteCategoryTest(){
+        Long categoryId = category.getId();
+        Post post = testDataBuilder.creaetePost("test post", "test", member2, category, team, teamMember);
+        Comment comment = testDataBuilder.createComment("test comment", post, member2, teamMember);
+        Long commentId = comment.getId();
+        categoryService.deleteCategory(categoryId);
+
+        assertThat(categoryRepository.findById(categoryId)).isEmpty();
+        assertThat(commentRepository.findById(commentId)).isEmpty();
+        assertThat(postRepository.findAllByCategory(category)).isEmpty();
     }
 }
