@@ -81,7 +81,7 @@ public class CategoryServiceTest extends AbstractTestSupport {
     @Test
     void deleteCategoryTest(){
         Long categoryId = category.getId();
-        Post post = testDataBuilder.creaetePost("test post", "test", member2, category, team, teamMember);
+        Post post = testDataBuilder.createPost("test post", "test", member2, category, team, teamMember);
         Comment comment = testDataBuilder.createComment("test comment", post, member2, teamMember);
         Long commentId = comment.getId();
         categoryService.deleteCategory(categoryId);

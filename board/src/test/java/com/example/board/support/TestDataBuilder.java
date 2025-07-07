@@ -47,6 +47,7 @@ public class TestDataBuilder {
     private final TeamRepository teamRepository;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
+    private final TestDataFactory factory;
 
     public Member createMember(String email, String nickname, String password) {
         return memberRepository.save(
@@ -122,7 +123,7 @@ public class TestDataBuilder {
         return getCurrentUserPrincipal().getTestTeamId();
     }
 
-    public Post creaetePost(String title, String content, Member author, TeamCategory category, Team team, TeamMember teamMember){
+    public Post createPost(String title, String content, Member author, TeamCategory category, Team team, TeamMember teamMember){
         return postRepository.save(
                 Post.create(title, content, author, category, team, teamMember));
     }
