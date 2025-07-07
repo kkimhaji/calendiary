@@ -13,6 +13,7 @@ import com.example.board.team.TeamRepository;
 import com.example.board.teamMember.TeamMember;
 import com.example.board.teamMember.TeamMemberRepository;
 import com.example.board.permission.CategoryPermission;
+import com.google.common.annotations.VisibleForTesting;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
@@ -30,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -134,6 +136,10 @@ public class PostService {
                 viewCount.addAndGet(-count);
             }
         });
+    }
+    @VisibleForTesting
+    public void clearViewCountCache() {
+        viewCountCache.clear();
     }
 
     @Transactional

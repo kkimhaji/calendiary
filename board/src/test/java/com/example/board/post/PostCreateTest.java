@@ -2,28 +2,28 @@ package com.example.board.post;
 
 import com.example.board.category.TeamCategory;
 import com.example.board.config.HtmlSanitizer;
-import com.example.board.post.dto.PostDetailDTO;
+import com.example.board.post.dto.CreatePostRequest;
 import com.example.board.role.TeamRole;
 import com.example.board.support.AbstractTestSupport;
 import com.example.board.support.TestDataBuilder;
 import com.example.board.support.TestDataFactory;
 import com.example.board.team.Team;
 import com.example.board.teamMember.TeamMember;
-import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import java.io.IOException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class PostServiceTest extends AbstractTestSupport {
+public class PostCreateTest extends AbstractTestSupport {
     @Autowired
     private PostService postService;
     @Autowired
@@ -34,10 +34,9 @@ public class PostServiceTest extends AbstractTestSupport {
     private TeamMember teamMember;
     private TeamCategory testCategory;
     private TeamRole role;
-    private Post testPost;
     @MockBean
     private HtmlSanitizer htmlSanitizer;
-    @MockBean
+    @Autowired
     private PostRepository postRepository;
     @Autowired
     private ImageService imageService;
@@ -48,42 +47,31 @@ public class PostServiceTest extends AbstractTestSupport {
         teamMember = builder.addMemberToTeam(member2, testTeam.getId());
         role = builder.createNewRole(testTeam.getId(), "test role");
         testCategory = builder.createCategory(role.getId(), testTeam.getId(), new HashSet<>());
-        testPost = Post.create("Test Post", "content", member2, testCategory, testTeam, teamMember);
-
-        postService.clearViewCountCache();
     }
 
     @Test
-    void getPostDetailTest_success(){
+    void createPostTest() throws IOException {
         // given
-        Long postId = testPost.getId();
-        when(postRepository.findById(postId)).thenReturn(Optional.of(testPost));
+        String title = "Test Post Title";
+        String content = "Test post content without images";
+        String sanitizedContent = "Sanitized test post content";
 
-        // when
-        PostDetailDTO result = postService.getPostDetail(postId);
-
+        when(htmlSanitizer.sanitize(content)).thenReturn(content);
+        CreatePostRequest request = new CreatePostRequest(title, content, Collections.emptyList());
+        Post createdPost = postService.createPost(testTeam.getId(), testCategory.getId(), request, member2);
         // then
-        assertThat(result).isNotNull();
-        assertThat(result.id()).isEqualTo(postId);
-        assertThat(result.title()).isEqualTo("Test Post");
-        assertThat(result.author().id()).isEqualTo(member2.getMemberId());
+        assertThat(createdPost).isNotNull();
+        assertThat(createdPost.getTitle()).isEqualTo(title);
+        assertThat(createdPost.getContent()).isEqualTo(content);
+        assertThat(createdPost.getAuthor()).isEqualTo(member2);
+        assertThat(createdPost.getCategory()).isEqualTo(testCategory);
+        assertThat(createdPost.getTeam()).isEqualTo(testTeam);
+        assertThat(createdPost.getTeamMember()).isEqualTo(teamMember);
+        assertThat(createdPost.getImages()).isEmpty();
 
-        // Repository 호출 검증
-        verify(postRepository).findById(postId);
-    }
-
-    @Test
-    void getPostDetail_notFound() {
-        // given
-        Long nonExistentPostId = 999L;
-        when(postRepository.findById(nonExistentPostId)).thenReturn(Optional.empty());
-
-        // when & then
-        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
-                postService.getPostDetail(nonExistentPostId)
-        );
-
-        assertThat(exception.getMessage()).isEqualTo("Post not found");
-        verify(postRepository).findById(nonExistentPostId);
+        // Repository에 저장되었는지 확인
+        Optional<Post> savedPost = postRepository.findById(createdPost.getId());
+        assertThat(savedPost).isPresent();
+        verify(htmlSanitizer).sanitize(content);
     }
 }
