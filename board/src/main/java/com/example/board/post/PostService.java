@@ -104,7 +104,6 @@ public class PostService {
     @Async
     @Transactional
     public CompletableFuture<Void> increaseViewCount(Long postId) {
-        return CompletableFuture.runAsync(() -> {
             // 캐시에 조회수 증가
             AtomicLong viewCount = viewCountCache.computeIfAbsent(postId, k -> new AtomicLong(0));
             viewCount.incrementAndGet();
@@ -113,7 +112,7 @@ public class PostService {
             if (viewCount.get() >= 10) {
                 syncSinglePostViewCount(postId);
             }
-        });
+        return CompletableFuture.completedFuture(null);
     }
 
     public void syncSinglePostViewCount(Long postId) {
@@ -136,10 +135,6 @@ public class PostService {
                 viewCount.addAndGet(-count);
             }
         });
-    }
-    @VisibleForTesting
-    public void clearViewCountCache() {
-        viewCountCache.clear();
     }
 
     @Transactional
@@ -233,4 +228,35 @@ public class PostService {
         return postRepository.findPostListResponseByTeamMemberId(authorId, pageable);
     }
 
+    /**
+     * 테스트용: 특정 게시글의 캐시된 조회수 조회
+     * @param postId 게시글 ID
+     * @return 캐시된 조회수 (캐시에 없으면 0 반환)
+     */
+    @VisibleForTesting
+    public long getCachedViewCount(Long postId) {
+        AtomicLong count = viewCountCache.get(postId);
+        return count != null ? count.get() : 0;
+    }
+
+    @VisibleForTesting
+    public void clearViewCountCache() {
+        viewCountCache.clear();
+    }
+
+    /**
+     * 테스트용: 특정 게시글의 캐시된 조회수 설정
+     */
+    @VisibleForTesting
+    public void setCachedViewCount(Long postId, long count) {
+        viewCountCache.put(postId, new AtomicLong(count));
+    }
+
+    /**
+     * 테스트용: 현재 캐시 크기 반환
+     */
+    @VisibleForTesting
+    public int getCacheSize() {
+        return viewCountCache.size();
+    }
 }
