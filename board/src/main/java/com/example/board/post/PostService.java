@@ -101,18 +101,17 @@ public class PostService {
         return new CategoryRecentPostsResponse(categoryName, posts);
     }
 
-    @Async
+//    @Async
     @Transactional
     public CompletableFuture<Void> increaseViewCount(Long postId) {
-            // 캐시에 조회수 증가
+        return CompletableFuture.runAsync(() -> {
             AtomicLong viewCount = viewCountCache.computeIfAbsent(postId, k -> new AtomicLong(0));
             viewCount.incrementAndGet();
 
-            // 임계값(10)에 도달하면 즉시 DB에 반영
             if (viewCount.get() >= 10) {
                 syncSinglePostViewCount(postId);
             }
-        return CompletableFuture.completedFuture(null);
+        });
     }
 
     public void syncSinglePostViewCount(Long postId) {
