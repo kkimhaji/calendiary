@@ -13,6 +13,7 @@ public class UserPrincipal implements UserDetails {
     private final Member member;
     private Long testTeamId; // 테스트용 팀 ID 추가
     private Long testCategoryId;
+    private Long teamMemberId;
 
     // 기존 생성자
     public UserPrincipal(Member member) {
@@ -25,10 +26,11 @@ public class UserPrincipal implements UserDetails {
         this.testTeamId = testTeamId;
     }
 
-    public UserPrincipal(Member member, Long testTeamId, Long testCategoryId) {
+    public UserPrincipal(Member member, Long testTeamId, Long testCategoryId, Long teamMemberId) {
         this.member = member;
         this.testTeamId = testTeamId;
         this.testCategoryId = testCategoryId;
+        this.teamMemberId = teamMemberId;
     }
 
     @Override

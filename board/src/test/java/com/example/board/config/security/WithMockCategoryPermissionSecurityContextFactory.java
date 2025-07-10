@@ -1,7 +1,9 @@
 package com.example.board.config.security;
 
 import com.example.board.auth.UserPrincipal;
+import com.example.board.category.TeamCategory;
 import com.example.board.member.Member;
+import com.example.board.permission.CategoryPermission;
 import com.example.board.permission.TeamPermission;
 import com.example.board.support.TestDataBuilder;
 import com.example.board.support.TestDataFactory;
@@ -36,12 +38,17 @@ public class WithMockCategoryPermissionSecurityContextFactory implements WithSec
         Member member = factory.createMember(annotation.email(), annotation.nickname(), annotation.password());
         Team team = builder.createTeam(createAdmin());
         //테스트용 멤버는 basic role로만 진행
-        builder.addMemberToTeam(member, team.getId());
+        Long teamMemberId = builder.addMemberToTeam(member, team.getId()).getId();
         Set<TeamPermission> teamPermissions = Arrays.stream(annotation.teamPermissions())
                 .map(TeamPermission::fromCode).collect(Collectors.toSet());
         builder.updateRolePermission(team.getBasicRoleId(), teamPermissions);
 
-        UserPrincipal userPrincipal = new UserPrincipal(member);
+        Set<CategoryPermission> categoryPermissions = Arrays.stream(annotation.categoryPermissions())
+                .map(CategoryPermission::fromCode).collect(Collectors.toSet());
+        //category 생성
+        TeamCategory category = builder.createCategory(team.getBasicRoleId(), team.getId(), "Security context principal category", categoryPermissions);
+
+        UserPrincipal userPrincipal = new UserPrincipal(member, team.getId(), category.getId(), teamMemberId);
         Authentication authentication = new UsernamePasswordAuthenticationToken(userPrincipal, "password", Collections.emptyList());
 
         context.setAuthentication(authentication);

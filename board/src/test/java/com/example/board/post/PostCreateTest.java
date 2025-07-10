@@ -46,7 +46,7 @@ public class PostCreateTest extends AbstractTestSupport {
         testTeam = builder.createTeam(member1);
         teamMember = builder.addMemberToTeam(member2, testTeam.getId());
         role = builder.createNewRole(testTeam.getId(), "test role");
-        testCategory = builder.createCategory(role.getId(), testTeam.getId(), new HashSet<>());
+        testCategory = builder.createCategory(role.getId(), testTeam.getId(), "test category", new HashSet<>());
     }
 
     @Test

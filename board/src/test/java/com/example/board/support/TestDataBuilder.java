@@ -1,6 +1,7 @@
 package com.example.board.support;
 
 import com.example.board.auth.UserPrincipal;
+import com.example.board.category.CategoryRepository;
 import com.example.board.category.CategoryService;
 import com.example.board.category.TeamCategory;
 import com.example.board.category.dto.CategoryRolePermissionDTO;
@@ -23,6 +24,8 @@ import com.example.board.team.TeamService;
 import com.example.board.team.dto.AddMemberRequestDTO;
 import com.example.board.team.dto.TeamCreateRequestDTO;
 import com.example.board.teamMember.TeamMember;
+import com.example.board.teamMember.TeamMemberRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -47,7 +50,8 @@ public class TestDataBuilder {
     private final TeamRepository teamRepository;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
-    private final TestDataFactory factory;
+    private final CategoryRepository categoryRepository;
+    private final TeamMemberRepository teamMemberRepository;
 
     public Member createMember(String email, String nickname, String password) {
         return memberRepository.save(
@@ -83,15 +87,20 @@ public class TestDataBuilder {
         teamRoleService.addMemberToRole(teamRole.getTeam().getId(), addRequest);
     }
 
-    public TeamCategory createCategory(Long roleId, Long teamId, Set<CategoryPermission> categoryPermissions) {
-        return categoryService.createCategory(teamId, forCreateCategoryRequest(teamId, roleId, categoryPermissions));
+    public TeamCategory createCategory(Long roleId, Long teamId, String categoryName, Set<CategoryPermission> categoryPermissions) {
+        return categoryService.createCategory(teamId, forCreateCategoryRequest(teamId, roleId, categoryName, categoryPermissions));
+    }
+
+    public TeamCategory createCategory(Long teamId, String categoryName, Set<CategoryPermission> categoryPermissions) {
+        Long basicRoleId = teamRepository.findById(teamId).orElseThrow(() -> new EntityNotFoundException("team not found")).getBasicRoleId();
+        return categoryService.createCategory(teamId, forCreateCategoryRequest(teamId, basicRoleId, categoryName, categoryPermissions));
     }
 
     public void updateRolePermission(Long roleId, Set<TeamPermission> permissions) {
         teamRoleService.updateRolePermissions(roleId, permissions);
     }
 
-    public CreateCategoryRequest forCreateCategoryRequest(Long teamId, Long roleId, Set<CategoryPermission> permissions) {
+    public CreateCategoryRequest forCreateCategoryRequest(Long teamId, Long roleId, String categoryName, Set<CategoryPermission> permissions) {
         Team team = teamRepository.findById(teamId).orElseThrow();
         if (roleId == null) {
             roleId = team.getBasicRoleId();
@@ -99,7 +108,7 @@ public class TestDataBuilder {
         //admin 설정 - 모든 권한 허용
         CategoryRolePermissionDTO adminDTO = new CategoryRolePermissionDTO(team.getAdminRoleId(), new HashSet<>(Arrays.asList(CategoryPermission.values())));
         CategoryRolePermissionDTO basicDTO = new CategoryRolePermissionDTO(roleId, permissions);
-        return new CreateCategoryRequest("TestCategory", "category for test", List.of(adminDTO, basicDTO));
+        return new CreateCategoryRequest(categoryName, "category for test", List.of(adminDTO, basicDTO));
     }
 
     public UserPrincipal getCurrentUserPrincipal() {
@@ -123,12 +132,26 @@ public class TestDataBuilder {
         return getCurrentUserPrincipal().getTestTeamId();
     }
 
-    public Post createPost(String title, String content, Member author, TeamCategory category, Team team, TeamMember teamMember){
+    public Post createPost(String title, String content, Member author, TeamCategory category, Team team, TeamMember teamMember) {
         return postRepository.save(
                 Post.create(title, content, author, category, team, teamMember));
     }
 
-    public Comment createComment(String content, Post post, Member author, TeamMember teamMember){
+    public Post createPost(String title, String content, Long categoryId, Long teamId) {
+        Member author = getCurrentUserPrincipal().getMember();
+        TeamMember teamMember = teamMemberRepository.findByTeamIdAndMemberId(teamId, author.getMemberId())
+                .orElseThrow();
+        Team team = teamRepository.findById(teamId).orElseThrow(() -> new EntityNotFoundException("team not found"));
+        TeamCategory category = categoryRepository.findById(categoryId).orElseThrow();
+        return postRepository.save(
+                Post.create(title, content, author, category, team, teamMember));
+    }
+
+    public Long getCurrentCategoryId() {
+        return getCurrentUserPrincipal().getTestCategoryId();
+    }
+
+    public Comment createComment(String content, Post post, Member author, TeamMember teamMember) {
         return commentRepository.save(
                 Comment.createComment(content, post, author, teamMember, null)
         );

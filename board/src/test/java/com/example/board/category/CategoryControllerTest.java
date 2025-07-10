@@ -36,7 +36,7 @@ public class CategoryControllerTest extends AbstractControllerTestSupport {
     @Test
     @WithMockTeamPermission(teamPermissions = {"MANAGE_CATEGORIES"})
     void createCategoryTest_withPermission() throws Exception {
-        var DTO = builder.forCreateCategoryRequest(teamId, null, new HashSet<>(List.of(CategoryPermission.VIEW_POST)));
+        var DTO = builder.forCreateCategoryRequest(teamId, null,"test category", new HashSet<>(List.of(CategoryPermission.VIEW_POST)));
         var request = objectMapper.writeValueAsString(DTO);
 
         mockMvc.perform(post("/teams/{teamId}/categories/create", teamId)
@@ -48,7 +48,7 @@ public class CategoryControllerTest extends AbstractControllerTestSupport {
     @Test
     @WithMockTeamPermission()
     void createCategoryTest_withoutPermission() throws Exception {
-        var DTO = builder.forCreateCategoryRequest(teamId, null, new HashSet<>(List.of(CategoryPermission.VIEW_POST)));
+        var DTO = builder.forCreateCategoryRequest(teamId, null, "test category", new HashSet<>(List.of(CategoryPermission.VIEW_POST)));
         var request = objectMapper.writeValueAsString(DTO);
 
         mockMvc.perform(post("/teams/{teamId}/categories/create", teamId)
@@ -60,7 +60,7 @@ public class CategoryControllerTest extends AbstractControllerTestSupport {
     @Test
     @WithMockTeamPermission(teamPermissions = {"MANAGE_CATEGORIES"})
     void updateCategoryTest_withPermission() throws Exception {
-        TeamCategory category = builder.createCategory(null, teamId, new HashSet<>());
+        TeamCategory category = builder.createCategory(null, teamId, "test category", new HashSet<>());
         var request = objectMapper.writeValueAsString(
                 new UpdateCategoryRequest("test category", "1234", null)
         );
@@ -74,7 +74,7 @@ public class CategoryControllerTest extends AbstractControllerTestSupport {
     @Test
     @WithMockTeamPermission()
     void updateCategoryTest_withoutPermission() throws Exception {
-        TeamCategory category = builder.createCategory(null, teamId, new HashSet<>());
+        TeamCategory category = builder.createCategory(null, teamId, "test category", new HashSet<>());
         var request = objectMapper.writeValueAsString(
                 new UpdateCategoryRequest("test category", "1234", null)
         );
