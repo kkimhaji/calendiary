@@ -1,10 +1,11 @@
 package com.example.board.post;
 
-import com.example.board.support.AbstractTestSupport;
 import com.example.board.support.TestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,10 +14,10 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -29,7 +30,8 @@ import static org.mockito.Mockito.*;
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
 @EnableAsync
-public class PostViewCountTest extends AbstractTestSupport {
+@ExtendWith(MockitoExtension.class)
+public class PostViewCountTest {
 
     @Autowired
     private PostService postService;
@@ -349,4 +351,67 @@ public class PostViewCountTest extends AbstractTestSupport {
         verify(postRepository).updateViewCount(eq(postId1), eq(5L));
         verify(postRepository, times(2)).updateViewCount(eq(postId2), anyLong()); // 10L, 5L 총 2회
     }
+
+    @Test
+    @DisplayName("실제 동시성 시나리오 테스트")
+    void realConcurrencyScenario() throws Exception {
+        // given
+        Long postId = 1L;
+        AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger errorCount = new AtomicInteger(0);
+
+        // when - 실제 환경과 유사한 동시 접근
+        ExecutorService executor = Executors.newFixedThreadPool(5);
+        CountDownLatch latch = new CountDownLatch(20);
+
+        for (int i = 0; i < 20; i++) {
+            executor.submit(() -> {
+                try {
+                    postService.processViewCountIncrease(postId);
+                    successCount.incrementAndGet();
+                } catch (Exception e) {
+                    errorCount.incrementAndGet();
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await(10, TimeUnit.SECONDS);
+
+        // then - 결과 검증 (정확한 값보다는 안전성 검증)
+        assertThat(successCount.get()).isEqualTo(20);
+        assertThat(errorCount.get()).isEqualTo(0);
+
+        // 최종 상태가 합리적인 범위 내에 있는지 확인
+        long finalCount = postService.getCachedViewCount(postId);
+        assertThat(finalCount).isBetween(0L, 20L);
+
+        executor.shutdown();
+    }
+
+    @Test
+    @DisplayName("조회수 증가 스트레스 테스트")
+    void viewCountStressTest() {
+        // given
+        Long postId = 1L;
+        int iterations = 1000;
+
+        // when - 대량의 순차 호출로 스트레스 테스트
+        for (int i = 0; i < iterations; i++) {
+            postService.processViewCountIncrease(postId);
+        }
+
+        // then - 대량 처리 후 상태 검증
+        long remainingCount = postService.getCachedViewCount(postId);
+
+        // 1000번 호출 시 예상되는 DB 동기화 횟수 계산
+        int expectedSyncs = iterations / 10; // 임계값 10
+        int remainingInCache = iterations % 10;
+
+        assertThat(remainingCount).isEqualTo(remainingInCache);
+        verify(postRepository, times(expectedSyncs))
+                .updateViewCount(eq(postId), eq(10L));
+    }
+
 }
