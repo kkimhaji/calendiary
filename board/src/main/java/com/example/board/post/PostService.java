@@ -1,18 +1,18 @@
 package com.example.board.post;
 
 import com.example.board.auth.UserPrincipal;
-import com.example.board.config.HtmlSanitizer;
 import com.example.board.category.CategoryRepository;
 import com.example.board.category.TeamCategory;
 import com.example.board.comment.CommentRepository;
+import com.example.board.config.HtmlSanitizer;
 import com.example.board.member.Member;
-import com.example.board.post.dto.*;
+import com.example.board.permission.CategoryPermission;
 import com.example.board.permission.PermissionService;
+import com.example.board.post.dto.*;
 import com.example.board.team.Team;
 import com.example.board.team.TeamRepository;
 import com.example.board.teamMember.TeamMember;
 import com.example.board.teamMember.TeamMemberRepository;
-import com.example.board.permission.CategoryPermission;
 import com.google.common.annotations.VisibleForTesting;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -31,7 +30,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -101,18 +99,34 @@ public class PostService {
         return new CategoryRecentPostsResponse(categoryName, posts);
     }
 
-//    @Async
-    @Transactional
     public CompletableFuture<Void> increaseViewCount(Long postId) {
         return CompletableFuture.runAsync(() -> {
-            AtomicLong viewCount = viewCountCache.computeIfAbsent(postId, k -> new AtomicLong(0));
-            viewCount.incrementAndGet();
-
-            if (viewCount.get() >= 10) {
-                syncSinglePostViewCount(postId);
-            }
+            processViewCountIncrease(postId);
         });
     }
+
+    // 동기식 핵심 로직 - 테스트 가능
+    @VisibleForTesting
+    public void processViewCountIncrease(Long postId) {
+        AtomicLong viewCount = viewCountCache.computeIfAbsent(postId, k -> new AtomicLong(0));
+        viewCount.incrementAndGet();
+
+        if (viewCount.get() >= 10) {
+            syncSinglePostViewCount(postId);
+        }
+    }
+//    @Async
+//    @Transactional
+//    public CompletableFuture<Void> increaseViewCount(Long postId) {
+//        return CompletableFuture.runAsync(() -> {
+//            AtomicLong viewCount = viewCountCache.computeIfAbsent(postId, k -> new AtomicLong(0));
+//            viewCount.incrementAndGet();
+//
+//            if (viewCount.get() >= 10) {
+//                syncSinglePostViewCount(postId);
+//            }
+//        });
+//    }
 
     public void syncSinglePostViewCount(Long postId) {
         AtomicLong countAtomic = viewCountCache.get(postId);
@@ -229,6 +243,7 @@ public class PostService {
 
     /**
      * 테스트용: 특정 게시글의 캐시된 조회수 조회
+     *
      * @param postId 게시글 ID
      * @return 캐시된 조회수 (캐시에 없으면 0 반환)
      */
