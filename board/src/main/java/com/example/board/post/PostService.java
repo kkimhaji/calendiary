@@ -168,8 +168,6 @@ public class PostService {
     public PostResponse updatePost(Long categoryId, Long postId, UpdatePostRequestDTO requestDTO) throws IOException {
         Post post = postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("post not found"));
         TeamCategory category = categoryRepository.findById(categoryId).orElseThrow(() -> new EntityNotFoundException("category not found"));
-        // 요청 데이터 유효성 검증
-        requestDTO.validate();
 
         //이미지 처리
         String sanitizedContent = htmlSanitizer.sanitize(requestDTO.content());
