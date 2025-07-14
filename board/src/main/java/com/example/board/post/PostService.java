@@ -94,6 +94,7 @@ public class PostService {
 
     @Cacheable(key = "{#teamId, #categoryId, #pageable.pageNumber, #pageable.pageSize}") // 캐시 키 설정
     public CategoryRecentPostsResponse getPostsByCategory(Long teamId, Long categoryId, Pageable pageable) {
+        teamRepository.findById(teamId).orElseThrow(() -> new EntityNotFoundException("team not found"));
         String categoryName = categoryRepository.findById(categoryId).orElseThrow(() -> new EntityNotFoundException("category not found")).getName();
         Page<PostListResponse> posts = postRepository.findByTeamAndCategory(teamId, categoryId, pageable);
         return new CategoryRecentPostsResponse(categoryName, posts);
