@@ -2,6 +2,7 @@ package com.example.board.post;
 
 import com.example.board.common.domain.BaseTimeEntity;
 import com.example.board.comment.Comment;
+import com.example.board.common.exception.PostValidationException;
 import com.example.board.member.Member;
 import com.example.board.team.Team;
 import com.example.board.category.TeamCategory;
@@ -52,16 +53,19 @@ public class Post extends BaseTimeEntity {
 
     private Post(String title, String content, Member author, TeamCategory category, Team team, TeamMember teamMember) {
         if (title == null || title.trim().isEmpty()) {
-            throw new IllegalArgumentException("Title cannot be null or empty.");
+            throw new PostValidationException("Title cannot be null or empty.");
+        }
+        if (content == null || content.trim().isEmpty()) {
+            throw new PostValidationException("Title cannot be null or empty.");
         }
         if (author == null) {
-            throw new IllegalArgumentException("Author cannot be null.");
+            throw new PostValidationException("Author cannot be null.");
         }
         if (category == null) {
-            throw new IllegalArgumentException("Category cannot be null.");
+            throw new PostValidationException("Category cannot be null.");
         }
         if (team == null) {
-            throw new IllegalArgumentException("Team cannot be null.");
+            throw new PostValidationException("Team cannot be null.");
         }
         this.title = title;
         this.content = content;
@@ -77,6 +81,15 @@ public class Post extends BaseTimeEntity {
     }
 
     public void update(String title, String content, TeamCategory category){
+        if (title == null || title.trim().isEmpty()) {
+            throw new PostValidationException("Title cannot be null or empty.");
+        }
+        if (content == null || content.trim().isEmpty()) {
+            throw new PostValidationException("Title cannot be null or empty.");
+        }
+        if (category == null) {
+            throw new PostValidationException("Category cannot be null.");
+        }
         this.title = title;
         this.content = content;
         this.category = category;
