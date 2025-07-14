@@ -3,6 +3,7 @@ package com.example.board.post;
 import com.example.board.auth.UserPrincipal;
 import com.example.board.post.dto.*;
 import com.example.board.post.enums.SearchType;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -32,7 +33,7 @@ public class PostController {
     @PostMapping(value = "/category/{categoryId}/posts", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasPermission(#categoryId, 'TeamCategory', T(com.example.board.permission.CategoryPermission).CREATE_POST)")
     public ResponseEntity<Long> createPost(@PathVariable(name="teamId") Long teamId, @PathVariable(name="categoryId") @P("categoryId") Long categoryId,
-                                                   @ModelAttribute CreatePostRequest request, @AuthenticationPrincipal UserPrincipal user) throws IOException {
+                                           @Valid @ModelAttribute CreatePostRequest request, @AuthenticationPrincipal UserPrincipal user) throws IOException {
         Post post = postService.createPost(teamId, categoryId, request, user.getMember());
         return ResponseEntity.ok(post.getId());
     }
@@ -74,7 +75,7 @@ public class PostController {
 
     @PutMapping("/category/{categoryId}/posts/{postId}")
     public ResponseEntity<PostResponse> updatePost(@PathVariable(name="postId") Long postId, @PathVariable(name="teamId") Long teamId,
-                                                   @PathVariable(name="categoryId") Long categoryId, @ModelAttribute UpdatePostRequestDTO request,
+                                                   @PathVariable(name="categoryId") Long categoryId, @Valid @ModelAttribute UpdatePostRequestDTO request,
                                                    @AuthenticationPrincipal UserPrincipal user) throws IOException {
         return ResponseEntity.ok(postService.updatePost(categoryId, postId, request));
     }
