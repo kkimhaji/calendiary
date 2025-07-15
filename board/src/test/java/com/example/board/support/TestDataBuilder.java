@@ -137,12 +137,18 @@ public class TestDataBuilder {
                 Post.create(title, content, author, category, team, teamMember));
     }
 
+    public Post createPost(String title, String content, Member author, Long categoryId, Long teamId, TeamMember teamMember){
+        Team team = teamRepository.findById(teamId).orElseThrow(() -> new EntityNotFoundException("team not found"));
+        TeamCategory category = categoryRepository.findById(categoryId).orElseThrow(() -> new EntityNotFoundException("category not found"));
+        return postRepository.save(Post.create(title, content, author, category, team, teamMember));
+    }
+
     public Post createPost(String title, String content, Long categoryId, Long teamId) {
         Member author = getCurrentUserPrincipal().getMember();
         TeamMember teamMember = teamMemberRepository.findByTeamIdAndMemberId(teamId, author.getMemberId())
                 .orElseThrow();
         Team team = teamRepository.findById(teamId).orElseThrow(() -> new EntityNotFoundException("team not found"));
-        TeamCategory category = categoryRepository.findById(categoryId).orElseThrow();
+        TeamCategory category = categoryRepository.findById(categoryId).orElseThrow(() -> new EntityNotFoundException("category not found"));
         return postRepository.save(
                 Post.create(title, content, author, category, team, teamMember));
     }
