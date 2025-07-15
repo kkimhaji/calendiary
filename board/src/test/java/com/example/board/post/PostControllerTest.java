@@ -5,20 +5,24 @@ import com.example.board.config.security.WithMockCategoryPermission;
 import com.example.board.support.AbstractControllerTestSupport;
 import com.example.board.support.TestDataBuilder;
 import com.example.board.team.Team;
+import com.example.board.teamMember.TeamMember;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.multipart;
+import java.nio.charset.StandardCharsets;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 public class PostControllerTest extends AbstractControllerTestSupport {
     @Autowired
@@ -34,6 +38,8 @@ public class PostControllerTest extends AbstractControllerTestSupport {
     private PostService postService;
     @MockBean
     private ImageService imageService;
+    @Autowired
+    private PostRepository postRepository;
 
     @Test
     @WithMockCategoryPermission(categoryPermissions = {"CREATE_POST"})
@@ -153,5 +159,120 @@ public class PostControllerTest extends AbstractControllerTestSupport {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    @WithMockCategoryPermission(categoryPermissions = {"VIEW_POST"})
+    @DisplayName("카테고리 최근 게시글 조회 성공")
+    void getPosts_success() throws Exception {
+        Long testTeamId = testDataBuilder.getCurrentTestTeamId();
+        Long testCategoryId = testDataBuilder.getCurrentCategoryId();
+        Post savedPost = testDataBuilder.createPost("카테고리 최근 게시글", "test content", testCategoryId, testTeamId);
+        mockMvc.perform(get("/teams/{teamId}/category/{categoryId}/recent",
+                        testTeamId, testCategoryId)
+                        .param("page", "0")          // Pageable
+                        .param("size", "20"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.categoryName")
+                        .value(savedPost.getCategory().getName()))
+                .andExpect(jsonPath("$.posts.content[0].title")
+                        .value(savedPost.getTitle()));
+
+    }
+
+    @Test
+    @WithMockCategoryPermission(categoryPermissions = {"CREATE_POST"})
+    @DisplayName("카테고리 최근 게시글 조회 - 권한 없음")
+    void getPosts_without_permission() throws Exception {
+        Long testTeamId = testDataBuilder.getCurrentTestTeamId();
+        Long testCategoryId = testDataBuilder.getCurrentCategoryId();
+        testDataBuilder.createPost("카테고리 최근 게시글", "test content", testCategoryId, testTeamId);
+        mockMvc.perform(get("/teams/{teamId}/category/{categoryId}/recent",
+                        testTeamId, testCategoryId)
+                        .param("page", "0")
+                        .param("size", "20"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockCategoryPermission(categoryPermissions = {"VIEW_POST"})
+    @DisplayName("카테고리 최근 게시글 조회 - 팀 아이디 오류")
+    void getPosts_teamNotFound() throws Exception {
+        Long testTeamId = testDataBuilder.getCurrentTestTeamId();
+        Long testCategoryId = testDataBuilder.getCurrentCategoryId();
+        testDataBuilder.createPost("카테고리 최근 게시글", "test content", testCategoryId, testTeamId);
+        mockMvc.perform(get("/teams/{teamId}/category/{categoryId}/recent",
+                        999L, testCategoryId)
+                        .param("page", "0")
+                        .param("size", "20"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockCategoryPermission(categoryPermissions = {"VIEW_POST"})
+    @DisplayName("카테고리 최근 게시글 조회 - 카테고리 아이디 오류: @PreAuthorize가 먼저 동작하므로 권한 없음")
+    void getPosts_categoryIdError_isForbidden() throws Exception {
+        Long testTeamId = testDataBuilder.getCurrentTestTeamId();
+        Long testCategoryId = testDataBuilder.getCurrentCategoryId();
+        testDataBuilder.createPost("카테고리 최근 게시글", "test content", testCategoryId, testTeamId);
+        mockMvc.perform(get("/teams/{teamId}/category/{categoryId}/recent",
+                        testTeamId, 999L)
+                        .param("page", "0")
+                        .param("size", "20"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockCategoryPermission(categoryPermissions = {"VIEW_POST"})
+    @DisplayName("게시글 상세 조회 성공")
+    void getPost_success() throws Exception {
+        Long testTeamId = testDataBuilder.getCurrentTestTeamId();
+        Long testCategoryId = testDataBuilder.getCurrentCategoryId();
+        Post savedPost = testDataBuilder.createPost("test post", "test content", testCategoryId, testTeamId);
+
+        mockMvc.perform(get("/teams/{teamId}/category/{categoryId}/posts/{postId}",
+                        testTeamId, testCategoryId, savedPost.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(savedPost.getId()))
+                .andExpect(jsonPath("$.title").value(savedPost.getTitle()));
+    }
+
+    @Test
+    @WithMockCategoryPermission(categoryPermissions = {})
+    @DisplayName("게시글 삭제 성공(권한이 없어도 작성자 본인일 경우)")
+    void deletePost_byAuthor_success() throws Exception {
+        Long testTeamId = testDataBuilder.getCurrentTestTeamId();
+        Long testCategoryId = testDataBuilder.getCurrentCategoryId();
+        Post savedPost = testDataBuilder.createPost("test post", "test content", testCategoryId, testTeamId);
+
+        mockMvc.perform(delete("/teams/{teamId}/category/{categoryId}/posts/delete/{postId}",
+                        testTeamId, testCategoryId, savedPost.getId())
+                        .with(user(testDataBuilder.getCurrentUserPrincipal()))
+                        .with(csrf()))
+                .andExpect(status().isOk());
+
+        // 실제 DB-삭제 확인
+        assertThat(postRepository.findById(savedPost.getId())).isEmpty();
+    }
+
+    @Test
+    @WithMockCategoryPermission(categoryPermissions = {"DELETE_POST"})
+    @DisplayName("게시글 삭제 성공(작성자 본인이 아니어도 권한이 있는 경우)")
+    void deletePost_withPermission_success() throws Exception {
+        Long testTeamId = testDataBuilder.getCurrentTestTeamId();
+        Long testCategoryId = testDataBuilder.getCurrentCategoryId();
+        //현재 로그인한 사용자가 아닌 다른 멤버를 팀에 넣기
+        TeamMember teamMember = testDataBuilder.addMemberToTeam(member1, testTeamId);
+        //다른 멤버가 만든 게시글
+        Post savedPost = testDataBuilder.createPost("test post", "test content", member1, testCategoryId, testTeamId, teamMember);
+
+        mockMvc.perform(delete("/teams/{teamId}/category/{categoryId}/posts/delete/{postId}",
+                        testTeamId, testCategoryId, savedPost.getId())
+                        //삭제하는 주체는 로그인한 사용자
+                        .with(user(testDataBuilder.getCurrentUserPrincipal()))
+                        .with(csrf()))
+                .andExpect(status().isOk());
+
+        // 실제 DB-삭제 확인
+        assertThat(postRepository.findById(savedPost.getId())).isEmpty();
+    }
 
 }
