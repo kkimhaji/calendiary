@@ -267,6 +267,20 @@ public class PostServiceTest extends AbstractTestSupport {
     }
 
     @Test
+    @DisplayName("카테고리별 게시글 조회 실패 - 팀 없음")
+    void getPostsByCategory_teamNotFound() {
+        // given
+        Long nonExistentTeamId = 999L;
+
+        // when & then
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
+                postService.getPostsByCategory(nonExistentTeamId, testCategory.getId(), testPageable)
+        );
+
+        assertThat(exception.getMessage()).isEqualTo("team not found");
+    }
+
+    @Test
     @DisplayName("게시글 삭제 성공")
     @WithMockCategoryPermission(categoryPermissions = {"DELETE_POST"})
     void deletePost_success() throws IOException {
