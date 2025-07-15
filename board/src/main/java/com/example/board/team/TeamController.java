@@ -3,6 +3,7 @@ package com.example.board.team;
 import com.example.board.auth.UserPrincipal;
 import com.example.board.team.dto.*;
 import com.example.board.team.enums.UserTeamStatus;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,9 +20,6 @@ public class TeamController {
 
     @PostMapping("/create")
     public ResponseEntity<TeamCreateResponse> createTeam(@AuthenticationPrincipal UserPrincipal user, @RequestBody TeamCreateRequestDTO dto) {
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
         return ResponseEntity.ok(TeamCreateResponse.fromEntity(teamService.createTeam(user.getMember(), dto)));
     }
 
@@ -35,10 +33,6 @@ public class TeamController {
     public ResponseEntity<TeamInfoPageResponse> getTeamInfo(@PathVariable(name = "teamId") Long teamId, @AuthenticationPrincipal UserPrincipal principal,
                                                             @RequestParam(required = false, value = "code") String code) {
         TeamInfoPageResponse response = teamService.getTeamInfo(teamId, principal, code);
-        // 접근 권한 없는 경우 403 반환
-        if (response.userStatus() == UserTeamStatus.NO_ACCESS) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
-        }
         return ResponseEntity.ok(response);
     }
 

@@ -1,10 +1,13 @@
 package com.example.board.common.exception;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.Arrays;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -35,4 +38,35 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
+
+    @ExceptionHandler(NullPointerException.class)
+    public ResponseEntity<ErrorResponse> handleNullPointerException(
+            NullPointerException ex,
+            HttpServletRequest request) {
+
+        // @AuthenticationPrincipal로 인한 null 체크
+        if (isAuthenticationPrincipalNull(ex, request)) {
+            ErrorResponse errorResponse = new ErrorResponse(
+                    "AUTHENTICATION_REQUIRED",
+                    "인증이 필요합니다"
+            );
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+        }
+
+        // 다른 NullPointerException은 500으로 처리
+        ErrorResponse errorResponse = new ErrorResponse(
+                "INTERNAL_ERROR",
+                "내부 서버 오류가 발생했습니다"
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+
+    private boolean isAuthenticationPrincipalNull(NullPointerException ex, HttpServletRequest request) {
+        // 스택 트레이스에서 @AuthenticationPrincipal 관련 null 체크
+        String stackTrace = Arrays.toString(ex.getStackTrace());
+        return stackTrace.contains("UserPrincipal") ||
+                stackTrace.contains("getMember") ||
+                request.getRequestURI().contains("/api/teams/create");
+    }
+
 }

@@ -42,17 +42,4 @@ public record TeamInfoPageResponse(
                 UserTeamStatus.VALID_INVITE
         );
     }
-
-    public static TeamInfoPageResponse noAccess(TeamInfoDTO teamInfo) {
-        return new TeamInfoPageResponse(
-                teamInfo.id(),
-                teamInfo.name(),
-                teamInfo.description(),
-                teamInfo.created_by(),
-                teamInfo.createdAt(),
-                teamInfo.memberCount(),
-                null,
-                UserTeamStatus.NO_ACCESS
-        );
-    }
 }

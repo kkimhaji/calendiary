@@ -1,6 +1,5 @@
 package com.example.board.team;
 
-import com.example.board.auth.UserPrincipal;
 import com.example.board.config.security.WithMockTeamPermission;
 import com.example.board.support.AbstractControllerTestSupport;
 import com.example.board.support.TestDataBuilder;
@@ -10,8 +9,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;

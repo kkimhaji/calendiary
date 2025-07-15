@@ -2,6 +2,7 @@ package com.example.board.team;
 
 import com.example.board.auth.UserPrincipal;
 import com.example.board.category.CategoryService;
+import com.example.board.common.exception.TeamAccessDeniedException;
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
 import com.example.board.role.TeamRole;
@@ -19,7 +20,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -84,7 +84,7 @@ public class TeamService {
         }
 
         // 케이스 3: 접근 권한 없음
-        return TeamInfoPageResponse.noAccess(teamInfo);
+        throw new TeamAccessDeniedException("해당 팀에 접근할 권한이 없습니다");
     }
 
     public void deleteTeam(Long teamId) {

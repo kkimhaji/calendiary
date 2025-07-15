@@ -49,7 +49,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(req->
                         req
 //                                .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
-                                .requestMatchers("/auth/**", "/team/**", "/api/test", "/temp-images/**", "/perm-images/**").permitAll()
+                                .requestMatchers("/auth/**", "/team/{teamId}", "/api/test", "/temp-images/**", "/perm-images/**").permitAll()
+//                                .requestMatchers("/team/create").authenticated()
                                 .anyRequest()
                                 .authenticated()
                 )
