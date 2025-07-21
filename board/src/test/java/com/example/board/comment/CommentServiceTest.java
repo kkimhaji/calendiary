@@ -60,7 +60,7 @@ public class CommentServiceTest extends AbstractTestSupport {
         CreateCommentRequest request = new CreateCommentRequest("새로운 댓글 내용", null);
 
         // when
-        CommentResponse response = commentService.createComment(member2, testPost.getId(), request);
+        CommentResponse response = commentService.createComment(member2, testCategory.getId(), testPost.getId(), request);
 
         // then
         assertThat(response).isNotNull();
@@ -81,14 +81,14 @@ public class CommentServiceTest extends AbstractTestSupport {
     void createComment_withParent_success() {
         // given - 부모 댓글 먼저 생성
         CreateCommentRequest parentRequest = new CreateCommentRequest("부모 댓글", null);
-        CommentResponse parentResponse = commentService.createComment(member1, testPost.getId(), parentRequest);
+        CommentResponse parentResponse = commentService.createComment(member1, testCategory.getId(), testPost.getId(), parentRequest);
 
         CreateCommentRequest replyRequest = new CreateCommentRequest("대댓글입니다", parentResponse.id());
         // DB에 즉시 반영
         entityManager.flush();
         entityManager.clear(); // 영속성 컨텍스트 초기화
         // when
-        CommentResponse replyResponse = commentService.createComment(member2, testPost.getId(), replyRequest);
+        CommentResponse replyResponse = commentService.createComment(member2,testCategory.getId(), testPost.getId(), replyRequest);
 
         // then
         assertThat(replyResponse).isNotNull();
@@ -113,7 +113,7 @@ public class CommentServiceTest extends AbstractTestSupport {
     void createComment_multipleReplies_success() {
         // given - 부모 댓글 생성
         CreateCommentRequest parentRequest = new CreateCommentRequest("부모 댓글", null);
-        CommentResponse parentResponse = commentService.createComment(member2, testPost.getId(), parentRequest);
+        CommentResponse parentResponse = commentService.createComment(member2, testCategory.getId(), testPost.getId(), parentRequest);
 
         // when - 여러 대댓글 생성
         CreateCommentRequest reply1Request = new CreateCommentRequest("첫 번째 대댓글", parentResponse.id());
@@ -122,8 +122,8 @@ public class CommentServiceTest extends AbstractTestSupport {
         entityManager.flush();
         entityManager.clear(); // 영속성 컨텍스트 초기화
 
-        CommentResponse reply1 = commentService.createComment(member1, testPost.getId(), reply1Request);
-        CommentResponse reply2 = commentService.createComment(member2, testPost.getId(), reply2Request);
+        CommentResponse reply1 = commentService.createComment(member1, testCategory.getId(), testPost.getId(), reply1Request);
+        CommentResponse reply2 = commentService.createComment(member2, testCategory.getId(), testPost.getId(), reply2Request);
 
         // then - 부모 댓글의 replies 확인
         CommentResponse updatedParent = CommentResponse.from(
@@ -146,7 +146,7 @@ public class CommentServiceTest extends AbstractTestSupport {
         Long nonExistentPostId = 999L;
 
         // when & then
-        assertThatThrownBy(() -> commentService.createComment(member2, nonExistentPostId, request))
+        assertThatThrownBy(() -> commentService.createComment(member2, testCategory.getId(), nonExistentPostId, request))
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessage("post not found");
     }
@@ -173,7 +173,7 @@ public class CommentServiceTest extends AbstractTestSupport {
         CreateCommentRequest request = new CreateCommentRequest("댓글 내용", null);
 
         // when & then
-        assertThatThrownBy(() -> commentService.createComment(member2, noPermissionPost.getId(), request))
+        assertThatThrownBy(() -> commentService.createComment(member2, testCategory.getId(), noPermissionPost.getId(), request))
                 .isInstanceOf(AccessDeniedException.class)
                 .hasMessage("댓글을 작성할 권한이 없습니다.");
     }
@@ -185,7 +185,7 @@ public class CommentServiceTest extends AbstractTestSupport {
         CreateCommentRequest request = new CreateCommentRequest("대댓글 내용", 999L);
 
         // when & then
-        assertThatThrownBy(() -> commentService.createComment(member2, testPost.getId(), request))
+        assertThatThrownBy(() -> commentService.createComment(member2, testCategory.getId(), testPost.getId(), request))
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessage("Parent comment not found");
     }
@@ -198,7 +198,7 @@ public class CommentServiceTest extends AbstractTestSupport {
         CreateCommentRequest request = new CreateCommentRequest("댓글 내용", null);
 
         // when & then
-        assertThatThrownBy(() -> commentService.createComment(nonTeamMember, testPost.getId(), request))
+        assertThatThrownBy(() -> commentService.createComment(nonTeamMember, testCategory.getId(), testPost.getId(), request))
                 .isInstanceOf(AccessDeniedException.class)
                 .hasMessage("You are not a member of this team!!");
     }
@@ -208,7 +208,7 @@ public class CommentServiceTest extends AbstractTestSupport {
     void deleteComment_byAuthor_success() {
         // given - 댓글 생성
         CreateCommentRequest request = new CreateCommentRequest("삭제할 댓글", null);
-        CommentResponse createdComment = commentService.createComment(member2, testPost.getId(), request);
+        CommentResponse createdComment = commentService.createComment(member2, testCategory.getId(), testPost.getId(), request);
 
         // when
         commentService.deleteComment(createdComment.id(), member2);
@@ -227,7 +227,7 @@ public class CommentServiceTest extends AbstractTestSupport {
         // given
         //member2의 댓글을 member1(팀의 관리자)이 삭제
         CreateCommentRequest request = new CreateCommentRequest("다른 사용자 댓글", null);
-        CommentResponse otherUserComment = commentService.createComment(member2, testPost.getId(), request);
+        CommentResponse otherUserComment = commentService.createComment(member2, testCategory.getId(), testPost.getId(), request);
 
         // when - member2가 member1의 댓글 삭제
         commentService.deleteComment(otherUserComment.id(), member1);
@@ -258,7 +258,7 @@ public class CommentServiceTest extends AbstractTestSupport {
         testDataBuilder.addMemberToTeam(noPermissionMember, testTeam.getId()); // 기본 권한만
 
         CreateCommentRequest request = new CreateCommentRequest("삭제할 수 없는 댓글", null);
-        CommentResponse createdComment = commentService.createComment(member2, testPost.getId(), request);
+        CommentResponse createdComment = commentService.createComment(member2, testCategory.getId(), testPost.getId(), request);
 
         // when & then - 다른 사용자가 삭제 시도 (작성자도 아니고 권한도 없음)
         assertThatThrownBy(() -> commentService.deleteComment(createdComment.id(), noPermissionMember))
@@ -271,10 +271,10 @@ public class CommentServiceTest extends AbstractTestSupport {
     void deleteComment_withReplies_success() {
         // given - 부모 댓글과 대댓글 생성
         CreateCommentRequest parentRequest = new CreateCommentRequest("부모 댓글", null);
-        CommentResponse parentComment = commentService.createComment(member2, testPost.getId(), parentRequest);
+        CommentResponse parentComment = commentService.createComment(member2, testCategory.getId(), testPost.getId(), parentRequest);
 
         CreateCommentRequest replyRequest = new CreateCommentRequest("대댓글", parentComment.id());
-        CommentResponse replyComment = commentService.createComment(member1, testPost.getId(), replyRequest);
+        CommentResponse replyComment = commentService.createComment(member1, testCategory.getId(), testPost.getId(), replyRequest);
 
         // when - 부모 댓글 삭제
         commentService.deleteComment(parentComment.id(), member2);
@@ -297,8 +297,8 @@ public class CommentServiceTest extends AbstractTestSupport {
         CreateCommentRequest request1 = new CreateCommentRequest("첫 번째 댓글", null);
         CreateCommentRequest request2 = new CreateCommentRequest("두 번째 댓글", null);
 
-        CommentResponse comment1 = commentService.createComment(member1, testPost.getId(), request1);
-        CommentResponse comment2 = commentService.createComment(member2, testPost.getId(), request2);
+        CommentResponse comment1 = commentService.createComment(member1, testCategory.getId(), testPost.getId(), request1);
+        CommentResponse comment2 = commentService.createComment(member2, testCategory.getId(), testPost.getId(), request2);
 
         // when
         List<CommentResponse> comments = commentService.getCommentsInPost(testPost.getId());
@@ -324,13 +324,13 @@ public class CommentServiceTest extends AbstractTestSupport {
     void getCommentsInPost_withReplies_success() {
         // given - 부모 댓글과 대댓글 생성
         CreateCommentRequest parentRequest = new CreateCommentRequest("부모 댓글", null);
-        CommentResponse parentComment = commentService.createComment(member1, testPost.getId(), parentRequest);
+        CommentResponse parentComment = commentService.createComment(member1, testCategory.getId(), testPost.getId(), parentRequest);
 
         CreateCommentRequest replyRequest1 = new CreateCommentRequest("첫 번째 대댓글", parentComment.id());
         CreateCommentRequest replyRequest2 = new CreateCommentRequest("두 번째 대댓글", parentComment.id());
 
-        CommentResponse reply1 = commentService.createComment(member2, testPost.getId(), replyRequest1);
-        CommentResponse reply2 = commentService.createComment(member1, testPost.getId(), replyRequest2);
+        CommentResponse reply1 = commentService.createComment(member2, testCategory.getId(), testPost.getId(), replyRequest1);
+        CommentResponse reply2 = commentService.createComment(member1, testCategory.getId(), testPost.getId(), replyRequest2);
         // DB에 즉시 반영
         entityManager.flush();
         entityManager.clear(); // 영속성 컨텍스트 초기화
@@ -392,8 +392,8 @@ public class CommentServiceTest extends AbstractTestSupport {
         CreateCommentRequest request1 = new CreateCommentRequest("삭제될 댓글", null);
         CreateCommentRequest request2 = new CreateCommentRequest("남을 댓글", null);
 
-        CommentResponse comment1 = commentService.createComment(member1, testPost.getId(), request1);
-        CommentResponse comment2 = commentService.createComment(member2, testPost.getId(), request2);
+        CommentResponse comment1 = commentService.createComment(member1, testCategory.getId(), testPost.getId(), request1);
+        CommentResponse comment2 = commentService.createComment(member2, testCategory.getId(), testPost.getId(), request2);
 
         commentService.deleteComment(comment1.id(), member1);
 
@@ -427,13 +427,13 @@ public class CommentServiceTest extends AbstractTestSupport {
         CreateCommentRequest request2 = new CreateCommentRequest("두 번째 댓글", null);
         CreateCommentRequest request3 = new CreateCommentRequest("세 번째 댓글", null);
 
-        commentService.createComment(member2, post1.getId(), request1);
-        commentService.createComment(member2, post1.getId(), request2);
-        commentService.createComment(member2, post2.getId(), request3);
+        commentService.createComment(member2, testCategory.getId(), post1.getId(), request1);
+        commentService.createComment(member2, testCategory.getId(), post1.getId(), request2);
+        commentService.createComment(member2, testCategory.getId(), post2.getId(), request3);
 
         // 다른 사용자의 댓글도 생성 (결과에 포함되지 않아야 함)
         CreateCommentRequest otherRequest = new CreateCommentRequest("다른 사용자 댓글", null);
-        commentService.createComment(member1, post1.getId(), otherRequest);
+        commentService.createComment(member1, testCategory.getId(), post1.getId(), otherRequest);
 
         // when
         Page<MemberCommentResponse> result = commentService.findCommentsByTeamAndMember(
