@@ -1,4 +1,4 @@
-package com.example.board.TeamInvite;
+package com.example.board.teamInvite;
 
 import com.example.board.config.security.WithMockTeamPermission;
 import com.example.board.support.AbstractControllerTestSupport;
