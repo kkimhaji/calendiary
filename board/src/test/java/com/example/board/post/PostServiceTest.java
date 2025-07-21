@@ -5,9 +5,7 @@ import com.example.board.comment.Comment;
 import com.example.board.config.HtmlSanitizer;
 import com.example.board.config.security.WithMockCategoryPermission;
 import com.example.board.permission.PermissionService;
-import com.example.board.post.dto.CategoryRecentPostsResponse;
-import com.example.board.post.dto.PostDetailDTO;
-import com.example.board.post.dto.TeamRecentPostsResponse;
+import com.example.board.post.dto.*;
 import com.example.board.role.TeamRole;
 import com.example.board.support.AbstractTestSupport;
 import com.example.board.support.TestDataBuilder;
@@ -34,6 +32,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.verify;
 
 public class PostServiceTest extends AbstractTestSupport {
     @Autowired
@@ -48,7 +47,7 @@ public class PostServiceTest extends AbstractTestSupport {
     private TeamRole role;
     private Post testPost;
     private Pageable testPageable;
-    @MockBean
+    @Autowired
     private HtmlSanitizer htmlSanitizer;
     @Autowired
     private PostRepository postRepository;
@@ -336,4 +335,22 @@ public class PostServiceTest extends AbstractTestSupport {
         assertThat(exception.getMessage()).isEqualTo("there is no such post");
     }
 
+    @Test
+    @DisplayName("제목·내용 변경 + 이미지 삭제 없는 경우")
+    void updatePost_basic_success() throws Exception {
+        // given
+        UpdatePostRequestDTO dto = new UpdatePostRequestDTO(
+                "수정된 제목", "수정된 내용", List.of());
+
+        // when
+        PostResponse response =
+                postService.updatePost(testCategory.getId(), testPost.getId(), dto);
+
+        // then
+        Post updated = postRepository.findById(testPost.getId()).orElseThrow();
+
+        assertThat(updated.getTitle()).isEqualTo("수정된 제목");
+        assertThat(updated.getContent()).isEqualTo("수정된 내용");
+        assertThat(response.title()).isEqualTo("수정된 제목");
+    }
 }
