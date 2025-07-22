@@ -121,6 +121,23 @@ public class PostSearchService {
     }
 
     // Comparator 생성기
+//    private Comparator<Post> getComparator(Sort.Order order) {
+//        return switch (order.getProperty()) {
+//            case "createdDate" -> order.isAscending() ?
+//                    Comparator.comparing(
+//                            Post::getCreatedDate,
+//                            Comparator.nullsLast(Comparator.naturalOrder())
+//                    ) :
+//                    Comparator.comparing(
+//                            Post::getCreatedDate,
+//                            Comparator.nullsFirst(Comparator.reverseOrder())
+//                    );
+//            case "viewCount" -> order.isAscending() ?
+//                    Comparator.comparing(Post::getViewCount) :
+//                    Comparator.comparing(Post::getViewCount).reversed();
+//            default -> (p1, p2) -> 0;
+//        };
+//    }
     private Comparator<Post> getComparator(Sort.Order order) {
         return switch (order.getProperty()) {
             case "createdDate" -> order.isAscending() ?
@@ -135,8 +152,10 @@ public class PostSearchService {
             case "viewCount" -> order.isAscending() ?
                     Comparator.comparing(Post::getViewCount) :
                     Comparator.comparing(Post::getViewCount).reversed();
-            default -> (p1, p2) -> 0;
+            case "title" -> order.isAscending() ?
+                    Comparator.comparing(Post::getTitle, String.CASE_INSENSITIVE_ORDER) :
+                    Comparator.comparing(Post::getTitle, String.CASE_INSENSITIVE_ORDER).reversed();
+            default -> Comparator.comparing(Post::getId);
         };
     }
-
 }

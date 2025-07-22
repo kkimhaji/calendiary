@@ -376,4 +376,85 @@ public class PostSearchServiceTest extends AbstractTestSupport {
             }
         }
     }
+
+    @Test
+    @DisplayName("특수문자 포함 키워드 검색")
+    void searchPosts_specialCharacters_success() {
+        // given
+        Post specialPost = testDataBuilder.createPost(
+                "C++ 프로그래밍",
+                "C++ 언어의 특징과 활용법",
+                member1, category1, testTeam, teamMember1);
+
+        String keyword = "C++";
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // when
+        Page<PostResponse> result = postSearchService.searchPosts(
+                testTeam.getId(), keyword, null, pageable, SearchType.TITLE);
+
+        // then
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).title()).isEqualTo("C++ 프로그래밍");
+    }
+    @Test
+    @DisplayName("빈 페이지 요청")
+    void searchPosts_emptyPage_success() {
+        // given
+        String keyword = "Spring";
+        Pageable pageable = PageRequest.of(100, 5); // 존재하지 않는 페이지
+
+        // when
+        Page<PostResponse> result = postSearchService.searchPosts(
+                testTeam.getId(), keyword, null, pageable, SearchType.BOTH);
+
+        // then
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getNumber()).isEqualTo(100);
+        assertThat(result.getTotalElements()).isGreaterThan(0L); // 전체는 있지만
+        assertThat(result.hasContent()).isFalse(); // 해당 페이지는 비어있음
+    }
+
+
+    @Test
+    @DisplayName("부분 문자열 검색")
+    void searchPosts_partialMatch_success() {
+        // given
+        String keyword = "Boot"; // "Spring Boot"의 일부
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // when
+        Page<PostResponse> result = postSearchService.searchPosts(
+                testTeam.getId(), keyword, null, pageable, SearchType.TITLE);
+
+        // then
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).title()).contains("Boot");
+    }
+
+    @Test
+    @DisplayName("다량의 검색 결과 처리")
+    void searchPosts_largeResults_performance() {
+        // given - 검색에 걸릴 게시글들을 대량 생성
+        for (int i = 1; i <= 100; i++) {
+            testDataBuilder.createPost(
+                    "성능테스트게시글 " + i,
+                    "성능 테스트를 위한 대량 데이터 " + i,
+                    member1, category1, testTeam, teamMember1);
+        }
+
+        String keyword = "성능테스트";
+        Pageable pageable = PageRequest.of(0, 50, Sort.by("createdDate").descending());
+
+        // when
+        long startTime = System.currentTimeMillis();
+        Page<PostResponse> result = postSearchService.searchPosts(
+                testTeam.getId(), keyword, null, pageable, SearchType.TITLE);
+        long endTime = System.currentTimeMillis();
+
+        // then
+        assertThat(result.getContent()).hasSize(50); // 첫 페이지 50개
+        assertThat(result.getTotalElements()).isEqualTo(100L);
+        assertThat(endTime - startTime).isLessThan(5000L); // 5초 이내 완료
+    }
 }

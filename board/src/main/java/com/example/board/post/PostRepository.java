@@ -72,7 +72,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("UPDATE Post p SET p.viewCount = p.viewCount + :count WHERE p.id = :postId")
     void updateViewCount(@Param("postId") Long postId, @Param("count") long count);
 
-    // 카테고리 필터링 추가된 메서드
     @Query("SELECT p FROM Post p " +
             "LEFT JOIN FETCH p.author " +
             "LEFT JOIN FETCH p.category " +
@@ -111,7 +110,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             @Param("categoryId") Long categoryId,
             Pageable pageable
     );
-
 
     @Query("SELECT p FROM Post p " +
             "WHERE p.team.id IN :teamIds " +
