@@ -36,6 +36,10 @@ public class PostSearchService {
             Pageable pageable,
             SearchType searchType
     ) {
+        if (searchType == null) {
+            searchType = SearchType.BOTH;
+        }
+
         if (keyword == null || keyword.trim().isEmpty()) {
             return Page.empty(pageable);
         }
