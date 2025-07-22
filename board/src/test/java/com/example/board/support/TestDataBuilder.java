@@ -162,4 +162,9 @@ public class TestDataBuilder {
                 Comment.createComment(content, post, author, teamMember, null)
         );
     }
+
+    public TeamMember getTeamMember(Long teamId, Long memberId){
+        return teamMemberRepository.findByTeamIdAndMemberId(teamId, memberId)
+                .orElseThrow();
+    }
 }
