@@ -45,11 +45,13 @@ public class TeamMemberService {
 
     @Transactional
     public String updateTeamNickname(Long teamId, Member member, String newNickname) {
+        validateTeamNickname(newNickname);
         TeamMember teamMember = teamMemberRepository.findByTeamIdAndMemberId(teamId, member.getMemberId())
                 .orElseThrow(() -> new EntityNotFoundException("cannot find team member"));
+        String normalizedNickname = newNickname.trim();
 
-        teamMember.updateTeamNickname(newNickname);
-        return newNickname;
+        teamMember.updateTeamNickname(normalizedNickname);
+        return normalizedNickname;
     }
 
     public List<TeamListDTO> getTeams(Member member) {
@@ -193,5 +195,19 @@ public class TeamMemberService {
             return false;  // 빈 닉네임은 중복이 아님
         }
         return teamMemberRepository.existsByTeamAndTeamNickname(team, teamNickname.trim());
+    }
+
+    private void validateTeamNickname(String nickname) {
+        if (nickname == null) {
+            throw new IllegalArgumentException("닉네임은 필수입니다.");
+        }
+
+        if (nickname.trim().isEmpty()) {
+            throw new IllegalArgumentException("닉네임은 공백일 수 없습니다.");
+        }
+
+        if (nickname.trim().length() > 20) { // 최대 길이 제한 (선택사항)
+            throw new IllegalArgumentException("닉네임은 20자를 초과할 수 없습니다.");
+        }
     }
 }
