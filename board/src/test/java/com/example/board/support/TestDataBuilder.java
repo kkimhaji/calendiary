@@ -167,4 +167,12 @@ public class TestDataBuilder {
         return teamMemberRepository.findByTeamIdAndMemberId(teamId, memberId)
                 .orElseThrow();
     }
+
+    public TeamRole getAdminRoleByTeam(Team team){
+        return teamRoleService.getRoleById(team.getAdminRoleId());
+    }
+
+    public TeamRole getBasicRoleByTeam(Team team){
+        return teamRoleService.getRoleById(team.getBasicRoleId());
+    }
 }
