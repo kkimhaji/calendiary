@@ -46,6 +46,7 @@ public class TeamMemberService {
     @Transactional
     public String updateTeamNickname(Long teamId, Member member, String newNickname) {
         validateTeamNickname(newNickname);
+        teamRepository.findById(teamId).orElseThrow(() -> new EntityNotFoundException("team not found"));
         TeamMember teamMember = teamMemberRepository.findByTeamIdAndMemberId(teamId, member.getMemberId())
                 .orElseThrow(() -> new EntityNotFoundException("cannot find team member"));
         String normalizedNickname = newNickname.trim();
@@ -77,6 +78,7 @@ public class TeamMemberService {
 
     @Transactional(readOnly = true)
     public List<TeamMemberInfoListDTO> getTeamMembersWithRole(Long teamId) {
+        teamRepository.findById(teamId).orElseThrow(() -> new EntityNotFoundException("team not found"));
         List<TeamMemberInfoListDTO> members = teamMemberRepository.findMembersByTeamId(teamId);
         return members.stream()
                 .map(dto -> new TeamMemberInfoListDTO(
@@ -183,7 +185,7 @@ public class TeamMemberService {
     // 팀 ID로 중복 검사하는 오버로딩 메서드
     public boolean isTeamNicknameDuplicate(Long teamId, String teamNickname) {
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new EntityNotFoundException("Team not found"));
+                .orElseThrow(() -> new EntityNotFoundException("team not found"));
         if (teamNickname == null || teamNickname.trim().isEmpty()) {
             throw new IllegalArgumentException("닉네임을 입력해주세요");
         }
