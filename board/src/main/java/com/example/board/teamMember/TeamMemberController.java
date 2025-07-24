@@ -45,31 +45,18 @@ public class TeamMemberController {
     }
 
     @PutMapping("/nickname")
-    public ResponseEntity<?> updateTeamNickname(@PathVariable("teamId") Long teamId,
-                                                @AuthenticationPrincipal UserPrincipal userPrincipal, @RequestBody ChangeTeamNicknameRequest request) {
+    public ResponseEntity<String> updateTeamNickname(@PathVariable("teamId") Long teamId,
+                                                     @AuthenticationPrincipal UserPrincipal userPrincipal, @RequestBody ChangeTeamNicknameRequest request) {
         return ResponseEntity.ok(teamMemberService.updateTeamNickname(teamId, userPrincipal.getMember(), request.newNickname()));
     }
 
     @GetMapping("/nickname/check")
-    public ResponseEntity<?> checkTeamNicknameDuplicate(
+    public ResponseEntity<TeamNicknameCheckResponse> checkTeamNicknameDuplicate(
             @PathVariable("teamId") Long teamId,
             @RequestParam("teamNickname") String teamNickname
     ) {
-        try {
-            boolean isDuplicate = teamMemberService.isTeamNicknameDuplicate(teamId, teamNickname);
-            return ResponseEntity.ok(TeamNicknameCheckResponse.of(isDuplicate));
-
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(TeamNicknameCheckResponse.error("팀을 찾을 수 없습니다"));
-
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest()
-                    .body(TeamNicknameCheckResponse.error(e.getMessage()));
-
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError()
-                    .body(TeamNicknameCheckResponse.error("서버 오류가 발생했습니다"));
-        }
+        boolean isDuplicate = teamMemberService.isTeamNicknameDuplicate(teamId, teamNickname);
+        return ResponseEntity.ok(TeamNicknameCheckResponse.of(isDuplicate));
     }
+
 }
