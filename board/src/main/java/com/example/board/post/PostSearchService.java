@@ -1,5 +1,6 @@
 package com.example.board.post;
 
+import com.example.board.common.service.EntityValidationService;
 import com.example.board.config.AsyncConfig;
 import com.example.board.post.enums.SearchType;
 import com.example.board.post.dto.PostResponse;
@@ -28,6 +29,7 @@ public class PostSearchService {
     private final AsyncConfig asyncConfig;
     @Qualifier("asyncTaskExecutor")
     private final Executor asyncExecutor;
+    private final EntityValidationService validationService;
 
     public Page<PostResponse> searchPosts(
             Long teamId,
@@ -36,6 +38,10 @@ public class PostSearchService {
             Pageable pageable,
             SearchType searchType
     ) {
+
+        validationService.validateTeamExists(teamId);
+        validationService.validateCategoryExists(categoryId);
+
         if (searchType == null) {
             searchType = SearchType.BOTH;
         }
