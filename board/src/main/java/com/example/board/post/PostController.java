@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -52,13 +53,13 @@ public class PostController {
     @PreAuthorize("hasPermission(#categoryId, 'TeamCategory', T(com.example.board.permission.CategoryPermission).VIEW_POST)")
     public ResponseEntity<PostDetailDTO> getPost(@PathVariable(name="postId") Long postId,
                                                  @PathVariable(name = "categoryId") @P("categoryId") Long categoryId, @PathVariable(name="teamId") Long teamId) {
-        return ResponseEntity.ok(postService.getPostDetail(postId));
+        return ResponseEntity.ok(postService.getPostDetail(teamId, categoryId, postId));
     }
 
     @DeleteMapping("/category/{categoryId}/posts/delete/{postId}")
     public void deletePost(@PathVariable(name="teamId") Long teamId, @PathVariable(name="categoryId") @P("categoryId") Long categoryId,
                            @PathVariable(name="postId") Long postId, @AuthenticationPrincipal UserPrincipal user) throws IOException {
-        postService.deletePost(postId, categoryId);
+        postService.deletePost(teamId, postId, categoryId);
     }
 
     @PostMapping("/category/{categoryId}/posts/{postId}/images")
@@ -72,6 +73,17 @@ public class PostController {
             );
         }
     }
+
+//    @PostMapping("/category/{categoryId}/posts/{postId}")
+//    public ResponseEntity<PostResponse> updatePost(@PathVariable(name="postId") Long postId, @PathVariable(name="teamId") Long teamId,
+//                                                   @RequestParam(value = "_method", defaultValue = "POST") String method,
+//                                                   @PathVariable(name="categoryId") Long categoryId, @Valid @ModelAttribute UpdatePostRequestDTO request,
+//                                                   @AuthenticationPrincipal UserPrincipal user) throws IOException {
+//        if (!"PUT".equals(method.toUpperCase())) {
+//            return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build();
+//        }
+//        return ResponseEntity.ok(postService.updatePost(categoryId, postId, request));
+//    }
 
     @PutMapping("/category/{categoryId}/posts/{postId}")
     public ResponseEntity<PostResponse> updatePost(@PathVariable(name="postId") Long postId, @PathVariable(name="teamId") Long teamId,
