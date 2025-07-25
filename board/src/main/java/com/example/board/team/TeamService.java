@@ -3,6 +3,8 @@ package com.example.board.team;
 import com.example.board.auth.UserPrincipal;
 import com.example.board.category.CategoryService;
 import com.example.board.common.exception.TeamAccessDeniedException;
+import com.example.board.common.exception.TeamNotFoundException;
+import com.example.board.common.service.EntityValidationService;
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
 import com.example.board.role.TeamRole;
@@ -14,7 +16,6 @@ import com.example.board.teamInvite.dto.InviteValidationResponse;
 import com.example.board.teamMember.TeamMember;
 import com.example.board.teamMember.TeamMemberRepository;
 import com.example.board.teamMember.dto.TeamMemberInfo;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -34,12 +35,11 @@ public class TeamService {
     private final MemberRepository memberRepository;
     private final CategoryService categoryService;
     private final TeamInviteService inviteService;
+    private final EntityValidationService validationService;
 
     public TeamMember addMember(AddMemberRequestDTO dto) {
-        Team team = teamRepository.findById(dto.teamId())
-                .orElseThrow(() -> new EntityNotFoundException("no such team"));
-        TeamRole basicRole = teamRoleRepository.findById(team.getBasicRoleId())
-                .orElseThrow(() -> new EntityNotFoundException("no basic role"));
+        Team team = validationService.validateTeamExists(dto.teamId());
+        TeamRole basicRole = validationService.validateRoleExists(team.getBasicRoleId());
 
         Member newMember = memberRepository.findById(dto.memberId())
                 .orElseThrow(() -> new UsernameNotFoundException("no such user"));
@@ -62,7 +62,7 @@ public class TeamService {
 
     public TeamInfoPageResponse getTeamInfo(Long teamId, UserPrincipal principal, String inviteCode) {
         TeamInfoDTO teamInfo = teamRepository.findTeamDetailsById(teamId)
-                .orElseThrow(() -> new EntityNotFoundException("Team not found"));
+                .orElseThrow(TeamNotFoundException::new);
 
         // 케이스 1: 로그인 사용자가 팀 멤버인 경우
         if (principal != null) {
@@ -88,8 +88,7 @@ public class TeamService {
     }
 
     public void deleteTeam(Long teamId) {
-        Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new EntityNotFoundException("team not found"));
+        Team team = validationService.validateTeamExists(teamId);
         //team에 속한 카테고리 삭제
         categoryService.deleteAllCategoriesInTeam(team);
         //teamMember 수정
@@ -103,7 +102,8 @@ public class TeamService {
     }
 
     public long updateTeamInfo(long teamId, TeamUpdateRequestDTO dto) {
-        Team targetTeam = teamRepository.findById(teamId).orElseThrow(() -> new EntityNotFoundException("team not found"));
+        Team targetTeam = validationService.validateTeamExists(teamId);
+
         if (dto.name() != null && !dto.name().isBlank()) {
             targetTeam.updateName(dto.name());
         }

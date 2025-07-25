@@ -1,19 +1,19 @@
 package com.example.board.teamMember;
 
-import com.example.board.member.Member;
 import com.example.board.comment.CommentRepository;
+import com.example.board.common.service.EntityValidationService;
+import com.example.board.member.Member;
+import com.example.board.member.dto.AddTeamMemberToRoleDTO;
 import com.example.board.post.ImageService;
 import com.example.board.post.Post;
 import com.example.board.post.PostRepository;
 import com.example.board.role.TeamRole;
 import com.example.board.team.Team;
-import com.example.board.team.TeamRepository;
-import com.example.board.member.dto.AddTeamMemberToRoleDTO;
+import com.example.board.team.dto.TeamInfoResponse;
+import com.example.board.team.dto.TeamListDTO;
 import com.example.board.teamMember.dto.MemberProfileResponse;
 import com.example.board.teamMember.dto.TeamMemberDTO;
 import com.example.board.teamMember.dto.TeamMemberInfoListDTO;
-import com.example.board.team.dto.TeamInfoResponse;
-import com.example.board.team.dto.TeamListDTO;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,10 +31,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TeamMemberService {
     private final TeamMemberRepository teamMemberRepository;
-    private final TeamRepository teamRepository;
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
     private final ImageService imageService;
+    private final EntityValidationService validationService;
 
     @Transactional(readOnly = true)
     public TeamRole getCurrentUserRole(Long teamId, Member member) {
@@ -45,8 +45,8 @@ public class TeamMemberService {
 
     @Transactional
     public String updateTeamNickname(Long teamId, Member member, String newNickname) {
+        validationService.validateTeamExists(teamId);
         validateTeamNickname(newNickname);
-        teamRepository.findById(teamId).orElseThrow(() -> new EntityNotFoundException("team not found"));
         TeamMember teamMember = teamMemberRepository.findByTeamIdAndMemberId(teamId, member.getMemberId())
                 .orElseThrow(() -> new EntityNotFoundException("cannot find team member"));
         String normalizedNickname = newNickname.trim();
@@ -64,7 +64,7 @@ public class TeamMemberService {
         return teamMemberRepository.findMembersByRoleId(roleId);
     }
 
-    public MemberProfileResponse getTeamMemberProfile(Long teamMemberId){
+    public MemberProfileResponse getTeamMemberProfile(Long teamMemberId) {
         MemberProfileResponse dto = teamMemberRepository.findMemberProfileByTeamMemberId(teamMemberId)
                 .orElseThrow(() -> new EntityNotFoundException("team member not found"));
 
@@ -73,12 +73,12 @@ public class TeamMemberService {
                 dto.teamNickname(),
                 dto.roleName(),
                 dto.joinedAt()
-                );
+        );
     }
 
     @Transactional(readOnly = true)
     public List<TeamMemberInfoListDTO> getTeamMembersWithRole(Long teamId) {
-        teamRepository.findById(teamId).orElseThrow(() -> new EntityNotFoundException("team not found"));
+        validationService.validateTeamExists(teamId);
         List<TeamMemberInfoListDTO> members = teamMemberRepository.findMembersByTeamId(teamId);
         return members.stream()
                 .map(dto -> new TeamMemberInfoListDTO(
@@ -103,7 +103,7 @@ public class TeamMemberService {
         String maskedLocalPart;
         if (localPart.length() <= 2) {
             // 2글자 이하인 경우 첫 글자만 보이고 나머지 *
-            maskedLocalPart = localPart.substring(0, 1) + "*".repeat(localPart.length() - 1);
+            maskedLocalPart = localPart.charAt(0) + "*".repeat(localPart.length() - 1);
         } else {
             // 2글자 초과인 경우 첫 2글자만 보이고 나머지 *
             maskedLocalPart = localPart.substring(0, 3) + "*".repeat(localPart.length() - 3);
@@ -134,13 +134,12 @@ public class TeamMemberService {
 
     @Transactional
     public void leaveTeam(Long teamId, Member member, boolean deleteContents) {
-        Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new EntityNotFoundException("team not found"));
+        Team team = validationService.validateTeamExists(teamId);
 
         TeamMember teamMember = teamMemberRepository.findByTeamIdAndMember(teamId, member)
                 .orElseThrow(() -> new EntityNotFoundException("member is not in team"));
 
-        Long adminRoleId  = team.getAdminRoleId();
+        Long adminRoleId = team.getAdminRoleId();
         if (teamMember.getRole().getId().equals(adminRoleId) && isLastOwner(teamId, adminRoleId)) {
             throw new IllegalStateException("팀의 관리자는 탈퇴할 수 없습니다. 다른 사용자에게 관리자 권한을 부여한 후 탈퇴해주세요.");
         }
@@ -184,8 +183,8 @@ public class TeamMemberService {
 
     // 팀 ID로 중복 검사하는 오버로딩 메서드
     public boolean isTeamNicknameDuplicate(Long teamId, String teamNickname) {
-        Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new EntityNotFoundException("team not found"));
+        Team team = validationService.validateTeamExists(teamId);
+
         if (teamNickname == null || teamNickname.trim().isEmpty()) {
             throw new IllegalArgumentException("닉네임을 입력해주세요");
         }

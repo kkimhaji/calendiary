@@ -1,11 +1,10 @@
 package com.example.board.teamInvite;
 
 import com.example.board.common.exception.TeamNicknameDuplicationException;
+import com.example.board.common.service.EntityValidationService;
 import com.example.board.member.Member;
 import com.example.board.role.TeamRole;
-import com.example.board.role.TeamRoleRepository;
 import com.example.board.team.Team;
-import com.example.board.team.TeamRepository;
 import com.example.board.teamInvite.dto.InviteCreateRequest;
 import com.example.board.teamInvite.dto.InviteResponse;
 import com.example.board.teamInvite.dto.InviteValidationResponse;
@@ -13,7 +12,6 @@ import com.example.board.teamInvite.dto.TeamJoinRequest;
 import com.example.board.teamMember.TeamMember;
 import com.example.board.teamMember.TeamMemberRepository;
 import com.example.board.teamMember.TeamMemberService;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,16 +22,14 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class TeamInviteService {
-    private final TeamRepository teamRepository;
     private final TeamInviteRepository inviteRepository;
     private final TeamMemberRepository teamMemberRepository;
-    private final TeamRoleRepository teamRoleRepository;
     private final TeamMemberService teamMemberService;
+    private final EntityValidationService validationService;
 
     @Transactional
     public InviteResponse createInvite(InviteCreateRequest request, Long teamId) {
-//        Team team = teamRepository.findById(request.teamId()).orElseThrow(() -> new EntityNotFoundException("team not found"));
-        Team team = teamRepository.findById(teamId).orElseThrow(() -> new EntityNotFoundException("team not found"));
+        Team team = validationService.validateTeamExists(teamId);
         String code = UUID.randomUUID().toString().replace("-", "");
         TeamInvite invite = TeamInvite.create(code, team, request.expiresAt(), request.maxUses());
         inviteRepository.save(invite);
@@ -64,9 +60,7 @@ public class TeamInviteService {
                 .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 코드"));
 
         validateInvite(invite);
-
-        Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new EntityNotFoundException("no such team"));
+        Team team = validationService.validateTeamExists(teamId);
 
         // 이미 팀 멤버인지 확인
         if (teamMemberRepository.existsByTeamAndMember(team, newMember)) {
@@ -78,8 +72,7 @@ public class TeamInviteService {
             throw new TeamNicknameDuplicationException("이미 사용 중인 팀 닉네임입니다");
         }
 
-        TeamRole basicRole = teamRoleRepository.findById(team.getBasicRoleId())
-                .orElseThrow(() -> new EntityNotFoundException("no basic role"));
+        TeamRole basicRole = validationService.validateRoleExists(team.getBasicRoleId());
 
         TeamMember teamMember = TeamMember.addTeamMember(team, newMember, basicRole, request.teamNickname());
         teamMemberRepository.save(teamMember);
@@ -113,7 +106,7 @@ public class TeamInviteService {
     }
 
     @Transactional
-    public void deleteInvitesByTeamId(Long teamId){
+    public void deleteInvitesByTeamId(Long teamId) {
         inviteRepository.deleteByTeamId(teamId);
     }
 }

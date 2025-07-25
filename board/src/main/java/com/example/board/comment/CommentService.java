@@ -1,15 +1,15 @@
 package com.example.board.comment;
 
 import com.example.board.category.CategoryService;
-import com.example.board.member.Member;
-import com.example.board.post.Post;
-import com.example.board.post.PostRepository;
-import com.example.board.teamMember.TeamMember;
-import com.example.board.teamMember.TeamMemberRepository;
 import com.example.board.comment.dto.CommentResponse;
 import com.example.board.comment.dto.CreateCommentRequest;
 import com.example.board.comment.dto.MemberCommentResponse;
+import com.example.board.common.service.EntityValidationService;
+import com.example.board.member.Member;
 import com.example.board.permission.CategoryPermission;
+import com.example.board.post.Post;
+import com.example.board.teamMember.TeamMember;
+import com.example.board.teamMember.TeamMemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,15 +26,15 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class CommentService {
+    private static final int MAX_DEPTH = 2;
     private final CommentRepository commentRepository;
-    private final PostRepository postRepository;
     private final CategoryService categoryService;
     private final TeamMemberRepository teamMemberRepository;
-    private static final int MAX_DEPTH = 2;
+    private final EntityValidationService validationService;
 
     @Transactional
     public CommentResponse createComment(Member member, Long categoryId, Long postId, CreateCommentRequest request) throws AccessDeniedException {
-        Post post = postRepository.findById(postId).orElseThrow(()->new EntityNotFoundException("post not found"));
+        Post post = validationService.validatePostExists(postId);
         if (!categoryService.checkCategoryPermission(categoryId, member, CategoryPermission.CREATE_COMMENT))
             throw new AccessDeniedException("댓글을 작성할 권한이 없습니다.");
 
@@ -44,11 +44,10 @@ public class CommentService {
 
         Comment parent = null;
         //부모가 있을 때만 부모 댓글 조회
-        if (request.parentCommentId()!=null) {
+        if (request.parentCommentId() != null) {
             Long parentId = request.parentCommentId();
 
-            parent = commentRepository.findById(parentId)
-                    .orElseThrow(() -> new EntityNotFoundException("Parent comment not found"));
+            parent = validationService.validateCommentExists(parentId, "Parent comment not found");
         }
 
         Comment comment = Comment.createComment(request.content(), post, member, teamMember, parent);
@@ -59,25 +58,22 @@ public class CommentService {
     }
 
     @Transactional
-    public void deleteComment(Long commentId, Member member){
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(()->new EntityNotFoundException("Comment not found"));
+    public void deleteComment(Long commentId, Member member) {
+        Comment comment = validationService.validateCommentExists(commentId);
 
         if (!comment.getAuthor().equals(member) &&
-                !categoryService.checkCategoryPermission(comment.getPost().getCategory().getId(), member, CategoryPermission.DELETE_COMMENT)){
+                !categoryService.checkCategoryPermission(comment.getPost().getCategory().getId(), member, CategoryPermission.DELETE_COMMENT)) {
             throw new AccessDeniedException("댓글을 삭제할 권한이 없습니다.");
         }
 
-        if (comment.getAuthor().equals(member)){
+        if (comment.getAuthor().equals(member)) {
             comment.deleteByAuthor();
-        }
-
-        else
+        } else
             comment.delete();
     }
 
-    public List<CommentResponse> getCommentsInPost(Long postId){
-        postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("post not found"));
+    public List<CommentResponse> getCommentsInPost(Long postId) {
+        validationService.validatePostExists(postId);
         return commentRepository.findByPostIdAndParentIsNull(postId).stream()
                 .map(CommentResponse::from).toList();
     }

@@ -1,16 +1,15 @@
 package com.example.board.post;
 
 import com.example.board.auth.UserPrincipal;
-import com.example.board.category.CategoryRepository;
 import com.example.board.category.TeamCategory;
 import com.example.board.comment.CommentRepository;
+import com.example.board.common.service.EntityValidationService;
 import com.example.board.config.HtmlSanitizer;
 import com.example.board.member.Member;
 import com.example.board.permission.CategoryPermission;
 import com.example.board.permission.PermissionService;
 import com.example.board.post.dto.*;
 import com.example.board.team.Team;
-import com.example.board.team.TeamRepository;
 import com.example.board.teamMember.TeamMember;
 import com.example.board.teamMember.TeamMemberRepository;
 import com.google.common.annotations.VisibleForTesting;
@@ -39,8 +38,6 @@ import java.util.concurrent.atomic.AtomicLong;
 @Transactional(readOnly = true)
 public class PostService {
     private final PostRepository postRepository;
-    private final TeamRepository teamRepository;
-    private final CategoryRepository categoryRepository;
     private final ConcurrentHashMap<Long, AtomicLong> viewCountCache = new ConcurrentHashMap<>();
     private final ImageService imageService;
     private final HtmlSanitizer htmlSanitizer;
@@ -48,13 +45,12 @@ public class PostService {
     private final PermissionService permissionService;
     private final TeamMemberRepository teamMemberRepository;
     private final CommentRepository commentRepository;
+    private final EntityValidationService validationService;
 
     @Transactional
     public Post createPost(Long teamId, Long categoryId, CreatePostRequest request, Member author) throws AccessDeniedException, IOException {
-        Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new EntityNotFoundException("Team not found"));
-        TeamCategory category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new EntityNotFoundException("Category not found"));
+        Team team = validationService.validateTeamExists(teamId);
+        TeamCategory category = validationService.validateCategoryExists(categoryId);
         //이미지 처리
         String processedContent = imageService.processContentImages(htmlSanitizer.sanitize(request.content()));
 
@@ -76,9 +72,9 @@ public class PostService {
     }
 
     //게시글 상세 조회
-    public PostDetailDTO getPostDetail(Long postId) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new EntityNotFoundException("Post not found"));
+    public PostDetailDTO getPostDetail(Long teamId, Long categoryId, Long postId) {
+        validationService.validatePath(teamId, categoryId);
+        Post post = validationService.validatePostExists(postId);
         //조회수 증가: 비동기로 처리
         increaseViewCount(postId);
 
@@ -86,7 +82,7 @@ public class PostService {
     }
 
     public TeamRecentPostsResponse getRecentPosts(Long teamId, Pageable pageable) {
-        String teamName = teamRepository.findById(teamId).orElseThrow(() -> new EntityNotFoundException("team not found")).getName();
+        String teamName = validationService.validateTeamExists(teamId).getName();
         Page<PostListResponse> posts = postRepository.findRecentPostsByTeamId(teamId, pageable);
 
         return new TeamRecentPostsResponse(teamName, posts);
@@ -94,8 +90,8 @@ public class PostService {
 
     @Cacheable(key = "{#teamId, #categoryId, #pageable.pageNumber, #pageable.pageSize}") // 캐시 키 설정
     public CategoryRecentPostsResponse getPostsByCategory(Long teamId, Long categoryId, Pageable pageable) {
-        teamRepository.findById(teamId).orElseThrow(() -> new EntityNotFoundException("team not found"));
-        String categoryName = categoryRepository.findById(categoryId).orElseThrow(() -> new EntityNotFoundException("category not found")).getName();
+        validationService.validateTeamExists(teamId);
+        String categoryName = validationService.validateCategoryExists(categoryId).getName();
         Page<PostListResponse> posts = postRepository.findByTeamAndCategory(teamId, categoryId, pageable);
         return new CategoryRecentPostsResponse(categoryName, posts);
     }
@@ -152,9 +148,9 @@ public class PostService {
     }
 
     @Transactional
-    public void deletePost(Long postId, Long categoryId) throws IOException {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new EntityNotFoundException("there is no such post"));
+    public void deletePost(Long teamId, Long postId, Long categoryId) throws IOException {
+        validationService.validatePath(teamId, categoryId);
+        Post post = validationService.validatePostExists(postId);
 
         if (!permissionService.hasPermissionOrAuthor(categoryId, postId, CategoryPermission.DELETE_POST))
             throw new AccessDeniedException("게시글을 삭제할 권한이 없습니다.");
@@ -167,8 +163,8 @@ public class PostService {
 
     @Transactional
     public PostResponse updatePost(Long categoryId, Long postId, UpdatePostRequestDTO requestDTO) throws IOException {
-        Post post = postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("post not found"));
-        TeamCategory category = categoryRepository.findById(categoryId).orElseThrow(() -> new EntityNotFoundException("category not found"));
+        Post post = validationService.validatePostExists(postId);
+        TeamCategory category = validationService.validateCategoryExists(categoryId);
 
         //이미지 처리
         String sanitizedContent = htmlSanitizer.sanitize(requestDTO.content());

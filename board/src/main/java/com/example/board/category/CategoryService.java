@@ -2,7 +2,11 @@ package com.example.board.category;
 
 import com.example.board.category.dto.*;
 import com.example.board.comment.CommentRepository;
+import com.example.board.common.exception.CategoryNotFoundException;
+import com.example.board.common.exception.RoleNotFoundException;
+import com.example.board.common.service.EntityValidationService;
 import com.example.board.member.Member;
+import com.example.board.permission.CategoryPermission;
 import com.example.board.post.ImageService;
 import com.example.board.post.Post;
 import com.example.board.post.PostRepository;
@@ -11,11 +15,8 @@ import com.example.board.role.CategoryRolePermission;
 import com.example.board.role.TeamRole;
 import com.example.board.role.TeamRoleRepository;
 import com.example.board.team.Team;
-import com.example.board.team.TeamRepository;
-import com.example.board.permission.CategoryPermission;
 import com.example.board.teamMember.TeamMemberService;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +32,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class CategoryService {
-    private final TeamRepository teamRepository;
     private final TeamRoleRepository roleRepository;
     private final CategoryRepository categoryRepository;
     private final PostRepository postRepository;
@@ -40,13 +40,13 @@ public class CategoryService {
     private final CommentRepository commentRepository;
     private final ImageService imageService;
     private final EntityManager entityManager;
+    private final EntityValidationService validationService;
 
     @Transactional
     public TeamCategory createCategory(Long teamId, CreateCategoryRequest request) {
-        Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new EntityNotFoundException("Team not found"));
+        Team team = validationService.validateTeamExists(teamId);
         request.validate();
-        if (categoryRepository.existsByTeamAndName(team, request.name())){
+        if (categoryRepository.existsByTeamAndName(team, request.name())) {
             throw new IllegalArgumentException("Category name '" + request.name() + "' already exists in this team");
         }
         TeamCategory category = TeamCategory.createCategory(
@@ -80,7 +80,7 @@ public class CategoryService {
                 .map(rolePermDto -> {
                     TeamRole role = teamRoles.get(rolePermDto.roleId());
                     if (role == null) {
-                        throw new EntityNotFoundException("Role not found for ID: " + rolePermDto.roleId());
+                        throw new RoleNotFoundException("Role not found for ID: " + rolePermDto.roleId());
                     }
 
                     return CategoryRolePermission.create(
@@ -115,7 +115,7 @@ public class CategoryService {
     }
 
     public boolean checkCategoryPermission(Long categoryId, Member member, CategoryPermission permission) {
-        TeamCategory category = categoryRepository.findWithTeamById(categoryId).orElseThrow(() -> new EntityNotFoundException("category not found"));
+        TeamCategory category = categoryRepository.findWithTeamById(categoryId).orElseThrow(CategoryNotFoundException::new);
         Long roleId = teamMemberService.getCurrentUserRole(category.getTeam().getId(), member).getId();
         return categoryRepository.findCategoryRolePermission(categoryId, roleId)
                 .map(crp -> crp.hasPermission(permission))
@@ -132,7 +132,7 @@ public class CategoryService {
     }
 
     public void deleteCategory(Long categoryId) {
-        TeamCategory category = categoryRepository.findById(categoryId).orElseThrow(() -> new EntityNotFoundException("category not found"));
+        TeamCategory category = validationService.validateCategoryExists(categoryId);
         List<Post> postsInCategory = postRepository.findAllByCategory(category);
         List<Long> postIds = postsInCategory.stream().map(Post::getId).toList();
         commentRepository.deleteAllByPostIdIn(postIds);
@@ -156,14 +156,13 @@ public class CategoryService {
     @Transactional
     //카테고리 수정 -> 게시글에 저장된 카테고리 정보도 수정
     public CategoryResponse updateCategory(Long teamId, Long categoryId, UpdateCategoryRequest request) {
-        TeamCategory category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new EntityNotFoundException("category not found"));
+        TeamCategory category = validationService.validateCategoryExists(categoryId);
 
         category.updateDescription(request.description());
-        if (categoryRepository.existsByTeamAndNameAndIdNot(category.getTeam(), request.name(), categoryId)){
+        if (categoryRepository.existsByTeamAndNameAndIdNot(category.getTeam(), request.name(), categoryId)) {
             throw new IllegalArgumentException("Category name already exists: " + request.name());
         }
-        if (!category.getName().equals(request.name()) && request.name() != null){
+        if (!category.getName().equals(request.name()) && request.name() != null) {
             category.updateName(request.name());
         }
 
@@ -176,7 +175,7 @@ public class CategoryService {
         entityManager.clear(); // 1차 캐시 클리어
 
         TeamCategory updatedCategory = categoryRepository.findByIdWithPermissions(categoryId)
-                .orElseThrow(() -> new EntityNotFoundException("category not found"));
+                .orElseThrow(CategoryNotFoundException::new);
 
         return CategoryResponse.from(updatedCategory);
     }
@@ -187,7 +186,7 @@ public class CategoryService {
         entityManager.flush(); // 즉시 삭제 반영
         category.getRolePermissions().clear(); // 엔티티 상태 동기화
 
-        Team team = teamRepository.findById(teamId).orElseThrow();
+        Team team = validationService.validateTeamExists(teamId);
         List<TeamRole> teamRoles = roleRepository.findAllByTeamWithPermissions(team);
 
         Map<Long, TeamRole> roleMap = teamRoles.stream()
@@ -214,7 +213,7 @@ public class CategoryService {
     }
 
     public CategoryResponse getCategoryInfo(Long categoryId) {
-        TeamCategory category = categoryRepository.findById(categoryId).orElseThrow(() -> new EntityNotFoundException("category not found"));
+        TeamCategory category = validationService.validateCategoryExists(categoryId);
         return CategoryResponse.from(category);
     }
 }

@@ -3,10 +3,10 @@ package com.example.board.permission;
 import com.example.board.auth.UserPrincipal;
 import com.example.board.comment.Comment;
 import com.example.board.comment.CommentRepository;
+import com.example.board.common.service.EntityValidationService;
 import com.example.board.member.Member;
 import com.example.board.permission.evaluator.DelegatingPermissionEvaluator;
 import com.example.board.post.Post;
-import com.example.board.post.PostRepository;
 import com.example.board.role.dto.EditAndDeletePermissionResponse;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -27,9 +27,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PermissionService {
     private final DelegatingPermissionEvaluator permissionEvaluator;
-    private final PostRepository postRepository;
     private final CommentRepository commentRepository;
     private final ConversionService conversionService;
+    private final EntityValidationService validationService;
 
     //단일 권한 검사
     @Cacheable(value = "permission-checks", key = "#targetId + '-' + #permission.getCode()")
@@ -82,8 +82,7 @@ public class PermissionService {
     @Cacheable(value = "edit-delete-permissions", key = "'post-' + #postId")
     public EditAndDeletePermissionResponse checkEditAndDeletePostPermission(Long postId) {
         return checkEditAndDeletePermission(
-                () -> postRepository.findById(postId)
-                        .orElseThrow(() -> new EntityNotFoundException("Post not found")),
+                () -> validationService.validatePostExists(postId),
                 Post::getAuthor,
                 post -> post.getCategory().getId(),
                 CategoryPermission.DELETE_POST // ✅ PermissionType으로 전달
@@ -94,8 +93,7 @@ public class PermissionService {
     @Cacheable(value = "edit-delete-permissions", key = "'comment-' + #commentId")
     public EditAndDeletePermissionResponse checkEditAndDeleteCommentPermission(Long commentId) {
         return checkEditAndDeletePermission(
-                () -> commentRepository.findById(commentId)
-                        .orElseThrow(() -> new EntityNotFoundException("Comment not found")),
+                () -> validationService.validateCommentExists(commentId),
                 Comment::getAuthor,
                 comment -> comment.getPost().getCategory().getId(),
                 CategoryPermission.DELETE_COMMENT // ✅ PermissionType으로 전달
@@ -103,7 +101,7 @@ public class PermissionService {
     }
 
     public boolean hasPermissionOrAuthor(Long categoryId, Long postId, CategoryPermission permission) {
-        Member author = postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("post not found")).getAuthor();
+        Member author = validationService.validatePostExists(postId).getAuthor();
         return checkPermission(categoryId, permission) || author.getMemberId().equals(getLoginMember().getMemberId());
     }
 
