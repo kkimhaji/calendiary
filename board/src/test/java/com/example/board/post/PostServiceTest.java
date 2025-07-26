@@ -75,7 +75,7 @@ public class PostServiceTest extends AbstractTestSupport {
         Long postId = testPost.getId();
 
         // when
-        PostDetailDTO result = postService.getPostDetail(postId);
+        PostDetailDTO result = postService.getPostDetail(testTeam.getId(), testCategory.getId(), postId);
 
         // then
         assertThat(result).isNotNull();
@@ -98,10 +98,36 @@ public class PostServiceTest extends AbstractTestSupport {
 
         // when & then
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
-                postService.getPostDetail(nonExistentPostId)
+                postService.getPostDetail(testTeam.getId(), testCategory.getId(), nonExistentPostId)
         );
 
-        assertThat(exception.getMessage()).isEqualTo("Post not found");
+        assertThat(exception.getMessage()).isEqualTo("post not found");
+    }
+
+    @Test
+    void getPostDetail_teamNotFound() {
+        // given
+        Long nonExistentTeamId = 999L;
+
+        // when & then
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
+                postService.getPostDetail(nonExistentTeamId, testCategory.getId(), testPost.getId())
+        );
+
+        assertThat(exception.getMessage()).isEqualTo("team not found");
+    }
+
+    @Test
+    void getPostDetail_categoryNotFound() {
+        // given
+        Long nonExistentCategoryId = 999L;
+
+        // when & then
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
+                postService.getPostDetail(testTeam.getId(), nonExistentCategoryId, testPost.getId())
+        );
+
+        assertThat(exception.getMessage()).isEqualTo("category not found");
     }
 
     @Test
@@ -112,7 +138,7 @@ public class PostServiceTest extends AbstractTestSupport {
         int initialViewCount = testPost.getViewCount();
 
         // when
-        PostDetailDTO result = postService.getPostDetail(postId);
+        PostDetailDTO result = postService.getPostDetail(testTeam.getId(), testCategory.getId(), postId);
 
         // then
         assertThat(result).isNotNull();
@@ -137,8 +163,8 @@ public class PostServiceTest extends AbstractTestSupport {
         );
 
         // when
-        PostDetailDTO result1 = postService.getPostDetail(testPost.getId());
-        PostDetailDTO result2 = postService.getPostDetail(anotherPost.getId());
+        PostDetailDTO result1 = postService.getPostDetail(testTeam.getId(), testCategory.getId(), testPost.getId());
+        PostDetailDTO result2 = postService.getPostDetail(testTeam.getId(), testCategory.getId(), anotherPost.getId());
 
         // then
         assertThat(result1.title()).isEqualTo("Test Post");
@@ -157,7 +183,7 @@ public class PostServiceTest extends AbstractTestSupport {
         Long postId = testPost.getId();
 
         // when
-        PostDetailDTO result = postService.getPostDetail(postId);
+        PostDetailDTO result = postService.getPostDetail(testTeam.getId(), testCategory.getId(), postId);
 
         // then - DTO와 실제 DB 데이터 일치 확인
         Post actualPost = postRepository.findById(postId).orElseThrow();
@@ -290,7 +316,7 @@ public class PostServiceTest extends AbstractTestSupport {
         Comment testComment = builder.createComment("Test Comment", testPost, member2, teamMember);
 
         Long postId = testPost.getId();
-        assertDoesNotThrow(() -> postService.deletePost(postId, categoryId));
+        assertDoesNotThrow(() -> postService.deletePost(teamId, postId, categoryId));
 //        Long commentId = testComment.getId();
 
         // then - 실제 DB에서 삭제 확인
@@ -309,7 +335,7 @@ public class PostServiceTest extends AbstractTestSupport {
 
         // when & then
         AccessDeniedException exception = assertThrows(AccessDeniedException.class, () ->
-                postService.deletePost(postId, testCategory.getId())
+                postService.deletePost(testTeam.getId(), postId, testCategory.getId())
         );
 
         assertThat(exception.getMessage()).isEqualTo("게시글을 삭제할 권한이 없습니다.");
@@ -329,10 +355,10 @@ public class PostServiceTest extends AbstractTestSupport {
 
         // when & then
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
-                postService.deletePost(nonExistentPostId, testCategory.getId())
+                postService.deletePost(testTeam.getId(), nonExistentPostId, testCategory.getId())
         );
 
-        assertThat(exception.getMessage()).isEqualTo("there is no such post");
+        assertThat(exception.getMessage()).isEqualTo("post not found");
     }
 
     @Test

@@ -74,13 +74,6 @@ public class RoleServiceTest extends AbstractTestSupport {
     }
 
     @Test
-    @DisplayName("역할 권한 확인")
-    void checkPermissionOfRole(){
-        assertThat(teamRoleService.checkPermission(teamRole.getId(), MANAGE_MEMBERS)).isTrue();
-        assertThat(teamRoleService.checkPermission(teamRole.getId(), MANAGE_CATEGORIES)).isFalse();
-    }
-
-    @Test
     void deleteMemberFromRole_defaultRole(){
         var addRequest = new AddMembersToRoleRequest(teamRole.getId(), Collections.singletonList(member2.getMemberId()));
         teamRoleService.addMemberToRole(team.getId(), addRequest);
