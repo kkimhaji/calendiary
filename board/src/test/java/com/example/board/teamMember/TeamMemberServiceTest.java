@@ -1,6 +1,7 @@
 package com.example.board.teamMember;
 
 import com.example.board.comment.CommentRepository;
+import com.example.board.common.exception.TeamNotFoundException;
 import com.example.board.member.Member;
 import com.example.board.post.PostRepository;
 import com.example.board.role.TeamRole;
@@ -89,8 +90,8 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
     void getCurrentUserRole_teamNotFound_throwsException() {
         // when & then
         assertThatThrownBy(() -> teamMemberService.getCurrentUserRole(999L, member1))
-                .isInstanceOf(AccessDeniedException.class)
-                .hasMessage("You are not a member of this team!!");
+                .isInstanceOf(TeamNotFoundException.class)
+                .hasMessage("team not found");
     }
 
     @Test

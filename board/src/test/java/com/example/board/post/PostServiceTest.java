@@ -2,6 +2,9 @@ package com.example.board.post;
 
 import com.example.board.category.TeamCategory;
 import com.example.board.comment.Comment;
+import com.example.board.common.exception.CategoryNotFoundException;
+import com.example.board.common.exception.PostNotFoundException;
+import com.example.board.common.exception.TeamNotFoundException;
 import com.example.board.config.HtmlSanitizer;
 import com.example.board.config.security.WithMockCategoryPermission;
 import com.example.board.permission.PermissionService;
@@ -97,7 +100,7 @@ public class PostServiceTest extends AbstractTestSupport {
         assertThat(postRepository.findById(nonExistentPostId)).isEmpty();
 
         // when & then
-        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
+        PostNotFoundException exception = assertThrows(PostNotFoundException.class, () ->
                 postService.getPostDetail(testTeam.getId(), testCategory.getId(), nonExistentPostId)
         );
 
@@ -110,7 +113,7 @@ public class PostServiceTest extends AbstractTestSupport {
         Long nonExistentTeamId = 999L;
 
         // when & then
-        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
+        TeamNotFoundException exception = assertThrows(TeamNotFoundException.class, () ->
                 postService.getPostDetail(nonExistentTeamId, testCategory.getId(), testPost.getId())
         );
 
@@ -123,7 +126,7 @@ public class PostServiceTest extends AbstractTestSupport {
         Long nonExistentCategoryId = 999L;
 
         // when & then
-        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
+        CategoryNotFoundException exception = assertThrows(CategoryNotFoundException.class, () ->
                 postService.getPostDetail(testTeam.getId(), nonExistentCategoryId, testPost.getId())
         );
 
@@ -230,7 +233,7 @@ public class PostServiceTest extends AbstractTestSupport {
         Long nonExistentTeamId = 999L;
 
         // when & then
-        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
+        TeamNotFoundException exception = assertThrows(TeamNotFoundException.class, () ->
                 postService.getRecentPosts(nonExistentTeamId, testPageable)
         );
 
@@ -284,7 +287,7 @@ public class PostServiceTest extends AbstractTestSupport {
 //        assertThat(categoryRepository.findById(nonExistentCategoryId)).isEmpty();
 
         // when & then
-        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
+        CategoryNotFoundException exception = assertThrows(CategoryNotFoundException.class, () ->
                 postService.getPostsByCategory(testTeam.getId(), nonExistentCategoryId, testPageable)
         );
 
@@ -298,7 +301,7 @@ public class PostServiceTest extends AbstractTestSupport {
         Long nonExistentTeamId = 999L;
 
         // when & then
-        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
+        TeamNotFoundException exception = assertThrows(TeamNotFoundException.class, () ->
                 postService.getPostsByCategory(nonExistentTeamId, testCategory.getId(), testPageable)
         );
 
@@ -354,7 +357,7 @@ public class PostServiceTest extends AbstractTestSupport {
         assertThat(postRepository.findById(nonExistentPostId)).isEmpty();
 
         // when & then
-        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
+        PostNotFoundException exception = assertThrows(PostNotFoundException.class, () ->
                 postService.deletePost(testTeam.getId(), nonExistentPostId, testCategory.getId())
         );
 
