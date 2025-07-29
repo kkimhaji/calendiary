@@ -38,6 +38,7 @@ public class TeamMemberService {
 
     @Transactional(readOnly = true)
     public TeamRole getCurrentUserRole(Long teamId, Member member) {
+        validationService.validateTeamExists(teamId);
         return teamMemberRepository.findByTeamIdAndMember(teamId, member)
                 .map(TeamMember::getRole)
                 .orElseThrow(() -> new AccessDeniedException("You are not a member of this team!!"));
@@ -46,6 +47,7 @@ public class TeamMemberService {
     @Transactional
     public String updateTeamNickname(Long teamId, Member member, String newNickname) {
         validationService.validateTeamExists(teamId);
+        validationService.validateMemberExists(member.getMemberId());
         validateTeamNickname(newNickname);
         TeamMember teamMember = teamMemberRepository.findByTeamIdAndMemberId(teamId, member.getMemberId())
                 .orElseThrow(() -> new EntityNotFoundException("cannot find team member"));
@@ -56,11 +58,13 @@ public class TeamMemberService {
     }
 
     public List<TeamListDTO> getTeams(Member member) {
+        validationService.validateMemberExists(member.getMemberId());
         Long memberId = member.getMemberId();
         return teamMemberRepository.findTeamListByMemberId(memberId);
     }
 
     public List<TeamMemberDTO> getMembersByRole(Long roleId) {
+        validationService.validateRoleExists(roleId);
         return teamMemberRepository.findMembersByRoleId(roleId);
     }
 
@@ -119,6 +123,7 @@ public class TeamMemberService {
             int size,
             String keyword
     ) {
+        validationService.validateTeamExists(teamId);
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by("joinedAt").descending());
         return teamMemberRepository.findAllWithDetailsByTeamId(
                 teamId,
@@ -129,12 +134,14 @@ public class TeamMemberService {
 
     @Transactional(readOnly = true)
     public List<TeamInfoResponse> getTeamInfoWithTeamNickname(Long memberId) {
+        validationService.validateMemberExists(memberId);
         return teamMemberRepository.findTeamInfoAndNicknameByMemberId(memberId);
     }
 
     @Transactional
     public void leaveTeam(Long teamId, Member member, boolean deleteContents) {
         Team team = validationService.validateTeamExists(teamId);
+        validationService.validateMemberExists(member.getMemberId());
 
         TeamMember teamMember = teamMemberRepository.findByTeamIdAndMember(teamId, member)
                 .orElseThrow(() -> new EntityNotFoundException("member is not in team"));
@@ -152,11 +159,19 @@ public class TeamMemberService {
     }
 
     private boolean isLastOwner(Long teamId, Long roleId) {
+        validationService.validateTeamExists(teamId);
+        validationService.validateRoleExists(roleId);
         return teamMemberRepository.countByTeamIdAndRoleId(teamId, roleId) <= 1;
     }
 
     @Transactional
     private void deleteTeamMemberContents(Long teamId, Long memberId) {
+        validationService.validateTeamExists(teamId);
+        validationService.validateMemberExists(memberId);
+
+        teamMemberRepository.findByTeamIdAndMemberId(teamId, memberId)
+                .orElseThrow(() -> new EntityNotFoundException("member is not in team"));
+
         // 1. 사용자가 작성한 댓글 삭제
         commentRepository.deleteAllByTeamIdAndMemberId(teamId, memberId);
 
