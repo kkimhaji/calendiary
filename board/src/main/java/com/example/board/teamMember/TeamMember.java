@@ -41,7 +41,7 @@ public class TeamMember {
     public static TeamMember createTeamMember(Team team, Member member, TeamRole role){
         return new TeamMember(
                 team, member, role,
-                "ADMIN", LocalDateTime.now()
+                member.getNickname(), LocalDateTime.now()
         );
     }
 
