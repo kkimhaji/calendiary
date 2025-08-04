@@ -22,7 +22,7 @@ import java.util.Optional;
 @Repository
 public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
     List<TeamMember> findAllByTeamId(Long teamId);
-
+    int countByTeamId(Long teamId);
     Optional<TeamMember> findByTeamAndMember(Team team, Member member);
 
     @Query("SELECT tm FROM TeamMember tm " +
