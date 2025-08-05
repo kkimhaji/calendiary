@@ -73,16 +73,16 @@ public class TeamRoleService {
 
     @Transactional(rollbackFor = Exception.class)
     public void deleteRole(Long teamId, Long roleId) {
+
+        //role 삭제 -> 기존 멤버들: default role로 변경
+        // TeamMember 수정, Category의 role도 삭제
+        TeamRole targetRole = validationService.validateRoleExists(roleId);
+        Team team = validationService.validateTeamExists(teamId);
+        Long basicRoleId = team.getBasicRoleId();
+
+        if (roleId.equals(basicRoleId))
+            throw new RoleDeletionException("기본 역할은 삭제할 수 없습니다.");
         try {
-            //role 삭제 -> 기존 멤버들: default role로 변경
-            // TeamMember 수정, Category의 role도 삭제
-            TeamRole targetRole = validationService.validateRoleExists(roleId);
-            Team team = validationService.validateTeamExists(teamId);
-            Long basicRoleId = team.getBasicRoleId();
-
-            if (roleId.equals(basicRoleId))
-                throw new IllegalStateException("기본 역할은 삭제할 수 없습니다.");
-
             // defaultRole로 변경
             updateMembersRole(team, targetRole);
 
