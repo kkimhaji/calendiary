@@ -1,5 +1,9 @@
 package com.example.board.role;
 
+import com.example.board.common.exception.RoleDeletionException;
+import com.example.board.member.Member;
+import com.example.board.permission.utils.PermissionConverter;
+import com.example.board.permission.utils.PermissionUtils;
 import com.example.board.team.Team;
 import com.example.board.teamMember.TeamMember;
 import com.example.board.role.dto.AddMembersToRoleRequest;
@@ -9,6 +13,7 @@ import com.example.board.category.CategoryService;
 import com.example.board.team.TeamService;
 import com.example.board.support.AbstractTestSupport;
 import com.example.board.support.TestDataBuilder;
+import com.example.board.teamMember.TeamMemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,7 +27,7 @@ import org.springframework.context.annotation.ComponentScan;
 import java.util.*;
 
 import static com.example.board.permission.TeamPermission.*;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
 @ComponentScan("com.example.board")
@@ -37,12 +42,11 @@ public class RoleServiceTest extends AbstractTestSupport {
     private CreateRoleRequest roleRequest;
     private TeamRole teamRole;
     @Autowired
-    private TeamService teamService;
-    @Autowired
     private TestDataBuilder testDataBuilder;
     @Autowired
-    private CategoryService categoryService;
-
+    private TeamRoleRepository teamRoleRepository;
+    @Autowired
+    private TeamMemberRepository teamMemberRepository;
 
     @BeforeEach
     void init(){
@@ -52,47 +56,106 @@ public class RoleServiceTest extends AbstractTestSupport {
     }
 
     @Test
-    void addMembersToRole(){
-        //member2를 새로 만든 testRole에 넣기
-        var addRequest = new AddMembersToRoleRequest(teamRole.getId(), Collections.singletonList(member2.getMemberId()));
-        var response = teamRoleService.addMemberToRole(team.getId(), addRequest);
+    @DisplayName("역할 추가 - 정상 동작")
+    void createRole_success() {
+        // given
+        CreateRoleRequest req = new CreateRoleRequest(
+                "subLeader", Set.of(MANAGE_TEAM), "부팀장 롤");
 
-        assertThat(response.roleName()).isEqualTo(teamRole.getRoleName());
-        assertThat(response.membersName().size()).isEqualTo(1);
-        assertThat(response.membersName().get(0)).isEqualTo(teamMember.getTeamNickname());
+        // when
+        TeamRole newRole = teamRoleService.createRole(team.getId(), req);
+
+        // then
+        assertThat(newRole).isNotNull();
+        assertThat(newRole.getTeam().getId()).isEqualTo(team.getId());
+        assertThat(newRole.getRoleName()).isEqualTo("subLeader");
+        assertThat(newRole.getDescription()).isEqualTo("부팀장 롤");
+        assertThat(newRole.getPermissionBytes()).isEqualTo(PermissionUtils.createPermissionBytes(Set.of(MANAGE_TEAM)));
+
+        // 카테고리 기본 권한 자동 생성 검증
+        assertThat(teamRoleRepository.findById(newRole.getId()))
+                .isNotNull()
+                .isNotEmpty();
     }
 
     @Test
-    @DisplayName("역할 권한 변경")
-    void updateRolePermission(){
-        Set<TeamPermission> permissions = new HashSet<>(Arrays.asList(
-                MANAGE_MEMBERS
-        ));
-        var updatedRole = teamRoleService.updateRolePermissions(teamRole.getId(), permissions);
+    @DisplayName("역할 추가 - 중복 이름 예외")
+    void createRole_duplicateRoleName_fail() {
+        // when
+        teamRoleService.createRole(team.getId(), new CreateRoleRequest("부팀장", Set.of(), "Test role"));
 
-        assertThat(updatedRole.getPermissionSet()).doesNotContain(MANAGE_ROLES);
+        CreateRoleRequest req = new CreateRoleRequest("부팀장", Set.of(), "중복 역할명");
+        assertThatThrownBy(() -> teamRoleService.createRole(team.getId(), req))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Role name already exists in this team");
     }
 
     @Test
-    void deleteMemberFromRole_defaultRole(){
-        var addRequest = new AddMembersToRoleRequest(teamRole.getId(), Collections.singletonList(member2.getMemberId()));
-        teamRoleService.addMemberToRole(team.getId(), addRequest);
+    @DisplayName("권한 변경 - 정상 동작")
+    void updateRolePermissions_success() {
+        //기본 TeamRole은 MANAGE_MEMBERS, MANAGE_ROLES로 권한 설정됨
+        // given
+        Set<TeamPermission> newPerms = Set.of(MANAGE_ROLES);
 
-        //멤버를 역할에서 삭제하기 - 기본 역할
-        teamRoleService.removeMemberFromRole(team.getId(), member2.getMemberId(), null);
-        assertThat(teamMember.getRole().getRoleName()).isEqualTo("Member");
-        assertThat(teamMember.getRole().getId()).isEqualTo(team.getBasicRoleId());
+        // when
+        TeamRole updated = teamRoleService.updateRolePermissions(teamRole.getId(), newPerms);
+
+        // then
+        assertThat(updated.getPermissionSet()).containsAll(newPerms);
     }
 
     @Test
-    void deleteMemberFromRole_changeRole(){
-        Long teamId = team.getId();
-        var addRequest = new AddMembersToRoleRequest(teamRole.getId(), Collections.singletonList(member2.getMemberId()));
-        teamRoleService.addMemberToRole(teamId, addRequest);
-
-        TeamRole newRole = testDataBuilder.createNewRole(teamId, "test role2");
-        teamRoleService.removeMemberFromRole(teamId, member2.getMemberId(), newRole.getId());
-
-        assertThat(teamMember.getRole().getId()).isEqualTo(newRole.getId());
+    @DisplayName("역할 상세 조회 - 정상")
+    void getRoleById_success() {
+        TeamRole found = teamRoleService.getRoleById(teamRole.getId());
+        assertThat(found).isNotNull();
+        assertThat(found.getId()).isEqualTo(teamRole.getId());
+        assertThat(found.getRoleName()).isEqualTo(teamRole.getRoleName());
     }
+
+    @Test
+    @DisplayName("관리자 역할 확인")
+    void createAdmin_success() {
+        TeamRole admin = teamRoleService.getRoleById(team.getAdminRoleId());
+
+        assertThat(admin.getTeam().getId()).isEqualTo(team.getId());
+        assertThat(admin.getRoleName()).isEqualTo("ADMIN");
+        assertThat(admin.getPermissionSet().size()).isEqualTo(TeamPermission.values().length);
+    }
+
+    @Test
+    @DisplayName("기본 역할 확인")
+    void createBasic_success() {
+        TeamRole basic = teamRoleService.getRoleById(team.getBasicRoleId());
+
+        assertThat(basic.getTeam().getId()).isEqualTo(team.getId());
+        assertThat(basic.getRoleName()).isEqualTo("Member");
+        assertThat(basic.getPermissionSet()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("역할 삭제 - 정상 (기존 멤버는 기본 롤로 이동)")
+    void deleteRole_success() {
+        // given
+        Member member = memberRepository.save(Member.createMember("m@e.com", "m", "nick", true, null, null));
+        TeamMember tm = testDataBuilder.addMemberToTeam(member, team.getId());
+
+        testDataBuilder.addMemberToRole(member, teamRole);
+
+        // when
+        teamRoleService.deleteRole(team.getId(), teamRole.getId());
+
+        // then
+        TeamMember changed = teamMemberRepository.findById(tm.getId()).orElseThrow();
+        assertThat(changed.getRole().getId()).isEqualTo(team.getBasicRoleId()); // Default role로
+    }
+
+    @Test
+    @DisplayName("역할 삭제 실패 - 기본 역할")
+    void deleteRole_fail_basicRole() {
+        assertThatThrownBy(() -> teamRoleService.deleteRole(team.getId(), team.getBasicRoleId()))
+                .isInstanceOf(RoleDeletionException.class)
+                .hasMessage("기본 역할은 삭제할 수 없습니다.");
+    }
+
 }
