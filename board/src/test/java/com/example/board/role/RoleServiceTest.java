@@ -4,10 +4,9 @@ import com.example.board.common.exception.RoleDeletionException;
 import com.example.board.member.Member;
 import com.example.board.permission.utils.PermissionConverter;
 import com.example.board.permission.utils.PermissionUtils;
+import com.example.board.role.dto.*;
 import com.example.board.team.Team;
 import com.example.board.teamMember.TeamMember;
-import com.example.board.role.dto.AddMembersToRoleRequest;
-import com.example.board.role.dto.CreateRoleRequest;
 import com.example.board.permission.TeamPermission;
 import com.example.board.category.CategoryService;
 import com.example.board.team.TeamService;
@@ -137,7 +136,7 @@ public class RoleServiceTest extends AbstractTestSupport {
     @DisplayName("역할 삭제 - 정상 (기존 멤버는 기본 롤로 이동)")
     void deleteRole_success() {
         // given
-        Member member = memberRepository.save(Member.createMember("m@e.com", "m", "nick", true, null, null));
+        Member member = testDataBuilder.createMember("m@e.com", "m", "nick");
         TeamMember tm = testDataBuilder.addMemberToTeam(member, team.getId());
 
         testDataBuilder.addMemberToRole(member, teamRole);
@@ -158,4 +157,97 @@ public class RoleServiceTest extends AbstractTestSupport {
                 .hasMessage("기본 역할은 삭제할 수 없습니다.");
     }
 
+    @Test
+    @DisplayName("역할에 멤버 추가/삭제")
+    void addAndRemoveMemberToRole_success() {
+        // given
+        Member m1 = testDataBuilder.createMember("m1@e.com", "m1", "n1");
+        Member m2 = testDataBuilder.createMember("m2@e.com", "m2", "n2");
+        TeamRole baseRole = teamRoleService.getRoleById(team.getBasicRoleId());
+        TeamMember tm1 = teamMemberRepository.save(TeamMember.addTeamMember(team, m1, baseRole, "t1"));
+        TeamMember tm2 = teamMemberRepository.save(TeamMember.addTeamMember(team, m2, baseRole, "t2"));
+
+
+        List<Long> ids = List.of(m1.getMemberId(), m2.getMemberId());
+        AddMembersToRoleRequest req = new AddMembersToRoleRequest(teamRole.getId(), ids);
+
+        // when (멤버 2명 역할변경)
+        AddMembersToRoleResponse resp = teamRoleService.addMemberToRole(team.getId(), req);
+
+        assertThat(resp.roleName()).isEqualTo(teamRole.getRoleName());
+        assertThat(resp.membersName()).containsExactlyInAnyOrder(tm1.getTeamNickname(), tm2.getTeamNickname());
+
+        // 실제 역할 반영 확인
+        List<TeamMember> changed = teamMemberRepository.findAllByTeamAndRole(team, teamRole);
+        assertThat(changed).extracting(TeamMember::getMember)
+                .extracting(Member::getMemberId).containsExactlyInAnyOrder(m1.getMemberId(), m2.getMemberId());
+
+        // 역할에서 한 명 제거(기본 롤로 복귀)
+        teamRoleService.removeMemberFromRole(team.getId(), m1.getMemberId(), team.getBasicRoleId());
+
+        TeamMember reloaded = teamMemberRepository.findByTeamAndMember(team, m1).orElseThrow();
+        assertThat(reloaded.getRole().getId()).isEqualTo(team.getBasicRoleId());
+    }
+
+    @Test
+    @DisplayName("역할에서 일부 멤버가 팀에 없을 때 예외")
+    void addMemberToRole_someNotInTeam_fail() {
+        Member member = testDataBuilder.createMember("zz@e.com", "zz", "zz");
+        AddMembersToRoleRequest req = new AddMembersToRoleRequest(teamRole.getId(), List.of(member.getMemberId(), 9999L));
+        assertThatThrownBy(() -> teamRoleService.addMemberToRole(team.getId(), req))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("속해있지 않습니다");
+    }
+
+    @Test
+    @DisplayName("역할 상세 정보 조회")
+    void getRolesByTeam_success() {
+        List<TeamRoleDetailResponse> resp = teamRoleService.getRolesByTeam(team.getId());
+
+        assertThat(resp)
+                .anyMatch(detail -> detail.id().equals(team.getBasicRoleId()))
+                .anyMatch(detail -> detail.name().equals(teamRole.getRoleName()));
+
+        // 추가로 권한, 인원수 등도 검증하려면 예시 아래처럼 확장할 수 있습니다.
+        TeamRoleDetailResponse basicRoleDetail = resp.stream()
+                .filter(detail -> detail.id().equals(team.getBasicRoleId()))
+                .findFirst()
+                .orElseThrow();
+
+        TeamRole role = teamRoleService.getRoleById(team.getBasicRoleId());
+        assertThat(basicRoleDetail.permissions()).isEqualTo(PermissionUtils.getPermissionsFromBytes(role.getPermissionBytes(), TeamPermission.class));
+        // 인원수 등 추가 검증 필요시:
+         assertThat(basicRoleDetail.memberCount()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("역할 정보 목록 조회")
+    void getRolesInfo_success() {
+        List<TeamRoleInfoDTO> info = teamRoleService.getRolesInfo(team.getId());
+
+        assertThat(info).extracting(TeamRoleInfoDTO::id)
+                .contains(team.getBasicRoleId(), teamRole.getId());
+
+        TeamRole basicRole = teamRoleService.getRoleById(team.getBasicRoleId());
+        assertThat(info).extracting(TeamRoleInfoDTO::name)
+                .contains(basicRole.getRoleName(), teamRole.getRoleName());
+    }
+
+    @Test
+    @DisplayName("멤버의 현재 역할 확인")
+    void getMembersRole_success() {
+        Member member = testDataBuilder.createMember("aaa@bbb.com", "nnn", "zz");
+
+        TeamMember newTM = teamMemberRepository.save(TeamMember.addTeamMember(team, member, teamRole, "nick2"));
+        TeamRoleResponse resp = teamRoleService.getMembersRole(team.getId(), member);
+        assertThat(resp.name()).isEqualTo(teamRole.getRoleName());
+    }
+
+    @Test
+    @DisplayName("특정 역할 상세 정보")
+    void getRoleDetails_success() {
+        TeamRoleResponse resp = teamRoleService.getRoleDetails(team.getId(), teamRole.getId());
+
+        assertThat(resp.name()).isEqualTo(teamRole.getRoleName());
+    }
 }
