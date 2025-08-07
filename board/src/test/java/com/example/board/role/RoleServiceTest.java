@@ -13,6 +13,7 @@ import com.example.board.team.TeamService;
 import com.example.board.support.AbstractTestSupport;
 import com.example.board.support.TestDataBuilder;
 import com.example.board.teamMember.TeamMemberRepository;
+import com.example.board.teamMember.dto.TeamMemberOfRoleDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.data.domain.Page;
 
 import java.util.*;
 
@@ -249,5 +251,49 @@ public class RoleServiceTest extends AbstractTestSupport {
         TeamRoleResponse resp = teamRoleService.getRoleDetails(team.getId(), teamRole.getId());
 
         assertThat(resp.name()).isEqualTo(teamRole.getRoleName());
+    }
+
+    @Test
+    @DisplayName("역할 수정 - 이름/설명/권한 동시")
+    void updateRole_success() {
+        Set<TeamPermission> perms = Set.of(MANAGE_TEAM);
+        RoleUpdateRequest req = new RoleUpdateRequest("NEW_NAME", "설명2", perms);
+        teamRoleService.updateRole(team.getId(), teamRole.getId(), req);
+
+        TeamRole updated = teamRoleRepository.findById(teamRole.getId()).orElseThrow();
+        assertThat(updated.getRoleName()).isEqualTo("NEW_NAME");
+        assertThat(updated.getDescription()).isEqualTo("설명2");
+        assertThat(updated.getPermissionSet()).isEqualTo(perms);
+    }
+
+    @Test
+    @DisplayName("카테고리별 역할/권한 목록 조회")
+    void getRolesWithPermissions_success() {
+        // given
+        Long catId = 777L;
+        // 예제이므로 categoryPermissionRepository를 mocking하거나, 필요한 엔티티만 등록
+
+        List<CategoryRolePermissionDTO> rolePerms = teamRoleService.getRolesWithPermissions(team.getId(), catId);
+        assertThat(rolePerms).isNotNull();
+        TeamRole baseRole = teamRoleService.getRoleById(team.getBasicRoleId());
+        assertThat(rolePerms).extracting(CategoryRolePermissionDTO::roleName)
+                .contains(baseRole.getRoleName(), teamRole.getRoleName());
+    }
+
+    @Test
+    @DisplayName("역할 멤버 목록 페이지 조회")
+    void getRoleMembers_success() {
+        // given
+
+        Member member = testDataBuilder.createMember("ccc@bbb.com", "cccNick", "1234");
+        teamMemberRepository.save(TeamMember.addTeamMember(team, member, teamRole, "nicknameA"));
+
+
+        // when
+        Page<TeamMemberOfRoleDTO> page = teamRoleService.getRoleMembers(team.getId(), teamRole.getId(), 0, 10, "");
+
+        // then
+        assertThat(page.getContent()).isNotEmpty();
+        assertThat(page.getContent()).anyMatch(dto -> dto.teamNickname().equals("nicknameA"));
     }
 }
