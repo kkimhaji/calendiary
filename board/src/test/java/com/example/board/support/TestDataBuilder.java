@@ -60,6 +60,14 @@ public class TestDataBuilder {
                 ));
     }
 
+    public Member createMember(String email, String nickname) {
+        return memberRepository.save(
+                Member.createMember(
+                        email, nickname, passwordEncoder.encode("password"), true, null, null
+                ));
+    }
+
+
     public Team createTeam(Member member1) {
         var request = new TeamCreateRequestDTO("testTeam", "test");
         return teamService.createTeam(member1, request);
@@ -95,6 +103,8 @@ public class TestDataBuilder {
         Long basicRoleId = teamRepository.findById(teamId).orElseThrow(() -> new EntityNotFoundException("team not found")).getBasicRoleId();
         return categoryService.createCategory(teamId, forCreateCategoryRequest(teamId, basicRoleId, categoryName, categoryPermissions));
     }
+
+//    public TeamCategory createCategoryWith
 
     public void updateRolePermission(Long roleId, Set<TeamPermission> permissions) {
         teamRoleService.updateRolePermissions(roleId, permissions);
@@ -137,7 +147,7 @@ public class TestDataBuilder {
                 Post.create(title, content, author, category, team, teamMember));
     }
 
-    public Post createPost(String title, String content, Member author, Long categoryId, Long teamId, TeamMember teamMember){
+    public Post createPost(String title, String content, Member author, Long categoryId, Long teamId, TeamMember teamMember) {
         Team team = teamRepository.findById(teamId).orElseThrow(() -> new EntityNotFoundException("team not found"));
         TeamCategory category = categoryRepository.findById(categoryId).orElseThrow(() -> new EntityNotFoundException("category not found"));
         return postRepository.save(Post.create(title, content, author, category, team, teamMember));
@@ -163,16 +173,16 @@ public class TestDataBuilder {
         );
     }
 
-    public TeamMember getTeamMember(Long teamId, Long memberId){
+    public TeamMember getTeamMember(Long teamId, Long memberId) {
         return teamMemberRepository.findByTeamIdAndMemberId(teamId, memberId)
                 .orElseThrow();
     }
 
-    public TeamRole getAdminRoleByTeam(Team team){
+    public TeamRole getAdminRoleByTeam(Team team) {
         return teamRoleService.getRoleById(team.getAdminRoleId());
     }
 
-    public TeamRole getBasicRoleByTeam(Team team){
+    public TeamRole getBasicRoleByTeam(Team team) {
         return teamRoleService.getRoleById(team.getBasicRoleId());
     }
 }
