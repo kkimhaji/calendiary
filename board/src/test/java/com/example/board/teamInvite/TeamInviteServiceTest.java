@@ -46,7 +46,7 @@ public class TeamInviteServiceTest extends AbstractTestSupport {
     void init(){
         testTeam = testDataBuilder.createTeam(member1);
         teamMember = testDataBuilder.addMemberToTeam(member2, testTeam.getId());
-        newMember = testDataBuilder.createMember("newmember@test.com", "newMember", "password");
+        newMember = testDataBuilder.createMember("newmember@test.com", "newMember");
     }
 
     @Test
@@ -256,7 +256,7 @@ public class TeamInviteServiceTest extends AbstractTestSupport {
         entityManager.flush();
 
         // 이미 사용 중인 닉네임으로 다른 멤버 추가
-        Member existingMember = testDataBuilder.createMember("existing@example.com", "duplicateNickname", "1234");
+        Member existingMember = testDataBuilder.createMember("existing@example.com", "duplicateNickname");
         testDataBuilder.addMemberToTeam(existingMember, testTeam.getId());
 
         TeamJoinRequest request = new TeamJoinRequest("validcode", "duplicateNickname");
@@ -347,7 +347,7 @@ public class TeamInviteServiceTest extends AbstractTestSupport {
         entityManager.persist(invite);
         entityManager.flush();
 
-        Member newMember2 = testDataBuilder.createMember("newmember2@test.com", "newMember2", "1234");
+        Member newMember2 = testDataBuilder.createMember("newmember2@test.com", "newMember2");
         // when
         teamInviteService.joinTeam(testTeam.getId(),
                 new TeamJoinRequest("multicode", "nickname1"), newMember);

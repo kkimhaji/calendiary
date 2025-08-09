@@ -138,7 +138,7 @@ public class RoleServiceTest extends AbstractTestSupport {
     @DisplayName("역할 삭제 - 정상 (기존 멤버는 기본 롤로 이동)")
     void deleteRole_success() {
         // given
-        Member member = testDataBuilder.createMember("m@e.com", "m", "nick");
+        Member member = testDataBuilder.createMember("m@e.com", "m");
         TeamMember tm = testDataBuilder.addMemberToTeam(member, team.getId());
 
         testDataBuilder.addMemberToRole(member, teamRole);
@@ -163,8 +163,8 @@ public class RoleServiceTest extends AbstractTestSupport {
     @DisplayName("역할에 멤버 추가/삭제")
     void addAndRemoveMemberToRole_success() {
         // given
-        Member m1 = testDataBuilder.createMember("m1@e.com", "m1", "n1");
-        Member m2 = testDataBuilder.createMember("m2@e.com", "m2", "n2");
+        Member m1 = testDataBuilder.createMember("m1@e.com", "m1");
+        Member m2 = testDataBuilder.createMember("m2@e.com", "m2");
         TeamRole baseRole = teamRoleService.getRoleById(team.getBasicRoleId());
         TeamMember tm1 = teamMemberRepository.save(TeamMember.addTeamMember(team, m1, baseRole, "t1"));
         TeamMember tm2 = teamMemberRepository.save(TeamMember.addTeamMember(team, m2, baseRole, "t2"));
@@ -194,7 +194,7 @@ public class RoleServiceTest extends AbstractTestSupport {
     @Test
     @DisplayName("역할에서 일부 멤버가 팀에 없을 때 예외")
     void addMemberToRole_someNotInTeam_fail() {
-        Member member = testDataBuilder.createMember("zz@e.com", "zz", "zz");
+        Member member = testDataBuilder.createMember("zz@e.com", "zz");
         AddMembersToRoleRequest req = new AddMembersToRoleRequest(teamRole.getId(), List.of(member.getMemberId(), 9999L));
         assertThatThrownBy(() -> teamRoleService.addMemberToRole(team.getId(), req))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -238,7 +238,7 @@ public class RoleServiceTest extends AbstractTestSupport {
     @Test
     @DisplayName("멤버의 현재 역할 확인")
     void getMembersRole_success() {
-        Member member = testDataBuilder.createMember("aaa@bbb.com", "nnn", "zz");
+        Member member = testDataBuilder.createMember("aaa@bbb.com", "nnn");
 
         TeamMember newTM = teamMemberRepository.save(TeamMember.addTeamMember(team, member, teamRole, "nick2"));
         TeamRoleResponse resp = teamRoleService.getMembersRole(team.getId(), member);
@@ -285,7 +285,7 @@ public class RoleServiceTest extends AbstractTestSupport {
     void getRoleMembers_success() {
         // given
 
-        Member member = testDataBuilder.createMember("ccc@bbb.com", "cccNick", "1234");
+        Member member = testDataBuilder.createMember("ccc@bbb.com", "cccNick");
         teamMemberRepository.save(TeamMember.addTeamMember(team, member, teamRole, "nicknameA"));
 
 

@@ -46,7 +46,7 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
 
     @BeforeEach
     void init(){
-        member3 = testDataBuilder.createMember("thirdmember", "third", "1234");
+        member3 = testDataBuilder.createMember("thirdmember", "third");
         testTeam = testDataBuilder.createTeam(member1);
         Long teamId = testTeam.getId();
         teamMember1 = testDataBuilder.getTeamMember(teamId, member1.getMemberId());
@@ -77,7 +77,7 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
     @DisplayName("역할 받아오기 - 팀 멤버가 아닌 경우 예외 발생")
     void getCurrentUserRole_notTeamMember_throwsException() {
         // given
-        Member outsider = testDataBuilder.createMember("outsider@test.com", "outsider", "password");
+        Member outsider = testDataBuilder.createMember("outsider@test.com", "outsider");
 
         // when & then
         assertThatThrownBy(() -> teamMemberService.getCurrentUserRole(testTeam.getId(), outsider))
@@ -116,7 +116,7 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
     @DisplayName("팀 멤버가 아닌 경우 예외 발생")
     void updateTeamNickname_notTeamMember_throwsException() {
         // given
-        Member outsider = testDataBuilder.createMember("outsider@test.com", "outsider", "password");
+        Member outsider = testDataBuilder.createMember("outsider@test.com", "outsider");
 
         // when & then
         assertThatThrownBy(() -> teamMemberService.updateTeamNickname(testTeam.getId(), outsider, "새닉네임"))
@@ -219,7 +219,7 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
     @DisplayName("팀에 속하지 않은 멤버의 경우 빈 목록 반환")
     void getTeams_noTeams_returnsEmptyList() {
         // given
-        Member loner = testDataBuilder.createMember("loner@test.com", "loner", "password");
+        Member loner = testDataBuilder.createMember("loner@test.com", "loner");
 
         // when
         List<TeamListDTO> result = teamMemberService.getTeams(loner);
@@ -232,7 +232,7 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
     @DisplayName("일반적인 이메일 마스킹")
     void emailMasking_normalEmail() {
         // given
-        Member testMember = testDataBuilder.createMember("testuser@example.com", "test", "password");
+        Member testMember = testDataBuilder.createMember("testuser@example.com", "test");
         TeamMember teamMember = testDataBuilder.addMemberToTeam(testMember, testTeam.getId());
 
         // when
@@ -246,7 +246,7 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
     @DisplayName("짧은 이메일 마스킹 (2글자)")
     void emailMasking_shortEmail() {
         // given
-        Member testMember = testDataBuilder.createMember("ab@test.com", "test", "password");
+        Member testMember = testDataBuilder.createMember("ab@test.com", "test");
         TeamMember teamMember = testDataBuilder.addMemberToTeam(testMember, testTeam.getId());
 
         // when
@@ -260,7 +260,7 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
     @DisplayName("1글자 이메일 마스킹")
     void emailMasking_singleCharEmail() {
         // given
-        Member testMember = testDataBuilder.createMember("a@test.com", "test", "password");
+        Member testMember = testDataBuilder.createMember("a@test.com", "test");
         TeamMember teamMember = testDataBuilder.addMemberToTeam(testMember, testTeam.getId());
 
         // when

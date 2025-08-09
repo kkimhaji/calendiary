@@ -300,7 +300,7 @@ public class TeamMemberControllerTest extends AbstractControllerTestSupport {
         Long teamId = userPrincipal.getTestTeamId();
         // 추가 멤버들 생성
         for (int i = 0; i < 15; i++) {
-            Member additionalMember = testDataBuilder.createMember("test" + i + "@example.com", "testUser" + i, "password");
+            Member additionalMember = testDataBuilder.createMember("test" + i + "@example.com", "testUser" + i);
             testDataBuilder.addMemberToTeam(additionalMember, teamId);
         }
 
@@ -328,7 +328,7 @@ public class TeamMemberControllerTest extends AbstractControllerTestSupport {
         Long teamId = userPrincipal.getTestTeamId();
         // 추가 멤버들 생성
         for (int i = 0; i < 15; i++) {
-            Member additionalMember = testDataBuilder.createMember("test" + i + "@example.com", "testUser" + i, "password");
+            Member additionalMember = testDataBuilder.createMember("test" + i + "@example.com", "testUser" + i);
             testDataBuilder.addMemberToTeam(additionalMember, teamId);
         }
 

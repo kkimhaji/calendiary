@@ -53,20 +53,12 @@ public class TestDataBuilder {
     private final CategoryRepository categoryRepository;
     private final TeamMemberRepository teamMemberRepository;
 
-    public Member createMember(String email, String nickname, String password) {
-        return memberRepository.save(
-                Member.createMember(
-                        email, nickname, passwordEncoder.encode(password), true, null, null
-                ));
-    }
-
     public Member createMember(String email, String nickname) {
         return memberRepository.save(
                 Member.createMember(
                         email, nickname, passwordEncoder.encode("password"), true, null, null
                 ));
     }
-
 
     public Team createTeam(Member member1) {
         var request = new TeamCreateRequestDTO("testTeam", "test");

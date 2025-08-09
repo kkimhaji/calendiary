@@ -194,7 +194,7 @@ public class CommentServiceTest extends AbstractTestSupport {
     @DisplayName("댓글 생성 실패 - 팀 멤버가 아님")
     void createComment_notTeamMember_throwsException() {
         // given - 다른 팀에 속하지 않은 멤버
-        Member nonTeamMember = testDataBuilder.createMember("nonteam@example.com", "nonteamuser", "password");
+        Member nonTeamMember = testDataBuilder.createMember("nonteam@example.com", "nonteamuser");
         CreateCommentRequest request = new CreateCommentRequest("댓글 내용", null);
 
         // when & then
@@ -254,7 +254,7 @@ public class CommentServiceTest extends AbstractTestSupport {
     @DisplayName("댓글 삭제 실패 - 권한 없음")
     void deleteComment_noPermission_throwsException() {
         // given - 권한이 없는 사용자
-        Member noPermissionMember = testDataBuilder.createMember("noperm@example.com", "noperm", "password");
+        Member noPermissionMember = testDataBuilder.createMember("noperm@example.com", "noperm");
         testDataBuilder.addMemberToTeam(noPermissionMember, testTeam.getId()); // 기본 권한만
 
         CreateCommentRequest request = new CreateCommentRequest("삭제할 수 없는 댓글", null);
@@ -457,7 +457,7 @@ public class CommentServiceTest extends AbstractTestSupport {
     @DisplayName("팀 멤버 댓글 조회 성공 - 댓글 없음")
     void findCommentsByTeamAndMember_noComments_success() {
         // given - 새로운 팀 멤버 (댓글 없음)
-        Member newMember = testDataBuilder.createMember("new@example.com", "newuser", "password");
+        Member newMember = testDataBuilder.createMember("new@example.com", "newuser");
         TeamMember newTeamMember = testDataBuilder.addMemberToTeam(newMember, testTeam.getId());
 
         // when
