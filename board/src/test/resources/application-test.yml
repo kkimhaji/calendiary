@@ -14,6 +14,11 @@ spring:
   h2:
     console:
       enabled: true
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
 logging:
   level:
     org.hibernate.SQL: DEBUG
@@ -22,3 +27,4 @@ bezkoder:
   app:
     jwtSecret: testSecretKey
     jwtExpirationMs: 86400000
+

@@ -2,6 +2,7 @@ package com.example.board.member;
 
 import com.example.board.auth.UserPrincipal;
 import com.example.board.comment.CommentService;
+import com.example.board.comment.dto.MemberCommentResponse;
 import com.example.board.member.dto.MemberInfoResponse;
 import com.example.board.member.dto.MemberInfoSummaryResponse;
 import com.example.board.member.dto.PasswordChangeRequest;
@@ -11,6 +12,7 @@ import com.example.board.post.dto.PostListResponse;
 import com.example.board.support.AbstractControllerTestSupport;
 import com.example.board.team.dto.TeamListDTO;
 import com.example.board.teamMember.TeamMemberService;
+import com.example.board.teamMember.dto.MemberProfileResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,6 +29,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -144,5 +147,28 @@ public class MemberControllerTest extends AbstractControllerTestSupport {
                 .andExpect(status().isOk());
 
         then(teamMemberService).should().leaveTeam(1L, member1, true);
+    }
+
+
+    @Test
+    @DisplayName("getTeamMemberProfile - 팀 멤버 프로필 조회")
+    void getTeamMemberProfile_success() throws Exception {
+        LocalDateTime now = LocalDateTime.of(2025, 8, 14, 10, 0, 0);
+        MemberProfileResponse profile = new MemberProfileResponse(
+                "test@example.com", // email
+                "teamNick",         // teamNickname
+                "roleName",         // roleName
+                now                 // joinedAt
+        );
+        given(teamMemberService.getTeamMemberProfile(2L)).willReturn(profile);
+
+        // when & then
+        mockMvc.perform(get("/member/teams/1/member/2")
+                        .with(user(testPrincipal))) // 인증 필요 시 추가
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("test@example.com"))
+                .andExpect(jsonPath("$.teamNickname").value("teamNick"))
+                .andExpect(jsonPath("$.roleName").value("roleName"))
+                .andExpect(jsonPath("$.joinedAt").value(now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"))));
     }
 }
