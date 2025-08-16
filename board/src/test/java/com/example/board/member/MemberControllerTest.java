@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -30,6 +31,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -52,7 +54,7 @@ public class MemberControllerTest extends AbstractControllerTestSupport {
     private UserPrincipal testPrincipal;
 
     @BeforeEach
-    void init(){
+    void init() {
         testPrincipal = new UserPrincipal(member1);
         Authentication auth = new UsernamePasswordAuthenticationToken(testPrincipal, null, testPrincipal.getAuthorities());
         SecurityContext context = SecurityContextHolder.createEmptyContext();
@@ -147,6 +149,92 @@ public class MemberControllerTest extends AbstractControllerTestSupport {
                 .andExpect(status().isOk());
 
         then(teamMemberService).should().leaveTeam(1L, member1, true);
+    }
+
+    @Test
+    @DisplayName("getMemberPosts - 팀 특정 멤버의 게시글 조회")
+    void getMemberPosts_success() throws Exception {
+        LocalDateTime now = LocalDateTime.of(2025, 8, 14, 10, 0, 0);
+
+        List<PostListResponse> content = new ArrayList<>();
+        content.add(new PostListResponse(
+                1L,
+                "title",
+                "writer",
+                10L,
+                "공지",
+                5L,
+                100,
+                now,
+                3
+        ));
+        Page<PostListResponse> page = new PageImpl<>(content);
+
+        given(postService.findPostsByTeamAndMember(anyLong(), anyInt(), anyInt()))
+                .willReturn(page);
+
+        mockMvc.perform(get("/member/teams/1/2/posts")
+                        .param("page", "0")
+                        .param("size", "10")
+                        .with(user(testPrincipal)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].id").value(1L))
+                .andExpect(jsonPath("$.content[0].title").value("title"))
+                .andExpect(jsonPath("$.content[0].authorName").value("writer"))
+                .andExpect(jsonPath("$.content[0].teamId").value(10L))
+                .andExpect(jsonPath("$.content[0].categoryName").value("공지"))
+                .andExpect(jsonPath("$.content[0].categoryId").value(5L))
+                .andExpect(jsonPath("$.content[0].viewCount").value(100))
+                .andExpect(jsonPath("$.content[0].commentCount").value(3))
+                .andExpect(jsonPath("$.currentPage").value(0))
+                .andExpect(jsonPath("$.pageSize").value(1))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.totalElements").value(1));
+    }
+
+    @Test
+    @DisplayName("getMemberComments - 팀 특정 멤버의 댓글 조회")
+    void getMemberComments_success() throws Exception {
+        LocalDateTime now = LocalDateTime.of(2025, 8, 14, 10, 0, 0);
+
+        List<MemberCommentResponse> content = new ArrayList<>();
+        content.add(new MemberCommentResponse(
+                1L,                 // id
+                "댓글 내용",         // content
+                2L,                 // authorId
+                "작성자닉네임",      // authorName
+                now,                // createdDate
+                false,              // isDeleted
+                3L,                 // postId
+                "게시글 제목",       // postTitle
+                4L,                 // categoryId
+                5L                  // teamId
+        ));
+
+        Page<MemberCommentResponse> commentPage = new PageImpl<>(content,
+                PageRequest.of(0, 10), content.size());
+
+        given(commentService.findCommentsByTeamAndMember(anyLong(), anyInt(), anyInt()))
+                .willReturn(commentPage);
+
+        mockMvc.perform(get("/member/teams/1/2/comments")
+                        .param("page", "0")
+                        .param("size", "10")
+                        .with(user(testPrincipal)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].id").value(1L))
+                .andExpect(jsonPath("$.content[0].content").value("댓글 내용"))
+                .andExpect(jsonPath("$.content[0].authorId").value(2L))
+                .andExpect(jsonPath("$.content[0].authorName").value("작성자닉네임"))
+                .andExpect(jsonPath("$.content[0].isDeleted").value(false))
+                .andExpect(jsonPath("$.content[0].postId").value(3L))
+                .andExpect(jsonPath("$.content[0].postTitle").value("게시글 제목"))
+                .andExpect(jsonPath("$.content[0].categoryId").value(4L))
+                .andExpect(jsonPath("$.content[0].teamId").value(5L))
+                .andExpect(jsonPath("$.currentPage").value(0))
+                .andExpect(jsonPath("$.pageSize").value(10))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.totalElements").value(content.size()));
     }
 
 
