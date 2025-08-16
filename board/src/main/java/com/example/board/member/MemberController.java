@@ -3,6 +3,7 @@ package com.example.board.member;
 import com.example.board.auth.UserPrincipal;
 import com.example.board.comment.CommentService;
 import com.example.board.comment.dto.MemberCommentResponse;
+import com.example.board.common.dto.PageResponse;
 import com.example.board.member.dto.MemberInfoResponse;
 import com.example.board.member.dto.MemberInfoSummaryResponse;
 import com.example.board.member.dto.PasswordChangeRequest;
@@ -75,21 +76,22 @@ public class MemberController {
     }
 
     @GetMapping("/teams/{teamId}/{teamMemberId}/posts")
-    public ResponseEntity<Page<PostListResponse>> getMemberPosts(
+    public ResponseEntity<PageResponse<PostListResponse>> getMemberPosts(
             @PathVariable("teamId") Long teamId, @PathVariable("teamMemberId") Long teamMemberId,
             @RequestParam(defaultValue = "0", name="page") int page,
             @RequestParam(defaultValue = "10", name = "size") int size){
-        return ResponseEntity.ok(postService.findPostsByTeamAndMember(teamMemberId, page, size));
+            Page<PostListResponse> postpage = postService.findPostsByTeamAndMember(teamMemberId, page, size);
+        return ResponseEntity.ok(PageResponse.from(postpage));
     }
 
     @GetMapping("/teams/{teamId}/{teamMemberId}/comments")
-    public ResponseEntity<Page<MemberCommentResponse>> getMemberComments(
+    public ResponseEntity<PageResponse<MemberCommentResponse>> getMemberComments(
             @PathVariable("teamId") Long teamId,
             @PathVariable("teamMemberId") Long teamMemberId,
             @RequestParam(defaultValue = "0", name="page") int page,
             @RequestParam(defaultValue = "10", name="size") int size) {
-
-        return ResponseEntity.ok(commentService.findCommentsByTeamAndMember(teamMemberId, page, size));
+            Page<MemberCommentResponse> commentPage = commentService.findCommentsByTeamAndMember(teamMemberId, page, size);
+        return ResponseEntity.ok(PageResponse.from(commentPage));
     }
 
     @GetMapping("/teams/{teamId}/member/{teamMemberId}")
