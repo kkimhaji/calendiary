@@ -1,5 +1,6 @@
 package com.example.board.post;
 
+import com.example.board.common.domain.BaseContentEntity;
 import com.example.board.common.domain.BaseTimeEntity;
 import com.example.board.comment.Comment;
 import com.example.board.common.exception.PostValidationException;
@@ -16,7 +17,7 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Post extends BaseTimeEntity {
+public class Post extends BaseContentEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -52,28 +53,14 @@ public class Post extends BaseTimeEntity {
     private List<PostImage> images = new ArrayList<>();
 
     private Post(String title, String content, Member author, TeamCategory category, Team team, TeamMember teamMember) {
-        if (title == null || title.trim().isEmpty()) {
-            throw new PostValidationException("Title cannot be null or empty.");
-        }
-        if (content == null || content.trim().isEmpty()) {
-            throw new PostValidationException("Title cannot be null or empty.");
-        }
-        if (author == null) {
-            throw new PostValidationException("Author cannot be null.");
-        }
-        if (category == null) {
-            throw new PostValidationException("Category cannot be null.");
-        }
-        if (team == null) {
-            throw new PostValidationException("Team cannot be null.");
-        }
-        this.title = title;
-        this.content = content;
-        this.author = author;
-        this.category = category;
-        this.team = team;
+
+        super(title, content, author);          // 공통 필드 초기화
+
+        validate(title, content, author, category, team);
+
+        this.category   = category;
+        this.team       = team;
         this.teamMember = teamMember;
-        this.viewCount = 0;
     }
 
     public static Post create(String title, String content, Member author, TeamCategory category, Team team, TeamMember teamMember) {
@@ -81,18 +68,12 @@ public class Post extends BaseTimeEntity {
     }
 
     public void update(String title, String content, TeamCategory category){
-        if (title == null || title.trim().isEmpty()) {
-            throw new PostValidationException("Title cannot be null or empty.");
-        }
-        if (content == null || content.trim().isEmpty()) {
-            throw new PostValidationException("Title cannot be null or empty.");
-        }
-        if (category == null) {
-            throw new PostValidationException("Category cannot be null.");
-        }
-        this.title = title;
-        this.content = content;
+
+        validate(title, content, getAuthor(), category, getTeam());
+
+        changeTitleAndContent(title, content);  // 부모 메서드로 변경
         this.category = category;
+
     }
 
     public void removeImage(PostImage image){
@@ -120,5 +101,25 @@ public class Post extends BaseTimeEntity {
     public void clearImages(){
         images.forEach(image -> image.setPost(null));
         images.clear();
+    }
+
+    private static void validate(String title, String content,
+                                 Member author, TeamCategory category, Team team) {
+
+        if (title == null || title.trim().isEmpty()) {
+            throw new PostValidationException("Title cannot be null or empty.");
+        }
+        if (content == null || content.trim().isEmpty()) {
+            throw new PostValidationException("Content cannot be null or empty.");
+        }
+        if (author == null) {
+            throw new PostValidationException("Author cannot be null.");
+        }
+        if (category == null) {
+            throw new PostValidationException("Category cannot be null.");
+        }
+        if (team == null) {
+            throw new PostValidationException("Team cannot be null.");
+        }
     }
 }
