@@ -2,10 +2,13 @@ package com.example.board.common.domain;
 
 import com.example.board.member.Member;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @MappedSuperclass
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class BaseContentEntity extends BaseTimeEntity {
 
     @Id

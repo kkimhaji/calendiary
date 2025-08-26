@@ -1,7 +1,6 @@
 package com.example.board.post;
 
 import com.example.board.common.domain.BaseContentEntity;
-import com.example.board.common.domain.BaseTimeEntity;
 import com.example.board.comment.Comment;
 import com.example.board.common.exception.PostValidationException;
 import com.example.board.member.Member;
@@ -18,19 +17,8 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Post extends BaseContentEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    @Column(nullable = false)
-    private String title;
-    @Lob //TEXT
-    private String content;
     @Column(name = "view_count", nullable = false)
     private int viewCount = 0;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "author_id")
-    private Member author;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="team_member_id")
