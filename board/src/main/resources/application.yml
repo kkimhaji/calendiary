@@ -46,9 +46,14 @@ security:
       expiration: 2592000000
 
 file:
-  upload:
-    location: ${FILE_LOCATION}
-    temp: ${FILE_UPLOAD_TEMP}
+  post:
+    upload:
+      location: ${FILE_LOCATION}
+      temp: ${FILE_UPLOAD_TEMP}
+  diary:
+    upload:
+      location: ${DIARY_FILE_LOCATION}
+      temp: ${DIARY_FILE_UPLOAD_TEMP}
 
 logging:
   level:

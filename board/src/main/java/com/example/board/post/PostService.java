@@ -5,6 +5,8 @@ import com.example.board.category.TeamCategory;
 import com.example.board.comment.CommentRepository;
 import com.example.board.common.service.EntityValidationService;
 import com.example.board.config.HtmlSanitizer;
+import com.example.board.image.ImageDomain;
+import com.example.board.image.ImageService;
 import com.example.board.member.Member;
 import com.example.board.permission.CategoryPermission;
 import com.example.board.permission.PermissionService;
@@ -205,7 +207,7 @@ public class PostService {
                 throw new IllegalArgumentException("잘못된 이미지 ID입니다.");
             }
             // 파일 시스템에서 파일 삭제
-            imageService.deleteImage(image.getStoredFileName());
+            imageService.deleteImage(image.getStoredFileName(), ImageDomain.POST);
             // 게시글에서 이미지 제거
             post.removeImage(image);
             // DB에서 이미지 정보 삭제
@@ -216,7 +218,7 @@ public class PostService {
     @Transactional
     private void addNewImages(Post post, List<MultipartFile> newImages) throws FileUploadException {
         for (MultipartFile image : newImages) {
-            String storedFileName = imageService.saveFile(image);
+            String storedFileName = imageService.saveFile(image, ImageDomain.POST);
             PostImage postImage = PostImage.createPostImage(post, image.getOriginalFilename(), storedFileName);
             post.addImage(postImage);
         }

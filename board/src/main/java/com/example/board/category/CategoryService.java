@@ -7,7 +7,7 @@ import com.example.board.common.exception.RoleNotFoundException;
 import com.example.board.common.service.EntityValidationService;
 import com.example.board.member.Member;
 import com.example.board.permission.CategoryPermission;
-import com.example.board.post.ImageService;
+import com.example.board.image.ImageService;
 import com.example.board.post.Post;
 import com.example.board.post.PostRepository;
 import com.example.board.role.CategoryPermissionRepository;

@@ -4,7 +4,7 @@ import com.example.board.comment.CommentRepository;
 import com.example.board.common.service.EntityValidationService;
 import com.example.board.member.Member;
 import com.example.board.member.dto.AddTeamMemberToRoleDTO;
-import com.example.board.post.ImageService;
+import com.example.board.image.ImageService;
 import com.example.board.post.Post;
 import com.example.board.post.PostRepository;
 import com.example.board.role.TeamRole;

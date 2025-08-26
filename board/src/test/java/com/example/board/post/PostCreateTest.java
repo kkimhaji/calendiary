@@ -2,6 +2,7 @@ package com.example.board.post;
 
 import com.example.board.category.TeamCategory;
 import com.example.board.config.HtmlSanitizer;
+import com.example.board.image.ImageService;
 import com.example.board.post.dto.CreatePostRequest;
 import com.example.board.role.TeamRole;
 import com.example.board.support.AbstractTestSupport;

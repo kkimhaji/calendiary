@@ -1,6 +1,8 @@
 package com.example.board.post;
 
 import com.example.board.auth.UserPrincipal;
+import com.example.board.image.ImageDomain;
+import com.example.board.image.ImageService;
 import com.example.board.post.dto.*;
 import com.example.board.post.enums.SearchType;
 import jakarta.validation.Valid;
@@ -10,7 +12,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -62,17 +63,17 @@ public class PostController {
         postService.deletePost(teamId, postId, categoryId);
     }
 
-    @PostMapping("/category/{categoryId}/posts/{postId}/images")
-    // CK Editor는 'upload'로 파일 전송
-    public ResponseEntity<ImageResponse> uploadImages(@RequestParam("upload") MultipartFile file) {
-        try {
-            return ResponseEntity.ok(imageService.savedImages(file));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(
-                    new ImageResponse(e.getMessage())
-            );
-        }
-    }
+//    @PostMapping("/category/{categoryId}/posts/{postId}/images")
+//    // CK Editor는 'upload'로 파일 전송
+//    public ResponseEntity<ImageResponse> uploadImages(@RequestParam("upload") MultipartFile file) {
+//        try {
+//            return ResponseEntity.ok(imageService.savedImages(file));
+//        } catch (Exception e) {
+//            return ResponseEntity.badRequest().body(
+//                    new ImageResponse(e.getMessage())
+//            );
+//        }
+//    }
 
 //    @PostMapping("/category/{categoryId}/posts/{postId}")
 //    public ResponseEntity<PostResponse> updatePost(@PathVariable(name="postId") Long postId, @PathVariable(name="teamId") Long teamId,
@@ -104,7 +105,7 @@ public class PostController {
     @PostMapping("/images/temp-upload")
     public ResponseEntity<String> uploadTempImage(@RequestParam("file") MultipartFile file) {
         try {
-            String imageUrl = imageService.uploadTempImage(file);
+            String imageUrl = imageService.uploadTempImage(file, ImageDomain.POST);
             return ResponseEntity.ok(imageUrl);
         } catch (IOException e) {
             return ResponseEntity.internalServerError().build();
@@ -115,7 +116,7 @@ public class PostController {
     @PostMapping("/images/confirm")
     public ResponseEntity<Void> confirmImage(@RequestBody String tempUrl) throws IOException {
         try {
-            imageService.moveToPermanent(tempUrl);
+            imageService.moveToPermanent(tempUrl, ImageDomain.POST);
             return ResponseEntity.ok().build();
         } catch (IOException e){
             return ResponseEntity.internalServerError().build();
