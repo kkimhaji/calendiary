@@ -11,24 +11,34 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
-    @Value("${file.upload.location}")
-    private String uploadPath;
-    @Value("${file.upload.temp}")
-    private String tempUpload;
+    @Value("${file.post.upload.location}")  private String postUploadDir;
+    @Value("${file.post.upload.temp}")      private String postTempDir;
+    @Value("${file.diary.upload.location}") private String diaryUploadDir;
+    @Value("${file.diary.upload.temp}")     private String diaryTempDir;
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/perm-images/**")
-                .addResourceLocations("file:" + uploadPath +"/");
 
-        registry.addResourceHandler("/temp-images/**")
-                .addResourceLocations("file:" + tempUpload + "/")
+        /* 게시판 이미지 */
+        registry.addResourceHandler("/post-images/**")
+                .addResourceLocations("file:" + postUploadDir + "/");
+
+        registry.addResourceHandler("/post-temp-images/**")
+                .addResourceLocations("file:" + postTempDir + "/")
+                .setCachePeriod(0);
+
+        /* 일기 이미지 */
+        registry.addResourceHandler("/diary-images/**")
+                .addResourceLocations("file:" + diaryUploadDir + "/");
+
+        registry.addResourceHandler("/diary-temp-images/**")
+                .addResourceLocations("file:" + diaryTempDir + "/")
                 .setCachePeriod(0);
     }
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("**")
+        registry.addMapping("/**")
                 .allowedOrigins("http://localhost:3000")
                 .allowedMethods("GET", "POST", "PUT", "DELETE")
                 .allowedHeaders("*")

@@ -1,12 +1,9 @@
 package com.example.board.image;
 
-import com.example.board.diary.Diary;
-import com.example.board.diary.DiaryImage;
-import com.example.board.post.Post;
-import com.example.board.post.PostImage;
-import com.example.board.post.dto.ImageResponse;
 import com.example.board.common.exception.FileDeleteException;
 import com.example.board.common.exception.InvalidFileTypeException;
+import com.example.board.post.Post;
+import com.example.board.post.PostImage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
@@ -30,14 +27,18 @@ import java.util.regex.Pattern;
 @Service
 @RequiredArgsConstructor
 public class ImageService {
+    private static final Pattern SRC_PATTERN = Pattern.compile("src=\"(.*?)\"");
     private final List<String> ALLOWED_EXTENSIONS = Arrays.asList("jpg", "jpeg", "png", "gif");
     // 게시판 경로
-    @Value("${file.post.upload.location}") private String postUploadDir;
-    @Value("${file.post.upload.temp}")     private String postTempDir;
-
+    @Value("${file.post.upload.location}")
+    private String postUploadDir;
+    @Value("${file.post.upload.temp}")
+    private String postTempDir;
     // 일기 경로
-    @Value("${file.diary.upload.location}") private String diaryUploadDir;
-    @Value("${file.diary.upload.temp}")     private String diaryTempDir;
+    @Value("${file.diary.upload.location}")
+    private String diaryUploadDir;
+    @Value("${file.diary.upload.temp}")
+    private String diaryTempDir;
 
     public String saveFile(MultipartFile file, ImageDomain domain) throws FileUploadException {
         validate(file.getOriginalFilename());
@@ -46,8 +47,11 @@ public class ImageService {
         Path dest = Paths.get(resolveUploadDir(domain), storedName)
                 .toAbsolutePath().normalize();
 
-        try { file.transferTo(dest); }
-        catch (IOException e) { throw new FileUploadException("Failed to store file", e); }
+        try {
+            file.transferTo(dest);
+        } catch (IOException e) {
+            throw new FileUploadException("Failed to store file", e);
+        }
 
         return storedName;   // DB에는 파일명만 보관
     }
@@ -100,7 +104,6 @@ public class ImageService {
         post.clearImages();
     }
 
-    private static final Pattern SRC_PATTERN = Pattern.compile("src=\"(.*?)\"");
     public List<String> extractImageUrlsFromContent(String html) {
         List<String> list = new ArrayList<>();
         Matcher m = SRC_PATTERN.matcher(html);
@@ -108,16 +111,21 @@ public class ImageService {
         return list;
     }
 
-    private String uuid(String original){
-        String ext = original.substring(original.lastIndexOf('.')+1);
+    private String uuid(String original) {
+        String ext = original.substring(original.lastIndexOf('.') + 1);
         return UUID.randomUUID() + "." + ext;
     }
 
-    private void validate(String filename){
-        String ext = filename.substring(filename.lastIndexOf('.')+1).toLowerCase();
-        if(!ALLOWED_EXTENSIONS.contains(ext)) throw new InvalidFileTypeException("Invalid type: "+ext);
+    private void validate(String filename) {
+        String ext = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
+        if (!ALLOWED_EXTENSIONS.contains(ext)) throw new InvalidFileTypeException("Invalid type: " + ext);
     }
 
-    private String resolveUploadDir(ImageDomain d){ return d==ImageDomain.POST ? postUploadDir  : diaryUploadDir; }
-    private String resolveTempDir  (ImageDomain d){ return d==ImageDomain.POST ? postTempDir    : diaryTempDir; }
+    private String resolveUploadDir(ImageDomain d) {
+        return d == ImageDomain.POST ? postUploadDir : diaryUploadDir;
+    }
+
+    private String resolveTempDir(ImageDomain d) {
+        return d == ImageDomain.POST ? postTempDir : diaryTempDir;
+    }
 }

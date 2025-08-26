@@ -50,24 +50,30 @@ public class PostService {
     private final EntityValidationService validationService;
 
     @Transactional
-    public Post createPost(Long teamId, Long categoryId, CreatePostRequest request, Member author) throws AccessDeniedException, IOException {
-        Team team = validationService.validateTeamExists(teamId);
-        TeamCategory category = validationService.validateCategoryExists(categoryId);
-        //이미지 처리
-        String processedContent = imageService.processContentImages(htmlSanitizer.sanitize(request.content()));
+    public Post createPost(Long teamId, Long categoryId,
+                           CreatePostRequest req, Member author) throws IOException {
 
-        TeamMember teamMember = teamMemberRepository.findByTeamIdAndMember(teamId, author)
+        Team team = validationService.validateTeamExists(teamId);
+        TeamCategory c = validationService.validateCategoryExists(categoryId);
+
+        String processed = imageService.processContentImages(
+                htmlSanitizer.sanitize(req.content()),
+                ImageDomain.POST);
+
+        TeamMember tm = teamMemberRepository
+                .findByTeamIdAndMember(teamId, author)
                 .orElseThrow(() -> new EntityNotFoundException("team member not found"));
 
-        Post post = Post.create(request.title(), request.content(), author, category, team, teamMember);
+        Post post = Post.create(req.title(), processed, author, c, team, tm);
 
-        List<String> permUrls = imageService.extractImageUrlsFromContent(processedContent).stream()
-                .filter(url -> url.contains("/perm-images/")).toList();
+        /* ▼ URL 필터 & 파일명 추출 방식 통일 */
+        List<String> permUrls = imageService.extractImageUrlsFromContent(processed).stream()
+                .filter(u -> u.startsWith(ImageDomain.POST.permPrefix()))
+                .toList();
 
-        for (String permUrl : permUrls) {
-            String fileName = permUrl.replace("/perm-images/", "");
-            PostImage postImage = PostImage.createPostImage(post, fileName, fileName);
-            post.addImage(postImage);
+        for (String url : permUrls) {
+            String fileName = url.substring(url.lastIndexOf('/') + 1);   // ← 변경
+            post.addImage(PostImage.createPostImage(post, fileName, fileName));
         }
 
         return postRepository.save(post);
@@ -170,7 +176,7 @@ public class PostService {
 
         //이미지 처리
         String sanitizedContent = htmlSanitizer.sanitize(requestDTO.content());
-        String processedContent = imageService.processContentImages(sanitizedContent);
+        String processedContent = imageService.processContentImages(sanitizedContent, ImageDomain.POST);
 
         //기존 이미지 중 삭제 대상 처리
         if (requestDTO.deleteImageIds() != null && !requestDTO.deleteImageIds().isEmpty()) {
@@ -185,15 +191,15 @@ public class PostService {
 
     // 새로운 이미지 처리 로직을 별도 메서드로 분리
     private void processNewImages(Post post, String processedContent) {
-        List<String> newImageUrls = imageService.extractImageUrlsFromContent(processedContent).stream()
-                .filter(url -> !post.getImages().stream()
-                        .anyMatch(img -> url.contains(img.getStoredFileName())))
+        List<String> newUrls = imageService.extractImageUrlsFromContent(processedContent).stream()
+                .filter(u -> u.startsWith(ImageDomain.POST.permPrefix()))
+                .filter(u -> post.getImages().stream()
+                        .noneMatch(img -> u.endsWith(img.getStoredFileName())))
                 .toList();
 
-        for (String url : newImageUrls) {
-            String fileName = url.replace("/perm-images/", "");
-            PostImage postImage = PostImage.createPostImage(post, fileName, fileName);
-            post.addImage(postImage);
+        for (String url : newUrls) {
+            String fileName = url.substring(url.lastIndexOf('/') + 1);   // ← 변경
+            post.addImage(PostImage.createPostImage(post, fileName, fileName));
         }
     }
 
