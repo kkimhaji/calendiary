@@ -31,7 +31,6 @@ public class Diary extends BaseContentEntity {
     private Diary(String title,
                   String content,
                   Member author,
-                  LocalDate entryDate,
                   Visibility visibility) {
 
         super(title, content, author);
@@ -41,10 +40,13 @@ public class Diary extends BaseContentEntity {
     public static Diary create(String title,
                                String content,
                                Member author,
-                               LocalDate entryDate,
                                Visibility visibility) {
 
-        return new Diary(title, content, author, entryDate, visibility);
+        return new Diary(title, content, author, visibility);
+    }
+
+    public void update(String title, String content){
+        changeTitleAndContent(title, content);
     }
 
     public void addImage(DiaryImage image) {
