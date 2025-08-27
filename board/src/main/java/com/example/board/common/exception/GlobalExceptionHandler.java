@@ -80,6 +80,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 
+    @ExceptionHandler(DiaryNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleDiaryNotFound(DiaryNotFoundException ex){
+        ErrorResponse errorResponse = new ErrorResponse("DIARY_NOT_FOUND", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
     @ExceptionHandler(NullPointerException.class)
     public ResponseEntity<ErrorResponse> handleNullPointerException(
             NullPointerException ex,

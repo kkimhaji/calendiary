@@ -5,6 +5,8 @@ import com.example.board.category.TeamCategory;
 import com.example.board.comment.Comment;
 import com.example.board.comment.CommentRepository;
 import com.example.board.common.exception.*;
+import com.example.board.diary.Diary;
+import com.example.board.diary.DiaryRepository;
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
 import com.example.board.post.Post;
@@ -25,6 +27,7 @@ public class EntityValidationService {
     private final TeamRoleRepository teamRoleRepository;
     private final CommentRepository commentRepository;
     private final MemberRepository memberRepository;
+    private final DiaryRepository diaryRepository;
 
     public Team validateTeamExists(Long teamId) {
         return teamRepository.findById(teamId)
@@ -59,6 +62,11 @@ public class EntityValidationService {
     public Member validateMemberExists(Long memberId) {
         return memberRepository.findById(memberId)
                 .orElseThrow(MemberNotFoundException::new);
+    }
+
+    public Diary validateDiaryExists(Long diaryId){
+        return diaryRepository.findById(diaryId)
+                .orElseThrow();
     }
 
     public void validatePostPath(Long teamId, Long categoryId, Long postId) {

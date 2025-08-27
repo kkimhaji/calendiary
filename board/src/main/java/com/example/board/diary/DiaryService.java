@@ -1,0 +1,150 @@
+package com.example.board.diary;
+
+import com.example.board.common.service.EntityValidationService;
+import com.example.board.config.HtmlSanitizer;
+import com.example.board.diary.dto.CreateDiaryRequest;
+import com.example.board.diary.dto.DiaryCalendarDTO;
+import com.example.board.diary.dto.DiaryDetailResponse;
+import com.example.board.diary.dto.UpdateDiaryRequest;
+import com.example.board.image.ImageDomain;
+import com.example.board.image.ImageService;
+import com.example.board.member.Member;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class DiaryService {
+    private final DiaryRepository diaryRepository;
+    private final DiaryImageRepository diaryImageRepository;
+    private final ImageService imageService;
+    private final HtmlSanitizer htmlSanitizer;
+    private final EntityValidationService validationService;
+
+
+    /* ——— CREATE ——— */
+    @Transactional
+    public Diary createDiary(CreateDiaryRequest req, Member author) throws IOException {
+
+        String sanitized = htmlSanitizer.sanitize(req.content());
+        String finalHtml = imageService.processContentImages(sanitized, ImageDomain.DIARY);
+
+        Diary diary = Diary.create(
+                req.title(),
+                finalHtml,
+                author,
+                req.visibility()
+        );
+
+        registerContentImages(diary, finalHtml);
+
+        return diaryRepository.save(diary);
+    }
+
+    /* ——— READ (상세) ——— */
+    public DiaryDetailResponse getDiary(Long diaryId, Member requester) {
+
+        Diary diary = validationService.validateDiaryExists(diaryId);
+
+        if (diary.getVisibility() == Visibility.PRIVATE &&
+                !diary.getAuthor().equals(requester)) {
+            throw new AccessDeniedException("권한이 없습니다.");
+        }
+        return DiaryDetailResponse.from(diary);
+    }
+
+    /* ——— UPDATE ——— */
+    @Transactional
+    public DiaryDetailResponse updateDiary(Long diaryId,
+                                           UpdateDiaryRequest req,
+                                           Member author) throws IOException {
+
+        Diary diary = validationService.validateDiaryExists(diaryId);
+
+        if (!diary.getAuthor().equals(author)) {
+            throw new AccessDeniedException("본인만 수정할 수 있습니다.");
+        }
+
+        String sanitized = htmlSanitizer.sanitize(req.content());
+        String finalHtml = imageService.processContentImages(sanitized, ImageDomain.DIARY);
+
+        if (req.deleteImageIds() != null && !req.deleteImageIds().isEmpty()) {
+            deleteImages(diary, req.deleteImageIds());
+        }
+
+        diary.update(req.title(), finalHtml);
+        diary.changeVisibility(req.visibility());
+
+        registerContentImages(diary, finalHtml);
+
+        return DiaryDetailResponse.from(diary);
+    }
+
+    /* ——— DELETE ——— */
+    @Transactional
+    public void deleteDiary(Long diaryId, Member author) throws IOException {
+
+        Diary diary = validationService.validateDiaryExists(diaryId);
+
+        if (!diary.getAuthor().equals(author)) {
+            throw new AccessDeniedException("본인만 삭제할 수 있습니다.");
+        }
+
+        for (DiaryImage img : diary.getImages()) {
+            imageService.deleteImage(img.getStoredFileName(), ImageDomain.DIARY);
+        }
+        diary.clearImages();
+
+        diaryRepository.delete(diary);
+    }
+
+    /* ——— MONTHLY CALENDAR ——— */
+    public List<DiaryCalendarDTO> findMonthlyDiaries(Member author,
+                                                     int year, int month) {
+
+        LocalDate start = LocalDate.of(year, month, 1);
+        LocalDate end   = start.plusMonths(1).minusDays(1);
+
+        return diaryRepository.findCalendarData(
+                author.getMemberId(),
+                start,
+                end);
+    }
+
+    //내부 이미지 처리
+    private void registerContentImages(Diary diary, String html) {
+
+        List<String> permUrls = imageService.extractImageUrlsFromContent(html).stream()
+                .filter(u -> u.startsWith(ImageDomain.DIARY.permPrefix()))
+                .toList();
+
+        for (String url : permUrls) {
+            String fileName = url.substring(url.lastIndexOf('/') + 1);
+            DiaryImage img = DiaryImage.create(diary, fileName, fileName);
+            diary.addImage(img);
+        }
+
+        permUrls.stream().findFirst().ifPresent(diary::setThumbnail);
+    }
+
+    private void deleteImages(Diary diary, List<Long> imageIds) throws IOException {
+
+        List<DiaryImage> images = diaryImageRepository.findAllByIdIn(imageIds);
+
+        for (DiaryImage img : images) {
+            if (!img.getDiary().getId().equals(diary.getId())) {
+                throw new IllegalArgumentException("잘못된 이미지 ID입니다.");
+            }
+            imageService.deleteImage(img.getStoredFileName(), ImageDomain.DIARY);
+            diary.removeImage(img);
+            diaryImageRepository.delete(img);
+        }
+    }
+}
