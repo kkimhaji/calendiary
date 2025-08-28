@@ -29,8 +29,6 @@ public class PostController {
     private final PostService postService;
     private final ImageService imageService;
     private final PostSearchService searchService;
-    @Value("${file.upload.temp}")
-    private String uploadTempDir;
 
     @PostMapping(value = "/category/{categoryId}/posts", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasPermission(#categoryId, 'TeamCategory', T(com.example.board.permission.CategoryPermission).CREATE_POST)")
@@ -73,17 +71,6 @@ public class PostController {
 //                    new ImageResponse(e.getMessage())
 //            );
 //        }
-//    }
-
-//    @PostMapping("/category/{categoryId}/posts/{postId}")
-//    public ResponseEntity<PostResponse> updatePost(@PathVariable(name="postId") Long postId, @PathVariable(name="teamId") Long teamId,
-//                                                   @RequestParam(value = "_method", defaultValue = "POST") String method,
-//                                                   @PathVariable(name="categoryId") Long categoryId, @Valid @ModelAttribute UpdatePostRequestDTO request,
-//                                                   @AuthenticationPrincipal UserPrincipal user) throws IOException {
-//        if (!"PUT".equals(method.toUpperCase())) {
-//            return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build();
-//        }
-//        return ResponseEntity.ok(postService.updatePost(categoryId, postId, request));
 //    }
 
     @PutMapping("/category/{categoryId}/posts/{postId}")
