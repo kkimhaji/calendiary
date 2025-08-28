@@ -2,14 +2,13 @@ package com.example.board.diary;
 
 import com.example.board.common.service.EntityValidationService;
 import com.example.board.config.HtmlSanitizer;
-import com.example.board.diary.dto.CreateDiaryRequest;
-import com.example.board.diary.dto.DiaryCalendarDTO;
-import com.example.board.diary.dto.DiaryDetailResponse;
-import com.example.board.diary.dto.UpdateDiaryRequest;
+import com.example.board.diary.dto.*;
 import com.example.board.image.ImageDomain;
 import com.example.board.image.ImageService;
 import com.example.board.member.Member;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -116,6 +115,10 @@ public class DiaryService {
                 author.getMemberId(),
                 start,
                 end);
+    }
+
+    public Page<DiaryListResponse> findByAuthor(Member author, Pageable pageable) {
+        return diaryRepository.findByAuthor(author.getMemberId(), pageable);
     }
 
     //내부 이미지 처리
