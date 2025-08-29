@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -54,7 +55,7 @@ public class DiaryService {
 
         if (diary.getVisibility() == Visibility.PRIVATE &&
                 !diary.getAuthor().equals(requester)) {
-            throw new AccessDeniedException("권한이 없습니다.");
+            throw new AccessDeniedException("본인만 열람할 수 있습니다.");
         }
         return DiaryDetailResponse.from(diary);
     }
@@ -105,16 +106,16 @@ public class DiaryService {
     }
 
     /* ——— MONTHLY CALENDAR ——— */
-    public List<DiaryCalendarDTO> findMonthlyDiaries(Member author,
-                                                     int year, int month) {
-
-        LocalDate start = LocalDate.of(year, month, 1);
-        LocalDate end   = start.plusMonths(1).minusDays(1);
+    public List<DiaryCalendarDTO> findMonthlyDiaries(Member author, int year, int month) {
+        // 월의 시작과 끝을 LocalDateTime으로 설정
+        LocalDateTime startDateTime = LocalDateTime.of(year, month, 1, 0, 0, 0);
+        LocalDateTime endDateTime = startDateTime.plusMonths(1); // 다음 달 1일 00:00:00
 
         return diaryRepository.findCalendarData(
                 author.getMemberId(),
-                start,
-                end);
+                startDateTime,
+                endDateTime
+        );
     }
 
     public Page<DiaryListResponse> findByAuthor(Member author, Pageable pageable) {

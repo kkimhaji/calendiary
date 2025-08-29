@@ -6,8 +6,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface DiaryRepository extends JpaRepository<Diary, Long> {
@@ -15,31 +16,33 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
     @Query("""
        select new com.example.board.diary.dto.DiaryCalendarDTO(
                d.id,
-               date(d.createdDate),
+               d.createdDate,
                d.thumbnailImageUrl,
                count(i)
        )
        from Diary d
        left join d.images i
        where d.author.memberId = :memberId
-         and date(d.createdDate) between :start and :end
-       group by d.id, date(d.createdDate), d.thumbnailImageUrl
+         and d.createdDate >= :startDateTime
+         and d.createdDate < :endDateTime
+       group by d.id, d.createdDate, d.thumbnailImageUrl
        """)
-    List<DiaryCalendarDTO> findCalendarData(Long memberId,
-                                            LocalDate start,
-                                            LocalDate end);
+    List<DiaryCalendarDTO> findCalendarData(@Param("memberId") Long memberId,
+                                            @Param("startDateTime") LocalDateTime startDateTime,
+                                            @Param("endDateTime") LocalDateTime endDateTime);
+
 
     /* 목록(무한 스크롤) */
     @Query("""
-           select new com.example.board.diary.dto.DiaryListResponse(
-                    d.id,
-                    d.title,
-                    d.createdDate,
-                    d.thumbnailImageUrl
-           )
-           from Diary d
-           where d.author.memberId = :memberId
-           order by d.createdDate desc
-           """)
-    Page<DiaryListResponse> findByAuthor(Long memberId, Pageable pageable);
+            select new com.example.board.diary.dto.DiaryListResponse(
+                     d.id,
+                     d.title,
+                     d.createdDate,
+                     d.thumbnailImageUrl
+            )
+            from Diary d
+            where d.author.memberId = :memberId
+            order by d.createdDate desc
+            """)
+    Page<DiaryListResponse> findByAuthor(@Param("memberId") Long memberId, Pageable pageable);
 }
