@@ -28,3 +28,12 @@ bezkoder:
     jwtSecret: testSecretKey
     jwtExpirationMs: 86400000
 
+file:
+  post:
+    upload:
+      location: /tmp/test/post/upload
+      temp: /tmp/test/post/temp
+  diary:
+    upload:
+      location: /tmp/test/diary/upload
+      temp: /tmp/test/diary/temp
