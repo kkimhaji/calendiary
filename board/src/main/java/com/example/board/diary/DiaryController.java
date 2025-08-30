@@ -33,20 +33,20 @@ public class DiaryController {
     }
 
     @GetMapping("/{diaryId}")
-    public ResponseEntity<DiaryDetailResponse> getDiary(@PathVariable Long diaryId,
+    public ResponseEntity<DiaryDetailResponse> getDiary(@PathVariable("diaryId") Long diaryId,
                                                         @AuthenticationPrincipal UserPrincipal user) {
         return ResponseEntity.ok(diaryService.getDiary(diaryId, user.getMember()));
     }
 
     @PutMapping("/{diaryId}")
-    public ResponseEntity<DiaryDetailResponse> updateDiary(@PathVariable Long diaryId,
+    public ResponseEntity<DiaryDetailResponse> updateDiary(@PathVariable("diaryId") Long diaryId,
                                                            @Valid @ModelAttribute UpdateDiaryRequest request,
                                                            @AuthenticationPrincipal UserPrincipal user) throws IOException {
         return ResponseEntity.ok(diaryService.updateDiary(diaryId, request, user.getMember()));
     }
 
     @DeleteMapping("/{diaryId}")
-    public ResponseEntity<Void> deleteDiary(@PathVariable Long diaryId,
+    public ResponseEntity<Void> deleteDiary(@PathVariable("diaryId") Long diaryId,
                                             @AuthenticationPrincipal UserPrincipal user) throws IOException {
         diaryService.deleteDiary(diaryId, user.getMember());
         return ResponseEntity.ok().build();
@@ -73,8 +73,8 @@ public class DiaryController {
 
     @GetMapping("/calendar")
     public ResponseEntity<List<DiaryCalendarDTO>> getMonthlyDiaries(
-            @RequestParam int year,
-            @RequestParam int month,
+            @RequestParam("year") int year,
+            @RequestParam("month") int month,
             @AuthenticationPrincipal UserPrincipal user) {
 
         return ResponseEntity.ok(diaryService.findMonthlyDiaries(user.getMember(), year, month));
