@@ -1,6 +1,7 @@
 package com.example.board.member;
 
 import com.example.board.auth.UserPrincipal;
+import com.example.board.common.exception.MemberNotFoundException;
 import com.example.board.member.dto.MemberInfoResponse;
 import com.example.board.member.dto.MemberInfoSummaryResponse;
 import com.example.board.member.dto.PasswordResetRequest;
@@ -39,7 +40,7 @@ public class MemberService {
     //임시 비밀번호 발급
     public void issueTempPassword(PasswordResetRequest request){
         String tmpPwd = emailService.generateRandomCode();
-        Member member = memberRepository.findByEmail(request.email()).orElseThrow(() -> new EntityNotFoundException("member with the email not found"));
+        Member member = memberRepository.findByEmail(request.email()).orElseThrow(() -> new MemberNotFoundException("member with the email not found"));
         updatePassword(member, tmpPwd);
         emailService.sendTempPasswordEmail(member, tmpPwd);
     }
@@ -55,5 +56,9 @@ public class MemberService {
     public MemberInfoResponse getInfoForAccountPage(UserPrincipal principal){
         Member member = principal.getMember();
         return new MemberInfoResponse(member.getMemberId(), member.getEmail(), member.getNickname());
+    }
+
+    public Member findByEmail(String email){
+        return memberRepository.findByEmail(email).orElseThrow(MemberNotFoundException::new);
     }
 }
