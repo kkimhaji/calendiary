@@ -66,7 +66,7 @@ public class EntityValidationService {
 
     public Diary validateDiaryExists(Long diaryId){
         return diaryRepository.findById(diaryId)
-                .orElseThrow();
+                .orElseThrow(DiaryNotFoundException::new);
     }
 
     public void validatePostPath(Long teamId, Long categoryId, Long postId) {
