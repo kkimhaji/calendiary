@@ -7,7 +7,6 @@ import com.example.board.post.dto.*;
 import com.example.board.post.enums.SearchType;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -32,7 +31,7 @@ public class PostController {
 
     @PostMapping(value = "/category/{categoryId}/posts", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasPermission(#categoryId, 'TeamCategory', T(com.example.board.permission.CategoryPermission).CREATE_POST)")
-    public ResponseEntity<Long> createPost(@PathVariable(name="teamId") Long teamId, @PathVariable(name="categoryId") @P("categoryId") Long categoryId,
+    public ResponseEntity<Long> createPost(@PathVariable(name = "teamId") Long teamId, @PathVariable(name = "categoryId") @P("categoryId") Long categoryId,
                                            @Valid @ModelAttribute CreatePostRequest request, @AuthenticationPrincipal UserPrincipal user) throws IOException {
         Post post = postService.createPost(teamId, categoryId, request, user.getMember());
         return ResponseEntity.ok(post.getId());
@@ -42,7 +41,7 @@ public class PostController {
     @GetMapping("/category/{categoryId}/recent")
     @PreAuthorize("hasPermission(#categoryId, 'TeamCategory', T(com.example.board.permission.CategoryPermission).VIEW_POST)")
     public ResponseEntity<CategoryRecentPostsResponse> getPosts(
-            @PathVariable(name="teamId") Long teamId, @PathVariable(name="categoryId") @P("categoryId") Long categoryId,
+            @PathVariable(name = "teamId") Long teamId, @PathVariable(name = "categoryId") @P("categoryId") Long categoryId,
             @PageableDefault(size = 20, sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         return ResponseEntity.ok(postService.getPostsByCategory(teamId, categoryId, pageable));
@@ -50,14 +49,14 @@ public class PostController {
 
     @GetMapping("/category/{categoryId}/posts/{postId}")
     @PreAuthorize("hasPermission(#categoryId, 'TeamCategory', T(com.example.board.permission.CategoryPermission).VIEW_POST)")
-    public ResponseEntity<PostDetailDTO> getPost(@PathVariable(name="postId") Long postId,
-                                                 @PathVariable(name = "categoryId") @P("categoryId") Long categoryId, @PathVariable(name="teamId") Long teamId) {
+    public ResponseEntity<PostDetailDTO> getPost(@PathVariable(name = "postId") Long postId,
+                                                 @PathVariable(name = "categoryId") @P("categoryId") Long categoryId, @PathVariable(name = "teamId") Long teamId) {
         return ResponseEntity.ok(postService.getPostDetail(teamId, categoryId, postId));
     }
 
     @DeleteMapping("/category/{categoryId}/posts/delete/{postId}")
-    public void deletePost(@PathVariable(name="teamId") Long teamId, @PathVariable(name="categoryId") @P("categoryId") Long categoryId,
-                           @PathVariable(name="postId") Long postId, @AuthenticationPrincipal UserPrincipal user) throws IOException {
+    public void deletePost(@PathVariable(name = "teamId") Long teamId, @PathVariable(name = "categoryId") @P("categoryId") Long categoryId,
+                           @PathVariable(name = "postId") Long postId, @AuthenticationPrincipal UserPrincipal user) throws IOException {
         postService.deletePost(teamId, postId, categoryId);
     }
 
@@ -74,8 +73,8 @@ public class PostController {
 //    }
 
     @PutMapping("/category/{categoryId}/posts/{postId}")
-    public ResponseEntity<PostResponse> updatePost(@PathVariable(name="postId") Long postId, @PathVariable(name="teamId") Long teamId,
-                                                   @PathVariable(name="categoryId") Long categoryId, @Valid @ModelAttribute UpdatePostRequestDTO request,
+    public ResponseEntity<PostResponse> updatePost(@PathVariable(name = "postId") Long postId, @PathVariable(name = "teamId") Long teamId,
+                                                   @PathVariable(name = "categoryId") Long categoryId, @Valid @ModelAttribute UpdatePostRequestDTO request,
                                                    @AuthenticationPrincipal UserPrincipal user) throws IOException {
         return ResponseEntity.ok(postService.updatePost(categoryId, postId, request));
     }
@@ -83,8 +82,8 @@ public class PostController {
     //팀의 최근 게시글 목록 조회
     @GetMapping("/recent")
     public ResponseEntity<TeamRecentPostsResponse> getRecentPosts(
-            @PathVariable(name="teamId") Long teamId,
-            @PageableDefault(size = 20, sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable){
+            @PathVariable(name = "teamId") Long teamId,
+            @PageableDefault(size = 20, sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(postService.getRecentPosts(teamId, pageable));
     }
 
@@ -95,17 +94,6 @@ public class PostController {
             String imageUrl = imageService.uploadTempImage(file, ImageDomain.POST);
             return ResponseEntity.ok(imageUrl);
         } catch (IOException e) {
-            return ResponseEntity.internalServerError().build();
-        }
-    }
-
-    //게시글을 저장할 때 임시 업로드 된 이미지를 이동
-    @PostMapping("/images/confirm")
-    public ResponseEntity<Void> confirmImage(@RequestBody String tempUrl) throws IOException {
-        try {
-            imageService.moveToPermanent(tempUrl, ImageDomain.POST);
-            return ResponseEntity.ok().build();
-        } catch (IOException e){
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -121,7 +109,7 @@ public class PostController {
                     direction = Sort.Direction.DESC
             ) Pageable pageable,
             @RequestParam(defaultValue = "BOTH", name = "type") SearchType searchType
-            ) {
+    ) {
         return ResponseEntity.ok(
                 searchService.searchPosts(teamId, keyword, categoryId, pageable, searchType)
         );

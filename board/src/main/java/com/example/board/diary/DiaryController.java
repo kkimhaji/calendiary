@@ -51,21 +51,12 @@ public class DiaryController {
         diaryService.deleteDiary(diaryId, user.getMember());
         return ResponseEntity.ok().build();
     }
+
     @PostMapping("/images/temp-upload")
     public ResponseEntity<String> uploadTempImage(@RequestParam("file") MultipartFile file) {
         try {
             String imageUrl = imageService.uploadTempImage(file, ImageDomain.DIARY);
             return ResponseEntity.ok(imageUrl);
-        } catch (IOException e) {
-            return ResponseEntity.internalServerError().build();
-        }
-    }
-
-    @PostMapping("/images/confirm")
-    public ResponseEntity<Void> confirmImage(@RequestBody String tempUrl) {
-        try {
-            imageService.moveToPermanent(tempUrl, ImageDomain.DIARY);
-            return ResponseEntity.ok().build();
         } catch (IOException e) {
             return ResponseEntity.internalServerError().build();
         }
