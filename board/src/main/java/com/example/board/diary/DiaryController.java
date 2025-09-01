@@ -25,12 +25,22 @@ public class DiaryController {
     private final DiaryService diaryService;
     private final ImageService imageService;
 
+//    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//    public ResponseEntity<Long> createDiary(@Valid @ModelAttribute CreateDiaryRequest request,
+//                                            @AuthenticationPrincipal UserPrincipal user) throws IOException {
+//        Diary diary = diaryService.createDiary(request, user.getMember());
+//        return ResponseEntity.ok(diary.getId());
+//    }
+
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Long> createDiary(@Valid @ModelAttribute CreateDiaryRequest request,
-                                            @AuthenticationPrincipal UserPrincipal user) throws IOException {
+    public ResponseEntity<Long> createDiary(
+            @RequestBody @Valid CreateDiaryRequest request,
+            @AuthenticationPrincipal UserPrincipal user) throws IOException {
+
         Diary diary = diaryService.createDiary(request, user.getMember());
         return ResponseEntity.ok(diary.getId());
     }
+
 
     @GetMapping("/{diaryId}")
     public ResponseEntity<DiaryDetailResponse> getDiary(@PathVariable("diaryId") Long diaryId,
@@ -38,10 +48,19 @@ public class DiaryController {
         return ResponseEntity.ok(diaryService.getDiary(diaryId, user.getMember()));
     }
 
+//    @PutMapping("/{diaryId}")
+//    public ResponseEntity<DiaryDetailResponse> updateDiary(@PathVariable("diaryId") Long diaryId,
+//                                                           @Valid @ModelAttribute UpdateDiaryRequest request,
+//                                                           @AuthenticationPrincipal UserPrincipal user) throws IOException {
+//        return ResponseEntity.ok(diaryService.updateDiary(diaryId, request, user.getMember()));
+//    }
+
     @PutMapping("/{diaryId}")
-    public ResponseEntity<DiaryDetailResponse> updateDiary(@PathVariable("diaryId") Long diaryId,
-                                                           @Valid @ModelAttribute UpdateDiaryRequest request,
-                                                           @AuthenticationPrincipal UserPrincipal user) throws IOException {
+    public ResponseEntity<DiaryDetailResponse> updateDiary(
+            @PathVariable("diaryId") Long diaryId,
+            @RequestBody @Valid UpdateDiaryRequest request,
+            @AuthenticationPrincipal UserPrincipal user) throws IOException {
+
         return ResponseEntity.ok(diaryService.updateDiary(diaryId, request, user.getMember()));
     }
 

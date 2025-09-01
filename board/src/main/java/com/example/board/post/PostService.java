@@ -3,6 +3,8 @@ package com.example.board.post;
 import com.example.board.auth.UserPrincipal;
 import com.example.board.category.TeamCategory;
 import com.example.board.comment.CommentRepository;
+import com.example.board.common.exception.PostValidationException;
+import com.example.board.common.exception.TeamMemberNotFoundException;
 import com.example.board.common.service.EntityValidationService;
 import com.example.board.config.HtmlSanitizer;
 import com.example.board.image.ImageDomain;
@@ -49,34 +51,79 @@ public class PostService {
     private final CommentRepository commentRepository;
     private final EntityValidationService validationService;
 
+//    @Transactional
+//    public Post createPost(Long teamId, Long categoryId,
+//                           CreatePostRequest req, Member author) throws IOException {
+//
+//        Team team = validationService.validateTeamExists(teamId);
+//        TeamCategory c = validationService.validateCategoryExists(categoryId);
+//
+//        String processed = imageService.processContentImages(
+//                htmlSanitizer.sanitize(req.content()),
+//                ImageDomain.POST);
+//
+//        TeamMember tm = teamMemberRepository
+//                .findByTeamIdAndMember(teamId, author)
+//                .orElseThrow(() -> new EntityNotFoundException("team member not found"));
+//
+//        Post post = Post.create(req.title(), processed, author, c, team, tm);
+//
+//        /* ▼ URL 필터 & 파일명 추출 방식 통일 */
+//        List<String> permUrls = imageService.extractImageUrlsFromContent(processed).stream()
+//                .filter(u -> u.startsWith(ImageDomain.POST.permPrefix()))
+//                .toList();
+//
+//        for (String url : permUrls) {
+//            String fileName = url.substring(url.lastIndexOf('/') + 1);   // ← 변경
+//            post.addImage(PostImage.createPostImage(post, fileName, fileName));
+//        }
+//
+//        return postRepository.save(post);
+//    }
+
     @Transactional
-    public Post createPost(Long teamId, Long categoryId,
-                           CreatePostRequest req, Member author) throws IOException {
-
+    public Post createPost(Long teamId, Long categoryId, CreatePostRequest req, Member author) throws IOException {
         Team team = validationService.validateTeamExists(teamId);
-        TeamCategory c = validationService.validateCategoryExists(categoryId);
+        TeamCategory category = validationService.validateCategoryExists(categoryId);
 
-        String processed = imageService.processContentImages(
-                htmlSanitizer.sanitize(req.content()),
-                ImageDomain.POST);
+        // HTML 콘텐츠 처리 (임시 → 영구 이미지 변환)
+        String sanitized = htmlSanitizer.sanitize(req.content());
+        String processedContent = imageService.processContentImages(sanitized, ImageDomain.POST);
 
-        TeamMember tm = teamMemberRepository
+        TeamMember teamMember = teamMemberRepository
                 .findByTeamIdAndMember(teamId, author)
-                .orElseThrow(() -> new EntityNotFoundException("team member not found"));
+                .orElseThrow(() -> new TeamMemberNotFoundException("team member not found"));
 
-        Post post = Post.create(req.title(), processed, author, c, team, tm);
+        Post post = Post.create(req.title(), processedContent, author, category, team, teamMember);
 
-        /* ▼ URL 필터 & 파일명 추출 방식 통일 */
-        List<String> permUrls = imageService.extractImageUrlsFromContent(processed).stream()
-                .filter(u -> u.startsWith(ImageDomain.POST.permPrefix()))
-                .toList();
-
-        for (String url : permUrls) {
-            String fileName = url.substring(url.lastIndexOf('/') + 1);   // ← 변경
-            post.addImage(PostImage.createPostImage(post, fileName, fileName));
-        }
+        // 새로운 이미지 등록
+        registerContentImages(post, processedContent);
 
         return postRepository.save(post);
+    }
+
+    @Transactional
+    public PostResponse updatePost(Long categoryId, Long postId, UpdatePostRequestDTO request) throws IOException {
+
+        Post post = validationService.validatePostExists(postId);
+        TeamCategory category = validationService.validateCategoryExists(categoryId);
+
+        // HTML 콘텐츠 처리
+        String sanitized = htmlSanitizer.sanitize(request.content());
+        String processedContent = imageService.processContentImages(sanitized, ImageDomain.POST);
+
+        // 기존 이미지 삭제 처리
+        if (!request.deleteImageIds().isEmpty()) {
+            deleteImages(post, request.deleteImageIds());
+        }
+
+        // 게시글 업데이트
+        post.update(request.title(), processedContent, category);
+
+        // 새로운 이미지 등록 (증분 방식)
+        registerNewContentImages(post, processedContent);
+
+        return PostResponse.from(postRepository.save(post));
     }
 
     //게시글 상세 조회
@@ -169,25 +216,25 @@ public class PostService {
         postRepository.deleteById(postId);
     }
 
-    @Transactional
-    public PostResponse updatePost(Long categoryId, Long postId, UpdatePostRequestDTO requestDTO) throws IOException {
-        Post post = validationService.validatePostExists(postId);
-        TeamCategory category = validationService.validateCategoryExists(categoryId);
-
-        //이미지 처리
-        String sanitizedContent = htmlSanitizer.sanitize(requestDTO.content());
-        String processedContent = imageService.processContentImages(sanitizedContent, ImageDomain.POST);
-
-        //기존 이미지 중 삭제 대상 처리
-        if (requestDTO.deleteImageIds() != null && !requestDTO.deleteImageIds().isEmpty()) {
-            deleteImages(post, requestDTO.deleteImageIds());
-        }
-        post.update(requestDTO.title(), processedContent, category);
-        // 새로운 이미지 처리
-        processNewImages(post, processedContent);
-
-        return PostResponse.from(postRepository.save(post));
-    }
+//    @Transactional
+//    public PostResponse updatePost(Long categoryId, Long postId, UpdatePostRequestDTO requestDTO) throws IOException {
+//        Post post = validationService.validatePostExists(postId);
+//        TeamCategory category = validationService.validateCategoryExists(categoryId);
+//
+//        //이미지 처리
+//        String sanitizedContent = htmlSanitizer.sanitize(requestDTO.content());
+//        String processedContent = imageService.processContentImages(sanitizedContent, ImageDomain.POST);
+//
+//        //기존 이미지 중 삭제 대상 처리
+//        if (requestDTO.deleteImageIds() != null && !requestDTO.deleteImageIds().isEmpty()) {
+//            deleteImages(post, requestDTO.deleteImageIds());
+//        }
+//        post.update(requestDTO.title(), processedContent, category);
+//        // 새로운 이미지 처리
+//        processNewImages(post, processedContent);
+//
+//        return PostResponse.from(postRepository.save(post));
+//    }
 
     // 새로운 이미지 처리 로직을 별도 메서드로 분리
     private void processNewImages(Post post, String processedContent) {
@@ -242,6 +289,30 @@ public class PostService {
     public Page<PostListResponse> findPostsByTeamAndMember(Long authorId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
         return postRepository.findPostListResponseByTeamMemberId(authorId, pageable);
+    }
+
+    private void registerContentImages(Post post, String processedContent) {
+        List<String> permUrls = imageService.extractImageUrlsFromContent(processedContent).stream()
+                .filter(u -> u.startsWith(ImageDomain.POST.permPrefix()))
+                .toList();
+
+        for (String url : permUrls) {
+            String fileName = url.substring(url.lastIndexOf('/') + 1);
+            post.addImage(PostImage.createPostImage(post, fileName, fileName));
+        }
+    }
+
+    private void registerNewContentImages(Post post, String processedContent) {
+        List<String> newUrls = imageService.extractImageUrlsFromContent(processedContent).stream()
+                .filter(u -> u.startsWith(ImageDomain.POST.permPrefix()))
+                .filter(u -> post.getImages().stream()
+                        .noneMatch(img -> u.endsWith(img.getStoredFileName())))
+                .toList();
+
+        for (String url : newUrls) {
+            String fileName = url.substring(url.lastIndexOf('/') + 1);
+            post.addImage(PostImage.createPostImage(post, fileName, fileName));
+        }
     }
 
     /**

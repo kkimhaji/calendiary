@@ -50,8 +50,6 @@ dependencies {
     testAnnotationProcessor 'org.projectlombok:lombok'
     testImplementation 'com.h2database:h2'
     testImplementation 'org.awaitility:awaitility:4.2.0'
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-
 }
 
 tasks.named('test') {

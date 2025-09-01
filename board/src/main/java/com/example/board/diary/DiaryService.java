@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -28,25 +27,63 @@ public class DiaryService {
     private final HtmlSanitizer htmlSanitizer;
     private final EntityValidationService validationService;
 
-
-    /* ——— CREATE ——— */
     @Transactional
     public Diary createDiary(CreateDiaryRequest req, Member author) throws IOException {
-
         String sanitized = htmlSanitizer.sanitize(req.content());
-        String finalHtml = imageService.processContentImages(sanitized, ImageDomain.DIARY);
+        String processedContent = imageService.processContentImages(sanitized, ImageDomain.DIARY);
 
-        Diary diary = Diary.create(
-                req.title(),
-                finalHtml,
-                author,
-                req.visibility()
-        );
+        Diary diary = Diary.create(req.title(), processedContent, author, req.visibility());
 
-        registerContentImages(diary, finalHtml);
+        registerContentImages(diary, processedContent);
 
         return diaryRepository.save(diary);
     }
+
+    @Transactional
+    public DiaryDetailResponse updateDiary(Long diaryId, UpdateDiaryRequest req, Member author) throws IOException {
+        Diary diary = validationService.validateDiaryExists(diaryId);
+
+        if (!diary.getAuthor().equals(author)) {
+            throw new AccessDeniedException("본인만 수정할 수 있습니다.");
+        }
+
+        String sanitized = htmlSanitizer.sanitize(req.content());
+        String processedContent = imageService.processContentImages(sanitized, ImageDomain.DIARY);
+
+        // 삭제할 이미지 처리
+        if (!req.deleteImageIds().isEmpty()) {
+            deleteImages(diary, req.deleteImageIds());
+        }
+
+        // 일기 업데이트
+        diary.update(req.title(), processedContent);
+        diary.changeVisibility(req.visibility());
+
+        // 새로운 이미지 등록 (증분 방식)
+        registerNewContentImages(diary, processedContent);
+
+        return DiaryDetailResponse.from(diary);
+    }
+
+
+    /* ——— CREATE ——— */
+//    @Transactional
+//    public Diary createDiary(CreateDiaryRequest req, Member author) throws IOException {
+//
+//        String sanitized = htmlSanitizer.sanitize(req.content());
+//        String finalHtml = imageService.processContentImages(sanitized, ImageDomain.DIARY);
+//
+//        Diary diary = Diary.create(
+//                req.title(),
+//                finalHtml,
+//                author,
+//                req.visibility()
+//        );
+//
+//        registerContentImages(diary, finalHtml);
+//
+//        return diaryRepository.save(diary);
+//    }
 
     /* ——— READ (상세) ——— */
     public DiaryDetailResponse getDiary(Long diaryId, Member requester) {
@@ -61,31 +98,31 @@ public class DiaryService {
     }
 
     /* ——— UPDATE ——— */
-    @Transactional
-    public DiaryDetailResponse updateDiary(Long diaryId,
-                                           UpdateDiaryRequest req,
-                                           Member author) throws IOException {
-
-        Diary diary = validationService.validateDiaryExists(diaryId);
-
-        if (!diary.getAuthor().equals(author)) {
-            throw new AccessDeniedException("본인만 수정할 수 있습니다.");
-        }
-
-        String sanitized = htmlSanitizer.sanitize(req.content());
-        String finalHtml = imageService.processContentImages(sanitized, ImageDomain.DIARY);
-
-        if (req.deleteImageIds() != null && !req.deleteImageIds().isEmpty()) {
-            deleteImages(diary, req.deleteImageIds());
-        }
-
-        diary.update(req.title(), finalHtml);
-        diary.changeVisibility(req.visibility());
-
-        registerContentImages(diary, finalHtml);
-
-        return DiaryDetailResponse.from(diary);
-    }
+//    @Transactional
+//    public DiaryDetailResponse updateDiary(Long diaryId,
+//                                           UpdateDiaryRequest req,
+//                                           Member author) throws IOException {
+//
+//        Diary diary = validationService.validateDiaryExists(diaryId);
+//
+//        if (!diary.getAuthor().equals(author)) {
+//            throw new AccessDeniedException("본인만 수정할 수 있습니다.");
+//        }
+//
+//        String sanitized = htmlSanitizer.sanitize(req.content());
+//        String finalHtml = imageService.processContentImages(sanitized, ImageDomain.DIARY);
+//
+//        if (req.deleteImageIds() != null && !req.deleteImageIds().isEmpty()) {
+//            deleteImages(diary, req.deleteImageIds());
+//        }
+//
+//        diary.update(req.title(), finalHtml);
+//        diary.changeVisibility(req.visibility());
+//
+//        registerContentImages(diary, finalHtml);
+//
+//        return DiaryDetailResponse.from(diary);
+//    }
 
     /* ——— DELETE ——— */
     @Transactional
@@ -151,4 +188,25 @@ public class DiaryService {
             diaryImageRepository.delete(img);
         }
     }
+
+    private void registerNewContentImages(Diary diary, String html) {
+        List<String> newUrls = imageService.extractImageUrlsFromContent(html).stream()
+                .filter(u -> u.startsWith(ImageDomain.DIARY.permPrefix()))
+                .filter(u -> diary.getImages().stream()
+                        .noneMatch(img -> u.endsWith(img.getStoredFileName())))
+                .toList();
+
+        for (String url : newUrls) {
+            String fileName = url.substring(url.lastIndexOf('/') + 1);
+            DiaryImage img = DiaryImage.create(diary, fileName, fileName);
+            diary.addImage(img);
+        }
+
+        // 썸네일 재설정
+        List<String> allUrls = imageService.extractImageUrlsFromContent(html).stream()
+                .filter(u -> u.startsWith(ImageDomain.DIARY.permPrefix()))
+                .toList();
+        allUrls.stream().findFirst().ifPresent(diary::setThumbnail);
+    }
+
 }

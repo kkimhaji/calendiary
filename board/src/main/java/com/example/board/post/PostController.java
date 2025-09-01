@@ -60,22 +60,21 @@ public class PostController {
         postService.deletePost(teamId, postId, categoryId);
     }
 
-//    @PostMapping("/category/{categoryId}/posts/{postId}/images")
-//    // CK Editor는 'upload'로 파일 전송
-//    public ResponseEntity<ImageResponse> uploadImages(@RequestParam("upload") MultipartFile file) {
-//        try {
-//            return ResponseEntity.ok(imageService.savedImages(file));
-//        } catch (Exception e) {
-//            return ResponseEntity.badRequest().body(
-//                    new ImageResponse(e.getMessage())
-//            );
-//        }
+//    @PutMapping("/category/{categoryId}/posts/{postId}")
+//    public ResponseEntity<PostResponse> updatePost(@PathVariable(name = "postId") Long postId, @PathVariable(name = "teamId") Long teamId,
+//                                                   @PathVariable(name = "categoryId") Long categoryId, @Valid @ModelAttribute UpdatePostRequestDTO request,
+//                                                   @AuthenticationPrincipal UserPrincipal user) throws IOException {
+//        return ResponseEntity.ok(postService.updatePost(categoryId, postId, request));
 //    }
+//
+    @PutMapping(path = "/category/{categoryId}/posts/{postId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<PostResponse> updatePost(
+            @PathVariable("postId") Long postId,
+            @PathVariable("teamId") Long teamId,
+            @PathVariable("categoryId") Long categoryId,
+            @RequestBody @Valid UpdatePostRequestDTO request,
+            @AuthenticationPrincipal UserPrincipal user) throws IOException {
 
-    @PutMapping("/category/{categoryId}/posts/{postId}")
-    public ResponseEntity<PostResponse> updatePost(@PathVariable(name = "postId") Long postId, @PathVariable(name = "teamId") Long teamId,
-                                                   @PathVariable(name = "categoryId") Long categoryId, @Valid @ModelAttribute UpdatePostRequestDTO request,
-                                                   @AuthenticationPrincipal UserPrincipal user) throws IOException {
         return ResponseEntity.ok(postService.updatePost(categoryId, postId, request));
     }
 
