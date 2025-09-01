@@ -17,6 +17,7 @@ import static org.hamcrest.Matchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class DiaryControllerTest extends AbstractControllerTestSupport {
@@ -139,6 +140,7 @@ class DiaryControllerTest extends AbstractControllerTestSupport {
                         })
                         .with(user(principal1))
                         .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andDo(print()) // 디버깅용 로그
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("수정된 제목"));
     }
