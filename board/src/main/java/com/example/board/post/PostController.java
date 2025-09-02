@@ -29,12 +29,11 @@ public class PostController {
     private final ImageService imageService;
     private final PostSearchService searchService;
 
-    @PostMapping(value = "/category/{categoryId}/posts", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping("/category/{categoryId}/posts")
     @PreAuthorize("hasPermission(#categoryId, 'TeamCategory', T(com.example.board.permission.CategoryPermission).CREATE_POST)")
-    public ResponseEntity<Long> createPost(@PathVariable(name = "teamId") Long teamId, @PathVariable(name = "categoryId") @P("categoryId") Long categoryId,
-                                           @Valid @ModelAttribute CreatePostRequest request, @AuthenticationPrincipal UserPrincipal user) throws IOException {
-        Post post = postService.createPost(teamId, categoryId, request, user.getMember());
-        return ResponseEntity.ok(post.getId());
+    public ResponseEntity<PostResponse> createPost(@PathVariable(name = "teamId") Long teamId, @PathVariable(name = "categoryId") @P("categoryId") Long categoryId,
+                                                   @RequestBody @Valid CreatePostRequest request, @AuthenticationPrincipal UserPrincipal user) throws IOException {
+        return ResponseEntity.ok(PostResponse.from(postService.createPost(teamId, categoryId, request, user.getMember())));
     }
 
     //카테고리의 글 조회
@@ -60,13 +59,6 @@ public class PostController {
         postService.deletePost(teamId, postId, categoryId);
     }
 
-//    @PutMapping("/category/{categoryId}/posts/{postId}")
-//    public ResponseEntity<PostResponse> updatePost(@PathVariable(name = "postId") Long postId, @PathVariable(name = "teamId") Long teamId,
-//                                                   @PathVariable(name = "categoryId") Long categoryId, @Valid @ModelAttribute UpdatePostRequestDTO request,
-//                                                   @AuthenticationPrincipal UserPrincipal user) throws IOException {
-//        return ResponseEntity.ok(postService.updatePost(categoryId, postId, request));
-//    }
-//
     @PutMapping(path = "/category/{categoryId}/posts/{postId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PostResponse> updatePost(
             @PathVariable("postId") Long postId,
