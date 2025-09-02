@@ -177,4 +177,14 @@ public class TestDataBuilder {
     public TeamRole getBasicRoleByTeam(Team team) {
         return teamRoleService.getRoleById(team.getBasicRoleId());
     }
+
+    public Team getCurrentTeam(){
+        Long teamId = getCurrentTestTeamId();
+        return teamRepository.findById(teamId).orElseThrow();
+    }
+
+    public TeamCategory getCurrentCategory(){
+        Long categoryId = getCurrentCategoryId();
+        return categoryRepository.findById(categoryId).orElseThrow();
+    }
 }

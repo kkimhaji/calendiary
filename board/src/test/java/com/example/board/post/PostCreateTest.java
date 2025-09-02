@@ -58,7 +58,7 @@ public class PostCreateTest extends AbstractTestSupport {
         String sanitizedContent = "Sanitized test post content";
 
         when(htmlSanitizer.sanitize(content)).thenReturn(content);
-        CreatePostRequest request = new CreatePostRequest(title, content, Collections.emptyList());
+        CreatePostRequest request = new CreatePostRequest(title, content);
         Post createdPost = postService.createPost(testTeam.getId(), testCategory.getId(), request, member2);
         // then
         assertThat(createdPost).isNotNull();
