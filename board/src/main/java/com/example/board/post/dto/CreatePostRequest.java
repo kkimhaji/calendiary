@@ -9,7 +9,6 @@ public record CreatePostRequest(
         @NotBlank(message = "제목은 필수입니다")
         String title,
         @NotBlank(message = "내용은 필수입니다")
-        String content,
-        List<MultipartFile> images
+        String content
 ) {
 }
