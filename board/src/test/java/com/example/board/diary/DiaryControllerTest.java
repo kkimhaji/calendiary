@@ -2,258 +2,419 @@ package com.example.board.diary;
 
 import com.example.board.common.exception.DiaryNotFoundException;
 import com.example.board.diary.dto.CreateDiaryRequest;
+import com.example.board.diary.dto.DiaryCalendarDTO;
+import com.example.board.diary.dto.DiaryDetailResponse;
+import com.example.board.diary.dto.UpdateDiaryRequest;
+import com.example.board.image.ImageService;
+import com.example.board.member.Member;
 import com.example.board.support.AbstractControllerTestSupport;
+import com.example.board.support.TestDataBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.test.web.servlet.MockMvc;
 
-import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.hamcrest.Matchers.*;
+import static com.example.board.diary.Visibility.PUBLIC;
+import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class DiaryControllerTest extends AbstractControllerTestSupport {
 
     @Autowired
+    private MockMvc mockMvc;
+    @Autowired
+    private ObjectMapper objectMapper;
+    @MockBean
     private DiaryService diaryService;
+    @Autowired
+    private TestDataBuilder testDataBuilder;
+    @MockBean
+    private ImageService imageService;
 
-    /* ===== CREATE 테스트 ===== */
     @Test
-    @DisplayName("일기 생성 - 성공")
     @WithMockUser(username = "test1@test.com")
-    void createDiary_Success() throws Exception {
+    @DisplayName("일기 생성 성공")
+    void createDiary_success() throws Exception {
         // Given
-        MockMultipartFile emptyFile = new MockMultipartFile("file", "", "application/octet-stream", new byte[0]);
+        CreateDiaryRequest request = new CreateDiaryRequest(
+                "오늘의 일기",
+                "<p>오늘은 좋은 하루였다.</p>",
+                PUBLIC
+        );
+        Member testMember = principal1.getMember();
+        Diary mockDiary = Diary.create("오늘의 일기", "<p>오늘은 좋은 하루였다.</p>", testMember, PUBLIC);
+        ReflectionTestUtils.setField(mockDiary, "id", 1L);
+
+        given(diaryService.createDiary(any(CreateDiaryRequest.class), any(Member.class)))
+                .willReturn(mockDiary);
 
         // When & Then
-        mockMvc.perform(multipart("/diary")
-                        .file(emptyFile)  // 빈 파일
-                        .param("title", "새로운 일기")
-                        .param("content", "오늘은 좋은 하루였다.")
-                        .param("visibility", "PRIVATE")
+        mockMvc.perform(post("/diary")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
                         .with(user(principal1))
-                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                        .with(csrf()))
                 .andExpect(status().isOk())
-                .andExpect(content().string(matchesPattern("\\d+")));
+                .andExpect(content().string("1"));
+
+        verify(diaryService).createDiary(any(CreateDiaryRequest.class), any(Member.class));
     }
 
     @Test
-    @DisplayName("일기 생성 - 실패 (빈 제목)")
     @WithMockUser(username = "test1@test.com")
-    void createDiary_Fail_EmptyTitle() throws Exception {
+    @DisplayName("일기 생성 실패 - 제목 누락")
+    void createDiary_missingTitle_badRequest() throws Exception {
+        // Given
+        CreateDiaryRequest request = new CreateDiaryRequest(
+                "", // 빈 제목
+                "내용입니다.",
+                Visibility.PRIVATE
+        );
 
         // When & Then
-        mockMvc.perform(multipart("/diary")
-                        .param("title", "")
-                        .param("content", "오늘은 좋은 하루였다.")
-                        .param("visibility", "PRIVATE")
+        mockMvc.perform(post("/diary")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
                         .with(user(principal1))
-                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                        .with(csrf()))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(username = "test1@test.com")
+    @DisplayName("일기 생성 실패 - visibility 누락")
+    void createDiary_missingVisibility_badRequest() throws Exception {
+        // Given - visibility가 null인 요청 (JSON에서 누락)
+        String invalidJson = "{\"title\":\"제목\",\"content\":\"내용\"}"; // visibility 없음
+
+        // When & Then
+        mockMvc.perform(post("/diary")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalidJson)
+                        .with(user(principal1))
+                        .with(csrf()))
                 .andExpect(status().isBadRequest());
     }
 
     /* ===== READ 테스트 ===== */
-    @Test
-    @DisplayName("일기 조회 - 성공")
-    @WithMockUser(username = "test1@test.com")
-    void getDiary_Success() throws Exception {
-        // Given
-        given(memberService.findByEmail("test1@test.com")).willReturn(member1);
 
-        CreateDiaryRequest request = new CreateDiaryRequest(
-                "테스트 일기", "테스트 내용", Visibility.PRIVATE);
-        Diary savedDiary = diaryService.createDiary(request, member1);
+    @Test
+    @WithMockUser(username = "test1@test.com")
+    @DisplayName("일기 상세 조회 성공")
+    void getDiary_success() throws Exception {
+        // Given
+        Long diaryId = 1L;
+        DiaryDetailResponse mockResponse = new DiaryDetailResponse(
+                diaryId,
+                "일기 제목",
+                "<p>일기 내용</p>",
+                "테스트사용자",
+                LocalDateTime.of(2025, 9, 3, 14, 30),
+                "PUBLIC",
+                Arrays.asList("https://example.com/image1.jpg", "https://example.com/image2.jpg")
+        );
+
+        given(diaryService.getDiary(eq(diaryId), any(Member.class)))
+                .willReturn(mockResponse);
 
         // When & Then
-        mockMvc.perform(get("/diary/{diaryId}", savedDiary.getId())
-                        .with(user(principal1))
-                        .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/diary/{diaryId}", diaryId)
+                        .with(user(principal1)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("테스트 일기"))
-                .andExpect(jsonPath("$.content").value("테스트 내용"));
+                .andExpect(jsonPath("$.diaryId").value(diaryId))
+                .andExpect(jsonPath("$.title").value("일기 제목"))
+                .andExpect(jsonPath("$.content").value("<p>일기 내용</p>"))
+                .andExpect(jsonPath("$.authorNickname").value("테스트사용자"))
+                .andExpect(jsonPath("$.visibility").value("PUBLIC"))
+                .andExpect(jsonPath("$.imageUrls", hasSize(2)))
+                .andExpect(jsonPath("$.imageUrls[0]").value("https://example.com/image1.jpg"));
+
+        verify(diaryService).getDiary(eq(diaryId), any(Member.class));
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("일기 조회 실패 - 존재하지 않는 일기")
+    void getDiary_notFound() throws Exception {
+        // Given
+        Long diaryId = 999L;
+
+        given(diaryService.getDiary(eq(diaryId), any(Member.class)))
+                .willThrow(new DiaryNotFoundException());
+
+        // When & Then
+        mockMvc.perform(get("/diary/{diaryId}", diaryId)
+                        .with(user(principal1)))
+                .andExpect(status().isNotFound());
     }
 
     @Test
     @DisplayName("일기 조회 - 실패 (권한 없음)")
-    @WithMockUser(username = "test2@test.com")
     void getDiary_Fail_AccessDenied() throws Exception {
         // Given
-        CreateDiaryRequest request = new CreateDiaryRequest(
-                "비공개 일기", "비밀 내용", Visibility.PRIVATE);
-        Diary savedDiary = diaryService.createDiary(request, member1);
+        Long diaryId = 1L;
+
+        // ✅ 권한 없음 예외를 던지도록 Mock 설정
+        given(diaryService.getDiary(eq(diaryId), any(Member.class)))
+                .willThrow(new AccessDeniedException("본인만 열람할 수 있습니다."));
 
         // When & Then
-        mockMvc.perform(get("/diary/{diaryId}", savedDiary.getId())
+        mockMvc.perform(get("/diary/{diaryId}", diaryId)
                         .with(user(principal2)))
                 .andExpect(status().isForbidden());
+
+        verify(diaryService).getDiary(eq(diaryId), any(Member.class));
     }
 
     @Test
     @DisplayName("일기 조회 - 성공 (공개 일기)")
-    @WithMockUser(username = "test2@test.com")
     void getDiary_Success_PublicDiary() throws Exception {
         // Given
-        CreateDiaryRequest request = new CreateDiaryRequest(
-                "공개 일기", "모두가 볼 수 있는 내용", Visibility.PUBLIC);
-        Diary savedDiary = diaryService.createDiary(request, member1);
+        Long diaryId = 2L;
+
+        // ✅ 공개 일기 응답 Mock 설정
+        DiaryDetailResponse publicDiaryResponse = new DiaryDetailResponse(
+                diaryId,
+                "공개 일기",
+                "모두가 볼 수 있는 내용",
+                "테스트사용자1", // 원작성자
+                LocalDateTime.of(2025, 9, 3, 10, 30),
+                "PUBLIC",
+                List.of("https://example.com/public-image.jpg")
+        );
+
+        given(diaryService.getDiary(eq(diaryId), any(Member.class)))
+                .willReturn(publicDiaryResponse);
 
         // When & Then
-        mockMvc.perform(get("/diary/{diaryId}", savedDiary.getId())
+        mockMvc.perform(get("/diary/{diaryId}", diaryId)
                         .with(user(principal2)))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.diaryId").value(diaryId))
                 .andExpect(jsonPath("$.title").value("공개 일기"))
-                .andExpect(jsonPath("$.visibility").value("PUBLIC"));
+                .andExpect(jsonPath("$.content").value("모두가 볼 수 있는 내용"))
+                .andExpect(jsonPath("$.visibility").value("PUBLIC"))
+                .andExpect(jsonPath("$.authorNickname").value("테스트사용자1"));
+
+        verify(diaryService).getDiary(eq(diaryId), any(Member.class));
+    }
+
+    @Test
+    @DisplayName("일기 조회 - 성공 (작성자 본인)")
+    @WithMockUser(username = "test1@test.com")
+    void getDiary_Success_AuthorAccess() throws Exception {
+        // Given - 작성자 본인으로 인증 설정
+        Long diaryId = 1L;
+
+        DiaryDetailResponse privateDiaryResponse = new DiaryDetailResponse(
+                diaryId,
+                "비공개 일기",
+                "비밀 내용",
+                "작성자",
+                LocalDateTime.of(2025, 9, 3, 10, 30),
+                "PRIVATE",
+                Collections.emptyList()
+        );
+
+        given(diaryService.getDiary(eq(diaryId), any(Member.class)))
+                .willReturn(privateDiaryResponse);
+
+        // When & Then
+        mockMvc.perform(get("/diary/{diaryId}", diaryId)
+                        .with(user(principal1)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.diaryId").value(diaryId))
+                .andExpect(jsonPath("$.title").value("비공개 일기"))
+                .andExpect(jsonPath("$.visibility").value("PRIVATE"));
     }
 
     /* ===== UPDATE 테스트 ===== */
     @Test
-    @DisplayName("일기 수정 - 성공")
-    @WithMockUser(username = "test1@test.com")
-    void updateDiary_Success() throws Exception {
+    @DisplayName("일기 수정 성공")
+    void updateDiary_success() throws Exception {
         // Given
-        given(memberService.findByEmail("test1@test.com")).willReturn(member1);
+        Long diaryId = 1L;
+        UpdateDiaryRequest request = new UpdateDiaryRequest(
+                "수정된 제목", "<p>수정된 내용</p>",
+                Visibility.PRIVATE, Arrays.asList(1L, 2L)
+        );
 
-        CreateDiaryRequest createRequest = new CreateDiaryRequest(
-                "원본 제목", "원본 내용", Visibility.PRIVATE);
-        Diary savedDiary = diaryService.createDiary(createRequest, member1);
+        DiaryDetailResponse mockResponse = new DiaryDetailResponse(
+                diaryId, "수정된 제목", "<p>수정된 내용</p>",
+                "테스트사용자", LocalDateTime.now(), "PRIVATE",
+                Collections.emptyList()
+        );
 
-        MockMultipartFile emptyFile = new MockMultipartFile("file", "", "application/octet-stream", new byte[0]);
+        given(diaryService.updateDiary(eq(diaryId), any(), any())).willReturn(mockResponse);
 
         // When & Then
-        mockMvc.perform(multipart("/diary/{diaryId}", savedDiary.getId())
-                        .file(emptyFile)
-                        .param("title", "수정된 제목")
-                        .param("content", "수정된 내용")
-                        .param("visibility", "PUBLIC")
-                        .param("deleteImageIds", "")
-                        .with(request -> {
-                            request.setMethod("PUT");
-                            return request;
-                        })
-                        .with(user(principal1))
-                        .contentType(MediaType.MULTIPART_FORM_DATA))
-                .andDo(print()) // 디버깅용 로그
+        mockMvc.perform(put("/diary/{diaryId}", diaryId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(csrf())
+                        .with(user(principal1)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("수정된 제목"));
     }
 
     @Test
-    @DisplayName("일기 수정 - 실패 (권한 없음)")
-    @WithMockUser(username = "test2@test.com")
-    void updateDiary_Fail_AccessDenied() throws Exception {
+    @DisplayName("일기 수정 - 실패 (다른 사용자의 일기)")
+    void updateDiary_Fail_NotAuthor() throws Exception {
         // Given
-        CreateDiaryRequest createRequest = new CreateDiaryRequest(
-                "원본 제목", "원본 내용", Visibility.PRIVATE);
-        Diary savedDiary = diaryService.createDiary(createRequest, member1);
+        Long diaryId = 1L;
+        UpdateDiaryRequest request = new UpdateDiaryRequest(
+                "수정 시도", "수정 내용", Visibility.PRIVATE, Collections.emptyList()
+        );
+
+        given(diaryService.updateDiary(eq(diaryId), any(UpdateDiaryRequest.class), any(Member.class)))
+                .willThrow(new AccessDeniedException("다른 사용자의 일기를 수정할 수 없습니다."));
 
         // When & Then
-        mockMvc.perform(multipart("/diary/{diaryId}", savedDiary.getId())
-                        .param("title", "인증X")
-                        .with(request -> {
-                            request.setMethod("PUT");
-                            return request;
-                        })
+        mockMvc.perform(put("/diary/{diaryId}", diaryId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(csrf())
                         .with(user(principal2)))
                 .andExpect(status().isForbidden());
     }
 
     /* ===== DELETE 테스트 ===== */
     @Test
-    @DisplayName("일기 삭제 - 성공")
-    @WithMockUser(username = "test1@test.com")
-    void deleteDiary_Success() throws Exception {
+    @DisplayName("일기 삭제 성공")
+    void deleteDiary_success() throws Exception {
         // Given
-        CreateDiaryRequest createRequest = new CreateDiaryRequest(
-                "삭제할 일기", "삭제될 내용", Visibility.PRIVATE);
-        Diary savedDiary = diaryService.createDiary(createRequest, member1);
-        Long diaryId = savedDiary.getId();
+        Long diaryId = 1L;
+        doNothing().when(diaryService).deleteDiary(eq(diaryId), any());
 
-        // When
+        // When & Then
         mockMvc.perform(delete("/diary/{diaryId}", diaryId)
+                        .with(csrf())
                         .with(user(principal1)))
                 .andExpect(status().isOk());
 
-        // Then - 삭제 후 조회 시도
-        assertThatThrownBy(() -> diaryService.getDiary(diaryId, member1))
-                .isInstanceOf(DiaryNotFoundException.class);
+        verify(diaryService).deleteDiary(eq(diaryId), any());
     }
 
     @Test
-    @DisplayName("일기 삭제 - 실패 (권한 없음)")
-    @WithMockUser(username = "test2@test.com")
-    void deleteDiary_Fail_AccessDenied() throws Exception {
+    @DisplayName("일기 삭제 - 실패 (다른 사용자의 일기)")
+    void deleteDiary_Fail_NotAuthor() throws Exception {
         // Given
-        CreateDiaryRequest createRequest = new CreateDiaryRequest(
-                "삭제 시도할 일기", "내용", Visibility.PRIVATE);
-        Diary savedDiary = diaryService.createDiary(createRequest, member1);
+        Long diaryId = 1L;
+
+        doThrow(new AccessDeniedException("다른 사용자의 일기를 삭제할 수 없습니다."))
+                .when(diaryService).deleteDiary(eq(diaryId), any(Member.class));
 
         // When & Then
-        mockMvc.perform(delete("/diary/{diaryId}", savedDiary.getId())
+        mockMvc.perform(delete("/diary/{diaryId}", diaryId)
+                        .with(csrf())
                         .with(user(principal2)))
                 .andExpect(status().isForbidden());
     }
 
-    /* ===== IMAGE 테스트 ===== */
-    @Test
-    @DisplayName("임시 이미지 업로드 - 성공")
-    @WithMockUser(username = "test2@test.com")
-    void uploadTempImage_Success() throws Exception {
-        // Given
-        MockMultipartFile imageFile = new MockMultipartFile(
-                "file",
-                "test-image.jpg",
-                "image/jpeg",
-                "fake image content".getBytes(StandardCharsets.UTF_8)
-        );
-
-        // When & Then
-        mockMvc.perform(multipart("/diary/images/temp-upload")
-                        .file(imageFile))
-                .andExpect(status().isOk())
-                .andExpect(content().string(containsString("/diary-temp-images/")));
-    }
-
     /* ===== CALENDAR 테스트 ===== */
     @Test
-    @DisplayName("월별 달력 조회 - 성공")
-    @WithMockUser(username = "test1@test.com")
-    void getMonthlyDiaries_Success() throws Exception {
+    @WithMockUser
+    @DisplayName("월별 일기 조회 성공")
+    void getMonthlyDiaries_success() throws Exception {
         // Given
-        CreateDiaryRequest request1 = new CreateDiaryRequest(
-                "8월 일기1", "내용1", Visibility.PRIVATE);
-        CreateDiaryRequest request2 = new CreateDiaryRequest(
-                "8월 일기2", "내용2", Visibility.PUBLIC);
+        int year = 2025;
+        int month = 9;
 
-        diaryService.createDiary(request1, member1);
-        diaryService.createDiary(request2, member1);
+        List<DiaryCalendarDTO> mockDiaries = Arrays.asList(
+                new DiaryCalendarDTO(
+                        1L,
+                        LocalDateTime.of(2025, 9, 1, 14, 30),
+                        "https://example.com/thumbnail1.jpg",
+                        3L
+                ),
+                new DiaryCalendarDTO(
+                        2L,
+                        LocalDateTime.of(2025, 9, 15, 10, 15),
+                        "https://example.com/thumbnail2.jpg",
+                        1L
+                ),
+                new DiaryCalendarDTO(
+                        3L,
+                        LocalDateTime.of(2025, 9, 30, 20, 45),
+                        null, // 썸네일 없음
+                        0L
+                )
+        );
+
+        given(diaryService.findMonthlyDiaries(any(Member.class), eq(year), eq(month)))
+                .willReturn(mockDiaries);
 
         // When & Then
         mockMvc.perform(get("/diary/calendar")
-                        .param("year", "2025")
-                        .param("month", "8")
+                        .param("year", String.valueOf(year))
+                        .param("month", String.valueOf(month))
                         .with(user(principal1)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(2))))
-                .andExpect(jsonPath("$[0].diaryId").exists())
-                .andExpect(jsonPath("$[0].createdDateTime").exists());
+                .andExpect(jsonPath("$", hasSize(3)))
+                .andExpect(jsonPath("$[0].diaryId").value(1L))
+                .andExpect(jsonPath("$[0].thumbnailImageUrl").value("https://example.com/thumbnail1.jpg"))
+                .andExpect(jsonPath("$[0].imageCount").value(3L))
+                .andExpect(jsonPath("$[1].diaryId").value(2L))
+                .andExpect(jsonPath("$[1].imageCount").value(1L))
+                .andExpect(jsonPath("$[2].diaryId").value(3L))
+                .andExpect(jsonPath("$[2].thumbnailImageUrl").doesNotExist()) // null 값
+                .andExpect(jsonPath("$[2].imageCount").value(0L));
+
+        verify(diaryService).findMonthlyDiaries(any(Member.class), eq(year), eq(month));
     }
 
     @Test
-    @DisplayName("월별 달력 조회 - 잘못된 매개변수")
-    @WithMockUser(username = "test1@test.com")
-    void getMonthlyDiaries_Fail_InvalidParams() throws Exception {
+    @DisplayName("월별 일기 조회 성공 - 빈 결과")
+    void getMonthlyDiaries_emptyResult() throws Exception {
+        // Given
+        int year = 2025;
+        int month = 1;
+
+        given(diaryService.findMonthlyDiaries(any(Member.class), eq(year), eq(month)))
+                .willReturn(Collections.emptyList());
+
         // When & Then
         mockMvc.perform(get("/diary/calendar")
-                        .param("year", "invalid")
-                        .param("month", "13")
+                        .param("year", String.valueOf(year))
+                        .param("month", String.valueOf(month))
+                        .with(user(principal1)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    @Test
+    @WithMockUser(username = "test1@test.com")
+    @DisplayName("월별 일기 조회 실패 - 잘못된 파라미터")
+    void getMonthlyDiaries_invalidParameters() throws Exception {
+        // When & Then - 잘못된 월
+        mockMvc.perform(get("/diary/calendar")
+                        .param("year", "2025")
+                        .param("month", "13") // 잘못된 월
+                        .with(user(principal1)))
+                .andExpect(status().isBadRequest());
+
+        // When & Then - 음수 월
+        mockMvc.perform(get("/diary/calendar")
+                        .param("year", "2025")
+                        .param("month", "0") // 잘못된 월
                         .with(user(principal1)))
                 .andExpect(status().isBadRequest());
     }
