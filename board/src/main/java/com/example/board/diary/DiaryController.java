@@ -8,10 +8,12 @@ import com.example.board.diary.dto.UpdateDiaryRequest;
 import com.example.board.image.ImageDomain;
 import com.example.board.image.ImageService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,18 +23,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/diary")
 @RequiredArgsConstructor
+@Validated
 public class DiaryController {
     private final DiaryService diaryService;
     private final ImageService imageService;
 
-//    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-//    public ResponseEntity<Long> createDiary(@Valid @ModelAttribute CreateDiaryRequest request,
-//                                            @AuthenticationPrincipal UserPrincipal user) throws IOException {
-//        Diary diary = diaryService.createDiary(request, user.getMember());
-//        return ResponseEntity.ok(diary.getId());
-//    }
-
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping
     public ResponseEntity<Long> createDiary(
             @RequestBody @Valid CreateDiaryRequest request,
             @AuthenticationPrincipal UserPrincipal user) throws IOException {
@@ -47,13 +43,6 @@ public class DiaryController {
                                                         @AuthenticationPrincipal UserPrincipal user) {
         return ResponseEntity.ok(diaryService.getDiary(diaryId, user.getMember()));
     }
-
-//    @PutMapping("/{diaryId}")
-//    public ResponseEntity<DiaryDetailResponse> updateDiary(@PathVariable("diaryId") Long diaryId,
-//                                                           @Valid @ModelAttribute UpdateDiaryRequest request,
-//                                                           @AuthenticationPrincipal UserPrincipal user) throws IOException {
-//        return ResponseEntity.ok(diaryService.updateDiary(diaryId, request, user.getMember()));
-//    }
 
     @PutMapping("/{diaryId}")
     public ResponseEntity<DiaryDetailResponse> updateDiary(
@@ -84,7 +73,7 @@ public class DiaryController {
     @GetMapping("/calendar")
     public ResponseEntity<List<DiaryCalendarDTO>> getMonthlyDiaries(
             @RequestParam("year") int year,
-            @RequestParam("month") int month,
+            @RequestParam("month") @Min(1) @Max(12) int month,
             @AuthenticationPrincipal UserPrincipal user) {
 
         return ResponseEntity.ok(diaryService.findMonthlyDiaries(user.getMember(), year, month));

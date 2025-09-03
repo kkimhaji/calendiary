@@ -6,8 +6,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -16,7 +21,28 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse("REFRESH_TOKEN_EXPIRED", ex.getMessage());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
     }
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException ex) {
+        List<String> errors = ex.getConstraintViolations()
+                .stream()
+                .map(ConstraintViolation::getMessage)
+                .collect(Collectors.toList());
 
+        ErrorResponse error = new ErrorResponse(
+                "VALIDATION_ERROR",
+                String.join(", ", errors)
+        );
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        ErrorResponse error = new ErrorResponse(
+                "TYPE_MISMATCH",
+                ex.getName() + " 매개변수의 값이 올바르지 않습니다."
+        );
+        return ResponseEntity.badRequest().body(error);
+    }
     @ExceptionHandler(PostValidationException.class)
     public ResponseEntity<ErrorResponse> handlePostValidation(PostValidationException ex) {
         ErrorResponse errorResponse = new ErrorResponse("INVALID_POST_DATA", ex.getMessage());
