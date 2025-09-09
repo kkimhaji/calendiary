@@ -1,7 +1,6 @@
 package com.example.board.post;
 
 import com.example.board.auth.UserPrincipal;
-import com.example.board.image.ImageDomain;
 import com.example.board.image.ImageService;
 import com.example.board.post.dto.*;
 import com.example.board.post.enums.SearchType;
@@ -17,7 +16,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
@@ -76,17 +74,6 @@ public class PostController {
             @PathVariable(name = "teamId") Long teamId,
             @PageableDefault(size = 20, sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(postService.getRecentPosts(teamId, pageable));
-    }
-
-    //이미지 임시 업로드
-    @PostMapping("/images/temp-upload")
-    public ResponseEntity<String> uploadTempImage(@RequestParam("file") MultipartFile file) {
-        try {
-            String imageUrl = imageService.uploadTempImage(file, ImageDomain.POST);
-            return ResponseEntity.ok(imageUrl);
-        } catch (IOException e) {
-            return ResponseEntity.internalServerError().build();
-        }
     }
 
     @GetMapping("/posts/search")
