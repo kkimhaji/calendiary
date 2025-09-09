@@ -2,7 +2,6 @@ package com.example.board.image;
 
 import com.example.board.image.dto.ImageConfirmRequest;
 import com.example.board.image.dto.ImageDeleteRequest;
-import com.example.board.image.dto.ImageUploadResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,17 +17,16 @@ public class ImageController {
     private final ImageService imageService;
 
     @PostMapping("/temp-upload")
-    public ResponseEntity<ImageUploadResponse> uploadTempImage(
+    public ResponseEntity<String> uploadTempImage(
             @RequestParam("file") MultipartFile file,
             @RequestParam("domain") String domain) {
         try {
             ImageDomain imageDomain = ImageDomain.valueOf(domain.toUpperCase());
             String imageUrl = imageService.uploadTempImage(file, imageDomain);
 
-            return ResponseEntity.ok(new ImageUploadResponse(imageUrl, true, "Upload successful"));
+            return ResponseEntity.ok(imageUrl);
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ImageUploadResponse(null, false, "Upload failed: " + e.getMessage()));
+            return ResponseEntity.internalServerError().build();
         }
     }
 
