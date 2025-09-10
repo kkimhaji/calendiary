@@ -2,6 +2,7 @@ package com.example.board.diary.dto;
 
 import com.example.board.diary.Visibility;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public record UpdateDiaryRequest(
@@ -10,4 +11,9 @@ public record UpdateDiaryRequest(
         Visibility visibility,
         List<Long> deleteImageIds
 ) {
+    public UpdateDiaryRequest {
+        if (deleteImageIds == null) {
+            deleteImageIds = new ArrayList<>();
+        }
+    }
 }
