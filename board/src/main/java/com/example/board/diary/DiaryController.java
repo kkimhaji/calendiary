@@ -44,35 +44,36 @@ public class DiaryController {
 
     @GetMapping("/list/daily")
     public ResponseEntity<List<DiaryListDTO>> getDiariesByDate(
-            @RequestParam int year,
-            @RequestParam int month,
-            @RequestParam int day,
+            @RequestParam("year") int year,
+            @RequestParam("month") int month,
+            @RequestParam("day") int day,
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
-
-        try {
-            List<DiaryListDTO> diaries = diaryService.findDiariesByDate(userPrincipal.getMember(), year, month, day);
-
-            return ResponseEntity.ok(diaries);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Collections.emptyList());
-        }
+        return ResponseEntity.ok(diaryService.findDiariesByDate(userPrincipal.getMember(), year, month, day));
+//        try {
+//            List<DiaryListDTO> diaries = diaryService.findDiariesByDate(userPrincipal.getMember(), year, month, day);
+//
+//            return ResponseEntity.ok(diaries);
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body(Collections.emptyList());
+//        }
     }
 
     @GetMapping("/list/monthly")
     public ResponseEntity<List<DiaryListDTO>> getDiariesByMonth(
-            @RequestParam int year,
-            @RequestParam int month,
+            @RequestParam("year") int year,
+            @RequestParam("month") int month,
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
 
-        try {
-            List<DiaryListDTO> diaries = diaryService.findDiariesByMonth(userPrincipal.getMember(), year, month);
-
-            return ResponseEntity.ok(diaries);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Collections.emptyList());
-        }
+        return ResponseEntity.ok(diaryService.findDiariesByMonth(userPrincipal.getMember(), year, month));
+//        try {
+//            List<DiaryListDTO> diaries = diaryService.findDiariesByMonth(userPrincipal.getMember(), year, month);
+//
+//            return ResponseEntity.ok(diaries);
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body(Collections.emptyList());
+//        }
     }
 
     @PutMapping("/{diaryId}")
@@ -92,13 +93,14 @@ public class DiaryController {
     }
 
     @PostMapping("/images/temp-upload")
-    public ResponseEntity<String> uploadTempImage(@RequestParam("file") MultipartFile file) {
-        try {
-            String imageUrl = imageService.uploadTempImage(file, ImageDomain.DIARY);
-            return ResponseEntity.ok(imageUrl);
-        } catch (IOException e) {
-            return ResponseEntity.internalServerError().build();
-        }
+    public ResponseEntity<String> uploadTempImage(@RequestParam("file") MultipartFile file) throws IOException {
+        return ResponseEntity.ok(imageService.uploadTempImage(file, ImageDomain.DIARY));
+//        try {
+//            String imageUrl = imageService.uploadTempImage(file, ImageDomain.DIARY);
+//            return ResponseEntity.ok(imageUrl);
+//        } catch (IOException e) {
+//            return ResponseEntity.internalServerError().build();
+//        }
     }
 
     @GetMapping("/calendar")
