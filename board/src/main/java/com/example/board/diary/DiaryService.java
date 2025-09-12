@@ -155,7 +155,7 @@ public class DiaryService {
         );
     }
 
-    // ✅ 특정 날짜의 일기 리스트 조회 (년&월&일)
+    // 특정 날짜의 일기 리스트 조회 (년&월&일)
     public List<DiaryListDTO> findDiariesByDate(Member author, int year, int month, int day) {
         // 해당 날짜의 시작과 끝 시간 설정
         LocalDateTime startDateTime = LocalDateTime.of(year, month, day, 0, 0, 0);
@@ -168,7 +168,7 @@ public class DiaryService {
         );
     }
 
-    // ✅ 월별 일기 리스트 조회 (년&월)
+    // 월별 일기 리스트 조회 (년&월)
     public List<DiaryListDTO> findDiariesByMonth(Member author, int year, int month) {
         // 월의 시작과 끝 시간 설정
         LocalDateTime startDateTime = LocalDateTime.of(year, month, 1, 0, 0, 0);
