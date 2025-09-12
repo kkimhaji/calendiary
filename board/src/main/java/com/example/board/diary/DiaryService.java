@@ -155,6 +155,32 @@ public class DiaryService {
         );
     }
 
+    // ✅ 특정 날짜의 일기 리스트 조회 (년&월&일)
+    public List<DiaryListDTO> findDiariesByDate(Member author, int year, int month, int day) {
+        // 해당 날짜의 시작과 끝 시간 설정
+        LocalDateTime startDateTime = LocalDateTime.of(year, month, day, 0, 0, 0);
+        LocalDateTime endDateTime = startDateTime.plusDays(1); // 다음 날 00:00:00
+
+        return diaryRepository.findDiaryListData(
+                author.getMemberId(),
+                startDateTime,
+                endDateTime
+        );
+    }
+
+    // ✅ 월별 일기 리스트 조회 (년&월)
+    public List<DiaryListDTO> findDiariesByMonth(Member author, int year, int month) {
+        // 월의 시작과 끝 시간 설정
+        LocalDateTime startDateTime = LocalDateTime.of(year, month, 1, 0, 0, 0);
+        LocalDateTime endDateTime = startDateTime.plusMonths(1); // 다음 달 1일 00:00:00
+
+        return diaryRepository.findDiaryListData(
+                author.getMemberId(),
+                startDateTime,
+                endDateTime
+        );
+    }
+
     public Page<DiaryListResponse> findByAuthor(Member author, Pageable pageable) {
         return diaryRepository.findByAuthor(author.getMemberId(), pageable);
     }
