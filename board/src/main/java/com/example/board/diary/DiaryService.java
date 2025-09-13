@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -32,7 +33,7 @@ public class DiaryService {
         String sanitized = htmlSanitizer.sanitize(req.content());
         String processedContent = imageService.processContentImages(sanitized, ImageDomain.DIARY);
 
-        Diary diary = Diary.create(req.title(), processedContent, author, req.visibility());
+        Diary diary = Diary.create(req.title(), processedContent, author, req.visibility(), req.diaryDate());
 
         registerContentImages(diary, processedContent);
 
@@ -56,7 +57,7 @@ public class DiaryService {
         }
 
         // 일기 업데이트
-        diary.update(req.title(), processedContent);
+        diary.update(req.title(), processedContent, req.diaryDate());
         diary.changeVisibility(req.visibility());
 
         // 새로운 이미지 등록 (증분 방식)
@@ -64,26 +65,6 @@ public class DiaryService {
 
         return DiaryDetailResponse.from(diary);
     }
-
-
-    /* ——— CREATE ——— */
-//    @Transactional
-//    public Diary createDiary(CreateDiaryRequest req, Member author) throws IOException {
-//
-//        String sanitized = htmlSanitizer.sanitize(req.content());
-//        String finalHtml = imageService.processContentImages(sanitized, ImageDomain.DIARY);
-//
-//        Diary diary = Diary.create(
-//                req.title(),
-//                finalHtml,
-//                author,
-//                req.visibility()
-//        );
-//
-//        registerContentImages(diary, finalHtml);
-//
-//        return diaryRepository.save(diary);
-//    }
 
     /* ——— READ (상세) ——— */
     public DiaryDetailResponse getDiary(Long diaryId, Member requester) {
@@ -96,33 +77,6 @@ public class DiaryService {
         }
         return DiaryDetailResponse.from(diary);
     }
-
-    /* ——— UPDATE ——— */
-//    @Transactional
-//    public DiaryDetailResponse updateDiary(Long diaryId,
-//                                           UpdateDiaryRequest req,
-//                                           Member author) throws IOException {
-//
-//        Diary diary = validationService.validateDiaryExists(diaryId);
-//
-//        if (!diary.getAuthor().equals(author)) {
-//            throw new AccessDeniedException("본인만 수정할 수 있습니다.");
-//        }
-//
-//        String sanitized = htmlSanitizer.sanitize(req.content());
-//        String finalHtml = imageService.processContentImages(sanitized, ImageDomain.DIARY);
-//
-//        if (req.deleteImageIds() != null && !req.deleteImageIds().isEmpty()) {
-//            deleteImages(diary, req.deleteImageIds());
-//        }
-//
-//        diary.update(req.title(), finalHtml);
-//        diary.changeVisibility(req.visibility());
-//
-//        registerContentImages(diary, finalHtml);
-//
-//        return DiaryDetailResponse.from(diary);
-//    }
 
     /* ——— DELETE ——— */
     @Transactional
@@ -144,43 +98,38 @@ public class DiaryService {
 
     /* ——— MONTHLY CALENDAR ——— */
     public List<DiaryCalendarDTO> findMonthlyDiaries(Member author, int year, int month) {
-        // 월의 시작과 끝을 LocalDateTime으로 설정
-        LocalDateTime startDateTime = LocalDateTime.of(year, month, 1, 0, 0, 0);
-        LocalDateTime endDateTime = startDateTime.plusMonths(1); // 다음 달 1일 00:00:00
+        LocalDate startDate = LocalDate.of(year, month, 1);
+        LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
 
         return diaryRepository.findCalendarData(
                 author.getMemberId(),
-                startDateTime,
-                endDateTime
+                startDate,
+                endDate
         );
     }
 
     // 특정 날짜의 일기 리스트 조회 (년&월&일)
     public List<DiaryListDTO> findDiariesByDate(Member author, int year, int month, int day) {
-        // 해당 날짜의 시작과 끝 시간 설정
-        LocalDateTime startDateTime = LocalDateTime.of(year, month, day, 0, 0, 0);
-        LocalDateTime endDateTime = startDateTime.plusDays(1); // 다음 날 00:00:00
+        LocalDate targetDate = LocalDate.of(year, month, day);
 
         return diaryRepository.findDiaryListData(
                 author.getMemberId(),
-                startDateTime,
-                endDateTime
+                targetDate,
+                targetDate
         );
     }
 
     // 월별 일기 리스트 조회 (년&월)
     public List<DiaryListDTO> findDiariesByMonth(Member author, int year, int month) {
-        // 월의 시작과 끝 시간 설정
-        LocalDateTime startDateTime = LocalDateTime.of(year, month, 1, 0, 0, 0);
-        LocalDateTime endDateTime = startDateTime.plusMonths(1); // 다음 달 1일 00:00:00
+        LocalDate startDate = LocalDate.of(year, month, 1);
+        LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
 
         return diaryRepository.findDiaryListData(
                 author.getMemberId(),
-                startDateTime,
-                endDateTime
+                startDate,
+                endDate
         );
     }
-
     public Page<DiaryListResponse> findByAuthor(Member author, Pageable pageable) {
         return diaryRepository.findByAuthor(author.getMemberId(), pageable);
     }

@@ -3,6 +3,7 @@ package com.example.board.diary.dto;
 
 import com.example.board.diary.Diary;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public record DiaryListDTO(
@@ -10,6 +11,7 @@ public record DiaryListDTO(
         String title,
         String content,
         LocalDateTime createdDate,
+        LocalDate diaryDate,
         String visibility
 ) {
     public static DiaryListDTO from(Diary diary) {
@@ -18,6 +20,7 @@ public record DiaryListDTO(
                 diary.getTitle(),
                 diary.getContent(),
                 diary.getCreatedDate(),
+                diary.getDiaryDate(),
                 diary.getVisibility().name()
         );
     }

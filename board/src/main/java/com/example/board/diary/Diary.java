@@ -25,27 +25,44 @@ public class Diary extends BaseContentEntity {
     private String thumbnailImageUrl;
 
     @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<DiaryImage> images = new ArrayList<>();
+    private final List<DiaryImage> images = new ArrayList<>();
 
+    //일기 날짜(작성 날짜와 구분)
+    @Column(name = "diary_date", nullable = false)
+    private LocalDate diaryDate;
 
     private Diary(String title,
                   String content,
                   Member author,
-                  Visibility visibility) {
+                  Visibility visibility,
+                  LocalDate diaryDate) {
 
         super(title, content, author);
         this.visibility = visibility;
+        this.diaryDate = diaryDate != null ? diaryDate : LocalDate.now(); // null이면 오늘 날짜
+    }
+
+    public static Diary create(String title,
+                               String content,
+                               Member author,
+                               Visibility visibility, LocalDate diaryDate) {
+
+        return new Diary(title, content, author, visibility, diaryDate);
     }
 
     public static Diary create(String title,
                                String content,
                                Member author,
                                Visibility visibility) {
-
-        return new Diary(title, content, author, visibility);
+        return new Diary(title, content, author, visibility, LocalDate.now());
     }
 
-    public void update(String title, String content){
+    public void update(String title, String content, LocalDate diaryDate) {
+        changeTitleAndContent(title, content);
+        this.diaryDate = diaryDate != null ? diaryDate : this.diaryDate;
+    }
+
+    public void update(String title, String content) {
         changeTitleAndContent(title, content);
     }
 
@@ -54,6 +71,10 @@ public class Diary extends BaseContentEntity {
         if (image.getDiary() != this) {
             image.setDiary(this);
         }
+    }
+
+    public void changeDiaryDate(LocalDate diaryDate) {
+        this.diaryDate = diaryDate;
     }
 
     public void removeImage(DiaryImage image) {

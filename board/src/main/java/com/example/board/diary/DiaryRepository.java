@@ -9,31 +9,49 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 public interface DiaryRepository extends JpaRepository<Diary, Long> {
-    /* 달력 뷰용 – 특정 기간(월) 내 데이터 조회 */
     @Query("""
        select new com.example.board.diary.dto.DiaryCalendarDTO(
                d.id,
-               d.createdDate,
+               d.title,
+               d.diaryDate,
                d.thumbnailImageUrl,
                count(i)
        )
        from Diary d
        left join d.images i
        where d.author.memberId = :memberId
-         and d.createdDate >= :startDateTime
-         and d.createdDate < :endDateTime
-       group by d.id, d.createdDate, d.thumbnailImageUrl
+         and d.diaryDate >= :startDate
+         and d.diaryDate <= :endDate
+       group by d.id, d.title, d.diaryDate, d.thumbnailImageUrl
+       order by d.diaryDate asc
        """)
     List<DiaryCalendarDTO> findCalendarData(@Param("memberId") Long memberId,
-                                            @Param("startDateTime") LocalDateTime startDateTime,
-                                            @Param("endDateTime") LocalDateTime endDateTime);
+                                            @Param("startDate") LocalDate startDate,
+                                            @Param("endDate") LocalDate endDate);
 
+    // 리스트용 메서드 - diaryDate 기준으로 수정
+    @Query("SELECT new com.example.board.diary.dto.DiaryListDTO(d.id, d.title, d.content, d.createdDate, d.diaryDate, CAST(d.visibility AS string)) " +
+            "FROM Diary d WHERE d.author.memberId = :authorId " +
+            "AND d.diaryDate >= :startDate AND d.diaryDate <= :endDate " +
+            "ORDER BY d.diaryDate DESC, d.createdDate DESC")
+    List<DiaryListDTO> findDiaryListData(@Param("authorId") Long authorId,
+                                         @Param("startDate") LocalDate startDate,
+                                         @Param("endDate") LocalDate endDate);
 
-    /* 목록(무한 스크롤) */
+    // Entity를 반환하는 방식 - diaryDate 기준
+    @Query("SELECT d FROM Diary d WHERE d.author.memberId = :authorId " +
+            "AND d.diaryDate >= :startDate AND d.diaryDate <= :endDate " +
+            "ORDER BY d.diaryDate DESC, d.createdDate DESC")
+    List<Diary> findDiariesBetweenDates(@Param("authorId") Long authorId,
+                                        @Param("startDate") LocalDate startDate,
+                                        @Param("endDate") LocalDate endDate);
+
+    // 목록용 - createdDate 기준으로 유지 (실제 작성 순서)
     @Query("""
             select new com.example.board.diary.dto.DiaryListResponse(
                      d.id,
@@ -47,20 +65,4 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
             """)
     Page<DiaryListResponse> findByAuthor(@Param("memberId") Long memberId, Pageable pageable);
 
-    // 리스트용 메서드 (상세 정보 포함)
-    @Query("SELECT new com.example.board.diary.dto.DiaryListDTO(d.id, d.title, d.content, d.createdDate, CAST(d.visibility AS string)) " +
-            "FROM Diary d WHERE d.author.memberId = :authorId " +
-            "AND d.createdDate >= :startDate AND d.createdDate < :endDate " +
-            "ORDER BY d.createdDate DESC")
-    List<DiaryListDTO> findDiaryListData(@Param("authorId") Long authorId,
-                                         @Param("startDate") LocalDateTime startDate,
-                                         @Param("endDate") LocalDateTime endDate);
-
-    // 또는 Entity를 반환하는 방식
-    @Query("SELECT d FROM Diary d WHERE d.author.memberId = :authorId " +
-            "AND d.createdDate >= :startDate AND d.createdDate < :endDate " +
-            "ORDER BY d.createdDate DESC")
-    List<Diary> findDiariesBetweenDates(@Param("authorId") Long authorId,
-                                        @Param("startDate") LocalDateTime startDate,
-                                        @Param("endDate") LocalDateTime endDate);
 }
