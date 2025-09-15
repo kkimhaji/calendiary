@@ -84,7 +84,7 @@ public class DiaryService {
 
         Diary diary = validationService.validateDiaryExists(diaryId);
 
-        if (!diary.getAuthor().equals(author)) {
+        if (!diary.getAuthor().getMemberId().equals(author.getMemberId())) {
             throw new AccessDeniedException("본인만 삭제할 수 있습니다.");
         }
 
