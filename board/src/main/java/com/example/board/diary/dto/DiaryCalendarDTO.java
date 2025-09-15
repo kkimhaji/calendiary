@@ -7,20 +7,26 @@ import java.time.LocalDateTime;
 
 public record DiaryCalendarDTO(
         Long diaryId,
-        LocalDateTime createdDateTime,
+        String title,
         @JsonFormat(pattern = "yyyy-MM-dd")
         LocalDate diaryDate,
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+        LocalDateTime createdDate,
         String thumbnailImageUrl,
-        long imageCount
+        Long imageCount
 ) {
-    // LocalDate 변환 헬퍼 메서드
-    public LocalDate date() {
-        return createdDateTime != null ? createdDateTime.toLocalDate() : null;
+    public DiaryCalendarDTO(Long diaryId, String title, LocalDateTime createdDate,
+                            String thumbnailImageUrl, Long imageCount) {
+        this(diaryId,
+                title,
+                createdDate != null ? createdDate.toLocalDate() : null,
+                createdDate,
+                thumbnailImageUrl,
+                imageCount != null ? imageCount : 0L);
     }
 
-    // 기존 생성자도 유지 (하위 호환성)
-    public DiaryCalendarDTO(Long diaryId, LocalDateTime createdDateTime,
-                            String thumbnailImageUrl, Long imageCount) {
-        this(diaryId, null, createdDateTime.toLocalDate(), thumbnailImageUrl, imageCount);
+    public LocalDate getEffectiveDate() {
+        return diaryDate != null ? diaryDate :
+                (createdDate != null ? createdDate.toLocalDate() : null);
     }
 }
