@@ -131,6 +131,7 @@ public class CategoryService {
         categoryRepository.deleteAll(categories);
     }
 
+    @Transactional
     public void deleteCategory(Long categoryId) {
         TeamCategory category = validationService.validateCategoryExists(categoryId);
         List<Post> postsInCategory = postRepository.findAllByCategory(category);
