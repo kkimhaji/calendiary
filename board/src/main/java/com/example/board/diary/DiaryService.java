@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -130,6 +129,7 @@ public class DiaryService {
                 endDate
         );
     }
+
     public Page<DiaryListResponse> findByAuthor(Member author, Pageable pageable) {
         return diaryRepository.findByAuthor(author.getMemberId(), pageable);
     }

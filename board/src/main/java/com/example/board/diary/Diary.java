@@ -17,16 +17,13 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Diary extends BaseContentEntity {
 
+    @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL, orphanRemoval = true)
+    private final List<DiaryImage> images = new ArrayList<>();
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Visibility visibility = Visibility.PRIVATE;  // 공개 범위
-
     @Column(name = "thumbnail_image_url")
     private String thumbnailImageUrl;
-
-    @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL, orphanRemoval = true)
-    private final List<DiaryImage> images = new ArrayList<>();
-
     //일기 날짜(작성 날짜와 구분)
     @Column(name = "diary_date", nullable = false)
     private LocalDate diaryDate;

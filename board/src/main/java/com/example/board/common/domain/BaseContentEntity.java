@@ -19,6 +19,7 @@ public abstract class BaseContentEntity extends BaseTimeEntity {
     private String title;
 
     @Lob
+    @Column(name = "content", columnDefinition = "MEDIUMTEXT")
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)

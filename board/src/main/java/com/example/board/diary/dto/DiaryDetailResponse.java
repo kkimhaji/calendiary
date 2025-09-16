@@ -13,7 +13,7 @@ public record DiaryDetailResponse(
         String title,
         String content,
         String authorNickname,
-        java.time.LocalDateTime createdDate,
+        LocalDateTime createdDate,
         @JsonFormat(pattern = "yyyy-MM-dd")
         LocalDate diaryDate,
         String visibility,

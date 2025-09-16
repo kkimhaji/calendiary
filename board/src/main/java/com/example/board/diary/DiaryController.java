@@ -87,6 +87,4 @@ public class DiaryController {
 
         return ResponseEntity.ok(diaryService.findMonthlyDiaries(user.getMember(), year, month));
     }
-
-
 }

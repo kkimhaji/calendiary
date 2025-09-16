@@ -10,27 +10,26 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 public interface DiaryRepository extends JpaRepository<Diary, Long> {
     @Query("""
-           select new com.example.board.diary.dto.DiaryCalendarDTO(
-                   d.id,
-                   d.title,
-                   d.diaryDate,
-                   d.createdDate,
-                   d.thumbnailImageUrl,
-                   count(i)
-           )
-           from Diary d
-           left join d.images i
-           where d.author.memberId = :memberId
-             and COALESCE(d.diaryDate, DATE(d.createdDate)) >= :startDate
-             and COALESCE(d.diaryDate, DATE(d.createdDate)) <= :endDate
-           group by d.id, d.title, d.diaryDate, d.createdDate, d.thumbnailImageUrl
-           order by COALESCE(d.diaryDate, DATE(d.createdDate)) asc
-           """)
+            select new com.example.board.diary.dto.DiaryCalendarDTO(
+                    d.id,
+                    d.title,
+                    d.diaryDate,
+                    d.createdDate,
+                    d.thumbnailImageUrl,
+                    count(i)
+            )
+            from Diary d
+            left join d.images i
+            where d.author.memberId = :memberId
+              and COALESCE(d.diaryDate, DATE(d.createdDate)) >= :startDate
+              and COALESCE(d.diaryDate, DATE(d.createdDate)) <= :endDate
+            group by d.id, d.title, d.diaryDate, d.createdDate, d.thumbnailImageUrl
+            order by COALESCE(d.diaryDate, DATE(d.createdDate)) asc
+            """)
     List<DiaryCalendarDTO> findCalendarData(@Param("memberId") Long memberId,
                                             @Param("startDate") LocalDate startDate,
                                             @Param("endDate") LocalDate endDate);
