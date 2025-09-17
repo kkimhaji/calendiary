@@ -1,6 +1,7 @@
 package com.example.board.permission.evaluator;
 
 import com.example.board.auth.UserPrincipal;
+import com.example.board.common.exception.CategoryNotFoundException;
 import com.example.board.member.Member;
 import com.example.board.role.CategoryPermissionRepository;
 import com.example.board.role.CategoryRolePermission;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -44,10 +46,23 @@ public class CategoryPermissionEvaluator implements CustomPermissionEvaluator {
             CategoryPermission categoryPermission = (CategoryPermission) permission;
             Long categoryId = (Long) targetId;
 
-            TeamCategory category = categoryRepository.findById((Long) targetId).orElseThrow(() -> new EntityNotFoundException("category not found"));
+            // ✅ 카테고리 존재 여부 먼저 확인 (예외 발생 방지)
+            Optional<TeamCategory> categoryOpt = categoryRepository.findById(categoryId);
+            if (categoryOpt.isEmpty()) {
+                log.warn("카테고리를 찾을 수 없습니다: categoryId={}", categoryId);
+                return false; // ✅ 예외 대신 false 반환으로 403 처리
+            }
 
-            TeamMember teamMember = teamMemberRepository.findByTeamIdAndMember(category.getTeam().getId(), member)
-                    .orElseThrow(() -> new EntityNotFoundException("Team Member not found"));
+            TeamCategory category = categoryOpt.get();
+
+            // ✅ 팀 멤버 존재 여부 확인 (예외 발생 방지)
+            Optional<TeamMember> teamMemberOpt = teamMemberRepository.findByTeamIdAndMember(category.getTeam().getId(), member);
+            if (teamMemberOpt.isEmpty()) {
+                log.warn("팀 멤버를 찾을 수 없습니다: teamId={}, memberId={}", category.getTeam().getId(), member.getMemberId());
+                return false; // ✅ 예외 대신 false 반환으로 403 처리
+            }
+
+            TeamMember teamMember = teamMemberOpt.get();
 
             List<CategoryRolePermission> categoryRolePermissions =
                     categoryPermissionRepository.findAllByCategoryIdAndRoleId(
@@ -62,18 +77,26 @@ public class CategoryPermissionEvaluator implements CustomPermissionEvaluator {
 
             // CategoryRolePermission에서 권한 확인
             for (CategoryRolePermission crp : categoryRolePermissions) {
-            // 바이트 배열을 직접 사용
                 byte[] permissionBytes = crp.getPermissionBytes();
 
-                // 최적화된 권한 확인 메서드 사용
                 if (PermissionConverter.hasPermissionOptimized(permissionBytes, categoryPermission)) {
+                    log.debug("카테고리 권한 확인 성공: categoryId={}, permission={}, member={}",
+                            categoryId, categoryPermission, member.getMemberId());
                     return true;
                 }
             }
+
+            log.debug("카테고리 권한 부족: categoryId={}, permission={}, member={}",
+                    categoryId, categoryPermission, member.getMemberId());
             return false;
 
+        } catch (EntityNotFoundException e) {
+            // ✅ EntityNotFoundException을 명시적으로 처리
+            log.warn("엔티티를 찾을 수 없습니다 - categoryId: {}, message: {}", targetId, e.getMessage());
+            return false;
         } catch (Exception e) {
-            log.error("카테고리 권한 검사 중 오류 발생: {}", e.getMessage(), e);
+            // ✅ 기타 모든 예외를 안전하게 처리
+            log.error("카테고리 권한 검사 중 예상치 못한 오류 발생 - categoryId: {}, error: {}", targetId, e.getMessage(), e);
             return false;
         }
     }
