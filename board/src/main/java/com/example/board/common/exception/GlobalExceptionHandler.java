@@ -1,20 +1,29 @@
 package com.example.board.common.exception;
 
+import com.example.board.auth.UserPrincipal;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
     @ExceptionHandler(RefreshTokenExpiredException.class)
     public ResponseEntity<ErrorResponse> handleRefreshTokenExpired(RefreshTokenExpiredException ex) {
@@ -133,7 +142,89 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
+    /**
+     * AccessDeniedException 처리 - 권한 부족 시 403 반환
+     * 로그아웃되지 않도록 403 상태로 명확히 처리
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDeniedException(
+            AccessDeniedException ex, HttpServletRequest request) {
 
+        log.warn("접근 거부 - URI: {}, 사용자: {}, 메시지: {}",
+                request.getRequestURI(),
+                getCurrentUsername(),
+                ex.getMessage());
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                "ACCESS_DENIED",
+                "해당 리소스에 접근할 권한이 없습니다."
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+    }
+
+    /**
+     * AuthenticationException 처리 - 인증 실패 시 401 반환
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(
+            AuthenticationException ex, HttpServletRequest request) {
+
+        log.warn("인증 실패 - URI: {}, 메시지: {}", request.getRequestURI(), ex.getMessage());
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                "AUTHENTICATION_FAILED",
+                "인증에 실패했습니다. 다시 로그인해주세요."
+        );
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+    }
+
+    /**
+     * InsufficientAuthenticationException 처리 - 인증 정보 부족 시 401 반환
+     */
+    @ExceptionHandler(InsufficientAuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleInsufficientAuthenticationException(
+            InsufficientAuthenticationException ex, HttpServletRequest request) {
+
+        log.warn("인증 정보 부족 - URI: {}, 메시지: {}", request.getRequestURI(), ex.getMessage());
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                "INSUFFICIENT_AUTHENTICATION",
+                "완전한 인증이 필요합니다."
+        );
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+    }
+
+    /**
+     * UsernameNotFoundException 처리 - 사용자를 찾을 수 없을 때 401 반환
+     */
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleUsernameNotFoundException(
+            UsernameNotFoundException ex, HttpServletRequest request) {
+
+        log.warn("사용자를 찾을 수 없음 - URI: {}, 메시지: {}", request.getRequestURI(), ex.getMessage());
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                "USER_NOT_FOUND",
+                "사용자 정보를 찾을 수 없습니다."
+        );
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+    }
+
+    /**
+     * 권한 검증 중 발생하는 일반적인 SecurityException 처리
+     */
+    @ExceptionHandler(SecurityException.class)
+    public ResponseEntity<ErrorResponse> handleSecurityException(
+            SecurityException ex, HttpServletRequest request) {
+
+        log.error("보안 예외 발생 - URI: {}, 메시지: {}", request.getRequestURI(), ex.getMessage(), ex);
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                "SECURITY_ERROR",
+                "보안 검증 중 오류가 발생했습니다."
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+    }
     private boolean isAuthenticationPrincipalNull(NullPointerException ex, HttpServletRequest request) {
         // 스택 트레이스에서 @AuthenticationPrincipal 관련 null 체크
         String stackTrace = Arrays.toString(ex.getStackTrace());
@@ -142,4 +233,29 @@ public class GlobalExceptionHandler {
                 request.getRequestURI().contains("/api/teams/create");
     }
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGenericException(
+            Exception ex, HttpServletRequest request) {
+
+        log.error("예상치 못한 예외 발생 - URI: {}, 예외: {}",
+                request.getRequestURI(), ex.getClass().getSimpleName(), ex);
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                "INTERNAL_SERVER_ERROR",
+                "서버 내부 오류가 발생했습니다."
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+
+    private String getCurrentUsername() {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.getPrincipal() instanceof UserPrincipal) {
+                return ((UserPrincipal) auth.getPrincipal()).getUsername();
+            }
+            return "anonymous";
+        } catch (Exception e) {
+            return "unknown";
+        }
+    }
 }
