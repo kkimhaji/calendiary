@@ -49,7 +49,7 @@ public class TeamService {
     }
 
     public Team createTeam(Member member, TeamCreateRequestDTO dto) {
-        Team newTeam = teamRepository.save(Team.create(dto.teamName(), dto.description(), member));
+        Team newTeam = teamRepository.save(Team.create(dto.name(), dto.description(), member));
         TeamRole admin = teamRoleService.createAdmin(newTeam);
 
         TeamMember teamMember = TeamMember.createTeamMember(newTeam, member, admin);
@@ -104,8 +104,8 @@ public class TeamService {
     public long updateTeamInfo(long teamId, TeamUpdateRequestDTO dto) {
         Team targetTeam = validationService.validateTeamExists(teamId);
 
-        if (dto.teamName() != null && !dto.teamName().isBlank()) {
-            targetTeam.updateName(dto.teamName());
+        if (dto.name() != null && !dto.name().isBlank()) {
+            targetTeam.updateName(dto.name());
         }
         if (dto.description() != null) {
             targetTeam.updateDescription(dto.description());

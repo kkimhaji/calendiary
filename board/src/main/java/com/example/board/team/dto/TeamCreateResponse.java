@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 public record TeamCreateResponse(
         Long teamId,
-        String teamName,
+        String name,
         String description,
         LocalDateTime createdAt,
         Member createdBy
