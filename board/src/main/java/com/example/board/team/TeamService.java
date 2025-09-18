@@ -104,8 +104,8 @@ public class TeamService {
     public long updateTeamInfo(long teamId, TeamUpdateRequestDTO dto) {
         Team targetTeam = validationService.validateTeamExists(teamId);
 
-        if (dto.name() != null && !dto.name().isBlank()) {
-            targetTeam.updateName(dto.name());
+        if (dto.teamName() != null && !dto.teamName().isBlank()) {
+            targetTeam.updateName(dto.teamName());
         }
         if (dto.description() != null) {
             targetTeam.updateDescription(dto.description());
