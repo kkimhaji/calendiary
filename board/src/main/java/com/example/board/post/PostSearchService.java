@@ -40,7 +40,9 @@ public class PostSearchService {
     ) {
 
         validationService.validateTeamExists(teamId);
-        validationService.validateCategoryExists(categoryId);
+        if (categoryId != null) {
+            validationService.validateCategoryExists(categoryId);
+        }
 
         if (searchType == null) {
             searchType = SearchType.BOTH;
