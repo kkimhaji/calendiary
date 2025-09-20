@@ -49,36 +49,6 @@ public class PostService {
     private final CommentRepository commentRepository;
     private final EntityValidationService validationService;
 
-//    @Transactional
-//    public Post createPost(Long teamId, Long categoryId,
-//                           CreatePostRequest req, Member author) throws IOException {
-//
-//        Team team = validationService.validateTeamExists(teamId);
-//        TeamCategory c = validationService.validateCategoryExists(categoryId);
-//
-//        String processed = imageService.processContentImages(
-//                htmlSanitizer.sanitize(req.content()),
-//                ImageDomain.POST);
-//
-//        TeamMember tm = teamMemberRepository
-//                .findByTeamIdAndMember(teamId, author)
-//                .orElseThrow(() -> new EntityNotFoundException("team member not found"));
-//
-//        Post post = Post.create(req.title(), processed, author, c, team, tm);
-//
-//        /* ▼ URL 필터 & 파일명 추출 방식 통일 */
-//        List<String> permUrls = imageService.extractImageUrlsFromContent(processed).stream()
-//                .filter(u -> u.startsWith(ImageDomain.POST.permPrefix()))
-//                .toList();
-//
-//        for (String url : permUrls) {
-//            String fileName = url.substring(url.lastIndexOf('/') + 1);   // ← 변경
-//            post.addImage(PostImage.createPostImage(post, fileName, fileName));
-//        }
-//
-//        return postRepository.save(post);
-//    }
-
     @Transactional
     public Post createPost(Long teamId, Long categoryId, CreatePostRequest req, Member author) throws IOException {
         Team team = validationService.validateTeamExists(teamId);
@@ -178,6 +148,7 @@ public class PostService {
 //        });
 //    }
 
+    @Transactional
     public void syncSinglePostViewCount(Long postId) {
         AtomicLong countAtomic = viewCountCache.get(postId);
         if (countAtomic != null) {
@@ -189,6 +160,7 @@ public class PostService {
     }
 
     // 주기적으로 캐시된 조회수를 DB에 반영
+    @Transactional
     @Scheduled(fixedRate = 60000) // 1분마다 실행
     public void syncViewCountsToDatabase() {
         viewCountCache.forEach((postId, viewCount) -> {
@@ -213,26 +185,6 @@ public class PostService {
 
         postRepository.deleteById(postId);
     }
-
-//    @Transactional
-//    public PostResponse updatePost(Long categoryId, Long postId, UpdatePostRequestDTO requestDTO) throws IOException {
-//        Post post = validationService.validatePostExists(postId);
-//        TeamCategory category = validationService.validateCategoryExists(categoryId);
-//
-//        //이미지 처리
-//        String sanitizedContent = htmlSanitizer.sanitize(requestDTO.content());
-//        String processedContent = imageService.processContentImages(sanitizedContent, ImageDomain.POST);
-//
-//        //기존 이미지 중 삭제 대상 처리
-//        if (requestDTO.deleteImageIds() != null && !requestDTO.deleteImageIds().isEmpty()) {
-//            deleteImages(post, requestDTO.deleteImageIds());
-//        }
-//        post.update(requestDTO.title(), processedContent, category);
-//        // 새로운 이미지 처리
-//        processNewImages(post, processedContent);
-//
-//        return PostResponse.from(postRepository.save(post));
-//    }
 
     // 새로운 이미지 처리 로직을 별도 메서드로 분리
     private void processNewImages(Post post, String processedContent) {
