@@ -128,24 +128,6 @@ public class PostSearchService {
         return new PageImpl<>(content, pageable, total);
     }
 
-    // Comparator 생성기
-//    private Comparator<Post> getComparator(Sort.Order order) {
-//        return switch (order.getProperty()) {
-//            case "createdDate" -> order.isAscending() ?
-//                    Comparator.comparing(
-//                            Post::getCreatedDate,
-//                            Comparator.nullsLast(Comparator.naturalOrder())
-//                    ) :
-//                    Comparator.comparing(
-//                            Post::getCreatedDate,
-//                            Comparator.nullsFirst(Comparator.reverseOrder())
-//                    );
-//            case "viewCount" -> order.isAscending() ?
-//                    Comparator.comparing(Post::getViewCount) :
-//                    Comparator.comparing(Post::getViewCount).reversed();
-//            default -> (p1, p2) -> 0;
-//        };
-//    }
     private Comparator<Post> getComparator(Sort.Order order) {
         return switch (order.getProperty()) {
             case "createdDate" -> order.isAscending() ?
