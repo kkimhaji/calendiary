@@ -3,6 +3,7 @@ package com.example.board.teamInvite;
 import com.example.board.auth.UserPrincipal;
 import com.example.board.teamInvite.dto.InviteCreateRequest;
 import com.example.board.teamInvite.dto.InviteResponse;
+import com.example.board.teamInvite.dto.InviteValidationResponse;
 import com.example.board.teamInvite.dto.TeamJoinRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +29,11 @@ public class TeamInviteController {
                                          @AuthenticationPrincipal UserPrincipal userPrincipal){
         teamInviteService.joinTeam(teamId, request, userPrincipal.getMember());
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/invite/validate")
+    public ResponseEntity<InviteValidationResponse> validateInvite(@RequestParam("code") String code) {
+        return ResponseEntity.ok(teamInviteService.validateInvite(code));
     }
 
 }
