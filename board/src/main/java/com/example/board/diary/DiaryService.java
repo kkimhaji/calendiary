@@ -134,6 +134,11 @@ public class DiaryService {
         return diaryRepository.findByAuthor(author.getMemberId(), pageable);
     }
 
+    public boolean checkAuthorOrNot(Member member, Long diaryId){
+        Diary diary = validationService.validateDiaryExists(diaryId);
+        return diary.getAuthor().getMemberId().equals(member.getMemberId());
+    }
+
     //내부 이미지 처리
     private void registerContentImages(Diary diary, String html) {
 

@@ -87,4 +87,9 @@ public class DiaryController {
 
         return ResponseEntity.ok(diaryService.findMonthlyDiaries(user.getMember(), year, month));
     }
+
+    @GetMapping("/{diaryId}/check")
+    public ResponseEntity<Boolean> checkAuthorOrNot(@PathVariable("diaryId") Long diaryId, @AuthenticationPrincipal UserPrincipal userPrincipal){
+        return ResponseEntity.ok(diaryService.checkAuthorOrNot(userPrincipal.getMember(), diaryId));
+    }
 }
