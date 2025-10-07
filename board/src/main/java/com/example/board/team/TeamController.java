@@ -1,11 +1,11 @@
 package com.example.board.team;
 
 import com.example.board.auth.UserPrincipal;
-import com.example.board.team.dto.*;
-import com.example.board.team.enums.UserTeamStatus;
-import jakarta.validation.constraints.NotNull;
+import com.example.board.team.dto.TeamCreateRequestDTO;
+import com.example.board.team.dto.TeamCreateResponse;
+import com.example.board.team.dto.TeamInfoPageResponse;
+import com.example.board.team.dto.TeamUpdateRequestDTO;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
