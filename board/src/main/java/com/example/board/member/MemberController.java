@@ -68,6 +68,11 @@ public class MemberController {
         return ResponseEntity.ok(memberService.checkPassword(userPrincipal.getMember(), request.currentPassword()));
     }
 
+    @PutMapping("/update-name")
+    public ResponseEntity<String> updateNickname(@AuthenticationPrincipal UserPrincipal userPrincipal, @RequestParam("newNickname") String newNickname){
+        return ResponseEntity.ok(memberService.updateMemberName(userPrincipal.getMember(), newNickname));
+    }
+
     @PostMapping("/{teamId}/leave")
     public ResponseEntity<Void> leaveTeam(@PathVariable("teamId") Long teamId, @AuthenticationPrincipal UserPrincipal userPrincipal,
                                           @RequestParam(required = false, defaultValue = "false", name = "deleteContents") boolean deleteContents){

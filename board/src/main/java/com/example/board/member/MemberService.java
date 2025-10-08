@@ -21,8 +21,9 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final EmailService emailService;
 
-    public void updateMemberName(Member member, String newNickname){
+    public String updateMemberName(Member member, String newNickname){
         member.updateName(newNickname);
+        return newNickname;
     }
 
     @Transactional(readOnly = true)
@@ -61,4 +62,5 @@ public class MemberService {
     public Member findByEmail(String email){
         return memberRepository.findByEmail(email).orElseThrow(MemberNotFoundException::new);
     }
+
 }
