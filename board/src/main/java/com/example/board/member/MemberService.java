@@ -2,6 +2,7 @@ package com.example.board.member;
 
 import com.example.board.auth.UserPrincipal;
 import com.example.board.common.exception.MemberNotFoundException;
+import com.example.board.common.service.EntityValidationService;
 import com.example.board.member.dto.MemberInfoResponse;
 import com.example.board.member.dto.MemberInfoSummaryResponse;
 import com.example.board.member.dto.PasswordResetRequest;
@@ -20,9 +21,11 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final MemberRepository memberRepository;
     private final EmailService emailService;
+    private final EntityValidationService validationService;
 
     public String updateMemberName(Member member, String newNickname){
-        member.updateName(newNickname);
+        Member targetMember = validationService.validateMemberExists(member.getMemberId());
+        targetMember.updateName(newNickname);
         return newNickname;
     }
 
