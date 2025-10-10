@@ -135,7 +135,7 @@ public class TeamMemberService {
     @Transactional(readOnly = true)
     public List<TeamInfoResponse> getTeamInfoWithTeamNickname(Long memberId) {
         validationService.validateMemberExists(memberId);
-        return teamMemberRepository.findTeamInfoAndNicknameByMemberId(memberId);
+        return teamMemberRepository.findTeamInfoAndNicknameAndRoleByMemberId(memberId);
     }
 
     @Transactional

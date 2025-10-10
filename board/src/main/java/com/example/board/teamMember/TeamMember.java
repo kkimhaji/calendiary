@@ -71,4 +71,3 @@ public class TeamMember {
         this.role = role;
     }
 }
-

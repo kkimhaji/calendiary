@@ -3,6 +3,7 @@ package com.example.board.team.dto;
 public record TeamInfoResponse(
         Long teamId,
         String teamName,
-        String teamNickname
+        String teamNickname,
+        String roleName
 ) {
 }
