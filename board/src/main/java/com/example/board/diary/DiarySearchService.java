@@ -29,10 +29,14 @@ public class DiarySearchService {
         if (searchType == null) searchType = SearchType.BOTH;
         if (keyword == null || keyword.trim().isEmpty()) return Page.empty(pageable);
 
-        return switch (searchType) {
-            case TITLE -> diaryRepository.searchByTitle(keyword, memberId, pageable).map(DiaryResponse::from);
-            case CONTENT -> diaryRepository.searchByContent(keyword, memberId, pageable).map(DiaryResponse::from);
-            case BOTH, default -> diaryRepository.searchByTitleOrContent(keyword, memberId, pageable).map(DiaryResponse::from);
-        };
+        switch (searchType) {
+            case TITLE:
+                return diaryRepository.searchByTitle(keyword, memberId, pageable).map(DiaryResponse::from);
+            case CONTENT:
+                return diaryRepository.searchByContent(keyword, memberId, pageable).map(DiaryResponse::from);
+            case BOTH:
+            default:
+                return diaryRepository.searchByTitleOrContent(keyword, memberId, pageable).map(DiaryResponse::from);
+        }
     }
 }
