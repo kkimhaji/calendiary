@@ -30,6 +30,8 @@ public class EntityValidationService {
     private final DiaryRepository diaryRepository;
 
     public Team validateTeamExists(Long teamId) {
+        if (teamId == null) throw new IllegalArgumentException("teamId는 null일 수 없습니다.");
+
         return teamRepository.findById(teamId)
                 .orElseThrow(TeamNotFoundException::new);
     }

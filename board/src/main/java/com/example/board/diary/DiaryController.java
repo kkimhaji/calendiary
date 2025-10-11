@@ -4,10 +4,15 @@ import com.example.board.auth.UserPrincipal;
 import com.example.board.diary.dto.*;
 import com.example.board.image.ImageDomain;
 import com.example.board.image.ImageService;
+import com.example.board.post.enums.SearchType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
@@ -24,6 +29,7 @@ import java.util.List;
 public class DiaryController {
     private final DiaryService diaryService;
     private final ImageService imageService;
+    private final DiarySearchService diarySearchService;
 
     @PostMapping
     public ResponseEntity<Long> createDiary(
@@ -91,5 +97,17 @@ public class DiaryController {
     @GetMapping("/{diaryId}/check")
     public ResponseEntity<Boolean> checkAuthorOrNot(@PathVariable("diaryId") Long diaryId, @AuthenticationPrincipal UserPrincipal userPrincipal){
         return ResponseEntity.ok(diaryService.checkAuthorOrNot(userPrincipal.getMember(), diaryId));
+    }
+
+    @GetMapping("/diary/search")
+    public ResponseEntity<Page<DiaryResponse>> searchDiaries(
+            @RequestParam("q") String keyword,
+            @RequestParam("memberId") Long memberId,
+            @PageableDefault(size = 20, sort = "diaryDate", direction = Sort.Direction.DESC) Pageable pageable,
+            @RequestParam(defaultValue = "BOTH", name = "type") SearchType searchType
+    ) {
+        return ResponseEntity.ok(
+                diarySearchService.searchDiaries(memberId, keyword, pageable, searchType)
+        );
     }
 }

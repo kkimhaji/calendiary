@@ -65,4 +65,23 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
             """)
     Page<DiaryListResponse> findByAuthor(@Param("memberId") Long memberId, Pageable pageable);
 
+    // DiaryRepository.java
+    @Query("SELECT d FROM Diary d LEFT JOIN FETCH d.author WHERE d.title LIKE %:keyword% AND d.member.id = :memberId")
+    Page<Diary> searchByTitle(
+            @Param("keyword") String keyword,
+            @Param("memberId") Long memberId,
+            Pageable pageable);
+
+    @Query("SELECT d FROM Diary d LEFT JOIN FETCH d.author WHERE d.content LIKE %:keyword% AND d.member.id = :memberId")
+    Page<Diary> searchByContent(
+            @Param("keyword") String keyword,
+            @Param("memberId") Long memberId,
+            Pageable pageable);
+
+    @Query("SELECT d FROM Diary d LEFT JOIN FETCH d.author WHERE (d.title LIKE %:keyword% OR d.content LIKE %:keyword%) AND d.member.id = :memberId")
+    Page<Diary> searchByTitleOrContent(
+            @Param("keyword") String keyword,
+            @Param("memberId") Long memberId,
+            Pageable pageable);
+
 }
