@@ -99,15 +99,27 @@ public class DiaryController {
         return ResponseEntity.ok(diaryService.checkAuthorOrNot(userPrincipal.getMember(), diaryId));
     }
 
-    @GetMapping("/diary/search")
+    @GetMapping("/search")
     public ResponseEntity<Page<DiaryResponse>> searchDiaries(
-            @RequestParam("q") String keyword,
-            @RequestParam("memberId") Long memberId,
+            @RequestParam(value = "q", required = false) String keyword,
+            @RequestParam(value = "year", required = false) Integer year,
+            @RequestParam(value = "month", required = false) Integer month,
             @PageableDefault(size = 20, sort = "diaryDate", direction = Sort.Direction.DESC) Pageable pageable,
-            @RequestParam(defaultValue = "BOTH", name = "type") SearchType searchType
+            @RequestParam(defaultValue = "BOTH", name = "type") SearchType searchType,
+            @AuthenticationPrincipal UserPrincipal userPrincipal
     ) {
+        // 검색어가 없으면 빈 페이지 반환
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return ResponseEntity.ok(Page.empty(pageable));
+        }
+
         return ResponseEntity.ok(
-                diarySearchService.searchDiaries(memberId, keyword, pageable, searchType)
+                diarySearchService.searchDiaries(
+                        userPrincipal.getMember().getMemberId(),
+                        keyword,
+                        pageable,
+                        searchType
+                )
         );
     }
 }
