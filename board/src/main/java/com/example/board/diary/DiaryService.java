@@ -134,7 +134,7 @@ public class DiaryService {
         return diaryRepository.findByAuthor(author.getMemberId(), pageable);
     }
 
-    public boolean checkAuthorOrNot(Member member, Long diaryId){
+    public boolean checkAuthorOrNot(Member member, Long diaryId) {
         Diary diary = validationService.validateDiaryExists(diaryId);
         return diary.getAuthor().getMemberId().equals(member.getMemberId());
     }
@@ -189,4 +189,22 @@ public class DiaryService {
         allUrls.stream().findFirst().ifPresent(diary::setThumbnail);
     }
 
+    /**
+     * 회원의 모든 일기 삭제 (회원 탈퇴 시 사용)
+     */
+    @Transactional
+    public void deleteAllMemberDiaries(Long memberId) {
+        List<Diary> diaries = diaryRepository.findAllByAuthorMemberId(memberId);
+
+        for (Diary diary : diaries) {
+            // 일기 이미지 삭제
+            for (DiaryImage img : diary.getImages()) {
+                imageService.deleteImage(img.getStoredFileName(), ImageDomain.DIARY);
+            }
+            diary.clearImages();
+
+            // 일기 삭제
+            diaryRepository.delete(diary);
+        }
+    }
 }

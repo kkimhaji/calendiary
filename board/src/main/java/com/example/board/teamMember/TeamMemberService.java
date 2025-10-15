@@ -2,9 +2,9 @@ package com.example.board.teamMember;
 
 import com.example.board.comment.CommentRepository;
 import com.example.board.common.service.EntityValidationService;
+import com.example.board.image.ImageService;
 import com.example.board.member.Member;
 import com.example.board.member.dto.AddTeamMemberToRoleDTO;
-import com.example.board.image.ImageService;
 import com.example.board.post.Post;
 import com.example.board.post.PostRepository;
 import com.example.board.role.TeamRole;
@@ -225,5 +225,24 @@ public class TeamMemberService {
         if (nickname.trim().length() > 20) { // 최대 길이 제한 (선택사항)
             throw new IllegalArgumentException("닉네임은 20자를 초과할 수 없습니다.");
         }
+    }
+
+    /**
+     * 회원이 속한 모든 팀의 콘텐츠 삭제 (회원 탈퇴 시 사용)
+     */
+    @Transactional
+    public void deleteAllMemberTeamContents(Long memberId) {
+        List<TeamMember> teamMemberships = teamMemberRepository.findAllByMemberId(memberId);
+
+        for (TeamMember teamMember : teamMemberships) {
+            Long teamId = teamMember.getTeam().getId();
+            deleteTeamMemberContents(teamId, memberId);
+        }
+    }
+
+    @Transactional
+    public void deleteAllMemberTeamMemberships(Long memberId) {
+        int deletedCount = teamMemberRepository.findAllByMemberId(memberId).size();
+        teamMemberRepository.deleteAllByMemberId(memberId);
     }
 }

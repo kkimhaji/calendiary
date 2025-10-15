@@ -6,6 +6,7 @@ import com.example.board.diary.dto.DiaryListResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -84,4 +85,10 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
             @Param("memberId") Long memberId,
             Pageable pageable);
 
+    List<Diary> findAllByAuthorMemberId(Long memberId);
+
+    // 회원의 모든 일기 삭제
+    @Modifying
+    @Query("DELETE FROM Diary d WHERE d.author.id = :memberId")
+    void deleteAllByAuthorMemberId(@Param("memberId") Long memberId);
 }

@@ -12,6 +12,7 @@ import com.example.board.teamMember.dto.TeamMemberInfoListDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -22,7 +23,9 @@ import java.util.Optional;
 @Repository
 public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
     List<TeamMember> findAllByTeamId(Long teamId);
+
     int countByTeamId(Long teamId);
+
     Optional<TeamMember> findByTeamAndMember(Team team, Member member);
 
     @Query("SELECT tm FROM TeamMember tm " +
@@ -109,7 +112,7 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
             "FROM TeamMember tm WHERE tm.member.id = :memberId")
     List<TeamInfoResponse> findTeamInfoAndNicknameAndRoleByMemberId(@Param("memberId") Long memberId);
 
-                                                                    // 멤버 ID로 팀 정보 및 닉네임 조회
+    // 멤버 ID로 팀 정보 및 닉네임 조회
     @Query("SELECT new com.example.board.team.dto.TeamInfoResponse(tm.team.id, tm.team.name, tm.teamNickname) " +
             "FROM TeamMember tm WHERE tm.member.id = :memberId")
     List<TeamInfoResponse> findTeamInfoAndNicknameByMemberId(@Param("memberId") Long memberId);
@@ -139,4 +142,11 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
     boolean existsByTeamAndMember(Team team, Member member);
 
     boolean existsByTeamAndTeamNickname(Team team, String teamNickname);
+
+    List<TeamMember> findAllByMemberId(Long memberId);
+
+    // 회원의 모든 팀 멤버십 삭제
+    @Modifying
+    @Query("DELETE FROM TeamMember tm WHERE tm.member.id = :memberId")
+    void deleteAllByMemberId(@Param("memberId") Long memberId);
 }
