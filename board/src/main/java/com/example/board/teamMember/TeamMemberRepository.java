@@ -143,10 +143,11 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
 
     boolean existsByTeamAndTeamNickname(Team team, String teamNickname);
 
-    List<TeamMember> findAllByMemberId(Long memberId);
+    @Query("SELECT tm FROM TeamMember tm WHERE tm.member.memberId = :memberId")
+    List<TeamMember> findAllByMemberId(@Param("memberId") Long memberId);
 
     // 회원의 모든 팀 멤버십 삭제
     @Modifying
-    @Query("DELETE FROM TeamMember tm WHERE tm.member.id = :memberId")
+    @Query("DELETE FROM TeamMember tm WHERE tm.member.memberId = :memberId")
     void deleteAllByMemberId(@Param("memberId") Long memberId);
 }

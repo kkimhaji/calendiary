@@ -3,12 +3,10 @@ package com.example.board.member;
 import com.example.board.auth.UserPrincipal;
 import com.example.board.common.exception.MemberNotFoundException;
 import com.example.board.common.service.EntityValidationService;
-import com.example.board.diary.DiaryService;
 import com.example.board.member.dto.MemberInfoResponse;
 import com.example.board.member.dto.MemberInfoSummaryResponse;
 import com.example.board.member.dto.PasswordResetRequest;
 import com.example.board.teamMember.EmailService;
-import com.example.board.teamMember.TeamMemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -23,8 +21,7 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final EmailService emailService;
     private final EntityValidationService validationService;
-    private final TeamMemberService teamMemberService;
-    private final DiaryService diaryService;
+    private final MemberDeletionService memberDeletionService;
 
     public String updateMemberName(Member member, String newNickname) {
         Member targetMember = validationService.validateMemberExists(member.getMemberId());
@@ -69,34 +66,8 @@ public class MemberService {
         return memberRepository.findByEmail(email).orElseThrow(MemberNotFoundException::new);
     }
 
-    /**
-     * 회원 탈퇴 - 각 도메인 서비스에 위임
-     */
     @Transactional
     public void deleteMember(Member member, String password) {
-        // 1. 비밀번호 확인
-        if (!checkPassword(member, password)) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
-        }
-
-        Long memberId = member.getMemberId();
-
-        try {
-            // 2. 일기 삭제 (DiaryService에 위임)
-            diaryService.deleteAllMemberDiaries(memberId);
-
-            // 3. 팀 콘텐츠 삭제 (TeamMemberService에 위임)
-            teamMemberService.deleteAllMemberTeamContents(memberId);
-
-            // 4. 팀 멤버십 삭제 (TeamMemberService에 위임)
-            teamMemberService.deleteAllMemberTeamMemberships(memberId);
-
-            // 5. 회원 정보 삭제
-            memberRepository.delete(member);
-
-        } catch (Exception e) {
-            throw new RuntimeException("회원 탈퇴 처리 중 오류가 발생했습니다.", e);
-        }
+        memberDeletionService.deleteMember(member, password, passwordEncoder);
     }
-
 }

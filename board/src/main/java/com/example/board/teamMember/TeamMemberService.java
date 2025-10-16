@@ -38,8 +38,7 @@ public class TeamMemberService {
     private final PostRepository postRepository;
     private final ImageService imageService;
     private final EntityValidationService validationService;
-    private final TeamService teamService;
-
+    
     @Transactional(readOnly = true)
     public TeamRole getCurrentUserRole(Long teamId, Member member) {
         validationService.validateTeamExists(teamId);
@@ -228,67 +227,6 @@ public class TeamMemberService {
         if (nickname.trim().length() > 20) { // 최대 길이 제한 (선택사항)
             throw new IllegalArgumentException("닉네임은 20자를 초과할 수 없습니다.");
         }
-    }
-
-    /**
-     * 회원이 속한 모든 팀의 콘텐츠 삭제 (회원 탈퇴 시 사용)
-     */
-    @Transactional
-    public void deleteAllMemberTeamContents(Long memberId) {
-        List<TeamMember> teamMemberships = teamMemberRepository.findAllByMemberId(memberId);
-
-        for (TeamMember teamMember : teamMemberships) {
-            Long teamId = teamMember.getTeam().getId();
-            deleteTeamMemberContents(teamId, memberId);
-        }
-    }
-
-    @Transactional
-    public void deleteAllMemberTeamMemberships(Long memberId) {
-        log.info("회원 팀 멤버십 전체 삭제 시작 - memberId: {}", memberId);
-
-        List<TeamMember> teamMemberships = teamMemberRepository.findAllByMemberId(memberId);
-        int deletedMembershipCount = teamMemberships.size();
-        int deletedTeamCount = 0;
-
-        // 각 팀별로 처리
-        for (TeamMember teamMember : teamMemberships) {
-            Team team = teamMember.getTeam();
-            Long teamId = team.getId();
-
-            // 현재 팀의 멤버 수 확인 (삭제 전)
-            long memberCount = teamMemberRepository.countByTeamId(teamId);
-
-            log.debug("팀 멤버 수 확인 - teamId: {}, memberCount: {}", teamId, memberCount);
-
-            // 양방향 관계 동기화
-            TeamRole role = teamMember.getRole();
-            if (role != null) {
-                role.getMembers().remove(teamMember);
-            }
-            team.getMembers().remove(teamMember);
-
-            // TeamMember 삭제
-            teamMemberRepository.delete(teamMember);
-
-            // 마지막 멤버였다면 팀 전체 삭제
-            if (memberCount == 1) {
-                log.info("마지막 멤버 탈퇴로 팀 삭제 시작 - teamId: {}, teamName: {}",
-                        teamId, team.getName());
-
-                try {
-                    // 멤버는 이미 삭제되었으므로 팀만 삭제하는 메서드 호출
-                    teamService.deleteTeamWithoutMembers(teamId);
-                    deletedTeamCount++;
-                    log.info("팀 삭제 완료 - teamId: {}", teamId);
-                } catch (Exception e) {
-                    log.error("팀 삭제 실패 - teamId: {}, error: {}", teamId, e.getMessage(), e);
-                }
-            }
-        }
-
-        log.info("회원 팀 멤버십 전체 삭제 완료 - memberId: {}, 삭제된 멤버십 수: {}, 삭제된 팀 수: {}",
-                memberId, deletedMembershipCount, deletedTeamCount);
     }
 
 }
