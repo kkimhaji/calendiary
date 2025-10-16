@@ -131,7 +131,6 @@ public class TeamRoleService {
     }
 
     @Transactional
-    //역할에서 멤버 삭제하는 기능 추가할 것 - '역할'기준으로
     public void removeMemberFromRole(Long teamId, Long memberId, Long newRoleId) {
         //빼는 멤버는 기본 역할 or 원하는 역할로
         if (newRoleId != null) {

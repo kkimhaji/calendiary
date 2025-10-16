@@ -9,6 +9,7 @@ import com.example.board.post.Post;
 import com.example.board.post.PostRepository;
 import com.example.board.role.TeamRole;
 import com.example.board.team.Team;
+import com.example.board.team.TeamService;
 import com.example.board.team.dto.TeamInfoResponse;
 import com.example.board.team.dto.TeamListDTO;
 import com.example.board.teamMember.dto.MemberProfileResponse;
@@ -16,6 +17,7 @@ import com.example.board.teamMember.dto.TeamMemberDTO;
 import com.example.board.teamMember.dto.TeamMemberInfoListDTO;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -29,12 +31,14 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TeamMemberService {
     private final TeamMemberRepository teamMemberRepository;
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
     private final ImageService imageService;
     private final EntityValidationService validationService;
+    private final TeamService teamService;
 
     @Transactional(readOnly = true)
     public TeamRole getCurrentUserRole(Long teamId, Member member) {
@@ -188,7 +192,6 @@ public class TeamMemberService {
                 // 게시글 삭제
                 postRepository.delete(post);
             } catch (IOException e) {
-//                log.error("이미지 삭제 중 오류 발생: " + e.getMessage());
                 // 이미지 삭제 실패해도 게시글은 삭제 진행
                 commentRepository.deleteAllByPostId(post.getId());
                 postRepository.delete(post);
@@ -242,7 +245,50 @@ public class TeamMemberService {
 
     @Transactional
     public void deleteAllMemberTeamMemberships(Long memberId) {
-        int deletedCount = teamMemberRepository.findAllByMemberId(memberId).size();
-        teamMemberRepository.deleteAllByMemberId(memberId);
+        log.info("회원 팀 멤버십 전체 삭제 시작 - memberId: {}", memberId);
+
+        List<TeamMember> teamMemberships = teamMemberRepository.findAllByMemberId(memberId);
+        int deletedMembershipCount = teamMemberships.size();
+        int deletedTeamCount = 0;
+
+        // 각 팀별로 처리
+        for (TeamMember teamMember : teamMemberships) {
+            Team team = teamMember.getTeam();
+            Long teamId = team.getId();
+
+            // 현재 팀의 멤버 수 확인 (삭제 전)
+            long memberCount = teamMemberRepository.countByTeamId(teamId);
+
+            log.debug("팀 멤버 수 확인 - teamId: {}, memberCount: {}", teamId, memberCount);
+
+            // 양방향 관계 동기화
+            TeamRole role = teamMember.getRole();
+            if (role != null) {
+                role.getMembers().remove(teamMember);
+            }
+            team.getMembers().remove(teamMember);
+
+            // TeamMember 삭제
+            teamMemberRepository.delete(teamMember);
+
+            // 마지막 멤버였다면 팀 전체 삭제
+            if (memberCount == 1) {
+                log.info("마지막 멤버 탈퇴로 팀 삭제 시작 - teamId: {}, teamName: {}",
+                        teamId, team.getName());
+
+                try {
+                    // 멤버는 이미 삭제되었으므로 팀만 삭제하는 메서드 호출
+                    teamService.deleteTeamWithoutMembers(teamId);
+                    deletedTeamCount++;
+                    log.info("팀 삭제 완료 - teamId: {}", teamId);
+                } catch (Exception e) {
+                    log.error("팀 삭제 실패 - teamId: {}, error: {}", teamId, e.getMessage(), e);
+                }
+            }
+        }
+
+        log.info("회원 팀 멤버십 전체 삭제 완료 - memberId: {}, 삭제된 멤버십 수: {}, 삭제된 팀 수: {}",
+                memberId, deletedMembershipCount, deletedTeamCount);
     }
+
 }

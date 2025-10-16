@@ -112,4 +112,24 @@ public class TeamService {
         }
         return targetTeam.getId();
     }
+
+    /**
+     * 팀만 삭제 (멤버는 이미 삭제된 상태, 회원 탈퇴 시 사용)
+     */
+    @Transactional
+    public void deleteTeamWithoutMembers(Long teamId) {
+        Team team = validationService.validateTeamExists(teamId);
+
+        // team에 속한 카테고리 삭제 (게시글, 댓글 포함)
+        categoryService.deleteAllCategoriesInTeam(team);
+
+        // team의 role 삭제
+        teamRoleService.deleteRole(teamId);
+
+        // 초대 삭제
+        inviteService.deleteInvitesByTeamId(teamId);
+
+        // 팀 삭제
+        teamRepository.delete(team);
+    }
 }
