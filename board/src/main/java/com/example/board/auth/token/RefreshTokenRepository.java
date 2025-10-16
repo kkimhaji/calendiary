@@ -44,4 +44,10 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
             nativeQuery = true)
     int deleteOldExpiredRefreshTokensInBatch(@Param("cutoffTime") LocalDateTime cutoffTime,
                                              @Param("batchSize") int batchSize);
+
+    // 회원의 모든 리프레시 토큰 삭제
+    @Modifying
+    @Query("DELETE FROM RefreshToken rt WHERE rt.member.memberId = :memberId")
+    void deleteAllByMemberId(@Param("memberId") Long memberId);
+
 }

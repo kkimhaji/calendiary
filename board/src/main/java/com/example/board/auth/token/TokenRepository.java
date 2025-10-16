@@ -46,4 +46,12 @@ public interface TokenRepository extends JpaRepository<Token, Long> {
             nativeQuery = true)
     int deleteOldExpiredTokensInBatch(@Param("cutoffTime") LocalDateTime cutoffTime,
                                       @Param("batchSize") int batchSize);
+    // 회원의 모든 액세스 토큰 조회
+    @Query("SELECT t FROM Token t WHERE t.member.memberId = :memberId")
+    List<Token> findAllByMemberId(@Param("memberId") Long memberId);
+
+    // 회원의 모든 액세스 토큰 삭제
+    @Modifying
+    @Query("DELETE FROM Token t WHERE t.member.memberId = :memberId")
+    void deleteAllByMemberId(@Param("memberId") Long memberId);
 }
