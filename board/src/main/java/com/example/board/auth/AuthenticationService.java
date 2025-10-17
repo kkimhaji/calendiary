@@ -1,7 +1,7 @@
 package com.example.board.auth;
 
 import com.example.board.auth.token.*;
-import com.example.board.common.exception.RefreshTokenExpiredException;
+import com.example.board.common.exception.*;
 import com.example.board.common.util.CookieUtil;
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
@@ -64,7 +64,7 @@ public class AuthenticationService {
             Member member = optionalMember.get();
 
             if (member.getVerificationCodeExpiredAt().isBefore(LocalDateTime.now()))
-                throw new RuntimeException("Verification code has expired!");
+                throw new VerificationCodeExpiredException("Verification code has expired!");
 
             if (member.getVerificationCode().equals(dto.verificationCode())) {
                 member.setVerified();
@@ -80,18 +80,18 @@ public class AuthenticationService {
                 return new AuthenticationResponse(
                         jwtToken, refreshToken
                 );
-            } else throw new RuntimeException("Invalid code");
+            } else throw new InvalidVerificationCodeException("Invalid code");
 
-        } else throw new RuntimeException("User not found");
+        } else throw new MemberNotFoundException("User not found");
     }
 
     public AuthenticationResponse authenticateWithAutoLogin(AuthenticationRequestDTO request, HttpServletResponse response) {
         // 인증 로직은 일반 로그인과 동일
         var member = memberRepository.findByEmail(request.email())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new MemberNotFoundException("User not found"));
 
         if (!member.isEnabled()) {
-            throw new RuntimeException("Account is not verified. Please verify your account first");
+            throw new AccountNotVerifiedException("Account is not verified. Please verify your account first");
         }
 
         authenticationManager.authenticate(
@@ -130,7 +130,7 @@ public class AuthenticationService {
                 .orElseThrow();
 
         if (!member.isEnabled()) {
-            throw new RuntimeException("Account is not verified. Please verify your account first");
+            throw new AccountNotVerifiedException("Account is not verified. Please verify your account first");
         }
 
         authenticationManager.authenticate(

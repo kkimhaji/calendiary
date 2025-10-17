@@ -3,20 +3,20 @@ package com.example.board.common.exception;
 import com.example.board.auth.UserPrincipal;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.ConstraintViolationException;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.Authentication;
 
 import java.util.Arrays;
 import java.util.List;
@@ -30,6 +30,7 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse("REFRESH_TOKEN_EXPIRED", ex.getMessage());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
     }
+
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException ex) {
         List<String> errors = ex.getConstraintViolations()
@@ -52,6 +53,7 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.badRequest().body(error);
     }
+
     @ExceptionHandler(PostValidationException.class)
     public ResponseEntity<ErrorResponse> handlePostValidation(PostValidationException ex) {
         ErrorResponse errorResponse = new ErrorResponse("INVALID_POST_DATA", ex.getMessage());
@@ -73,6 +75,7 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
+
     @ExceptionHandler(TeamNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleTeamNotFound(TeamNotFoundException ex) {
         ErrorResponse errorResponse = new ErrorResponse("TEAM_NOT_FOUND", ex.getMessage()); // "team not found"
@@ -116,7 +119,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(DiaryNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleDiaryNotFound(DiaryNotFoundException ex){
+    public ResponseEntity<ErrorResponse> handleDiaryNotFound(DiaryNotFoundException ex) {
         ErrorResponse errorResponse = new ErrorResponse("DIARY_NOT_FOUND", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
@@ -142,6 +145,7 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
+
     /**
      * AccessDeniedException 처리 - 권한 부족 시 403 반환
      * 로그아웃되지 않도록 403 상태로 명확히 처리
@@ -225,6 +229,7 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
+
     private boolean isAuthenticationPrincipalNull(NullPointerException ex, HttpServletRequest request) {
         // 스택 트레이스에서 @AuthenticationPrincipal 관련 null 체크
         String stackTrace = Arrays.toString(ex.getStackTrace());
@@ -257,5 +262,53 @@ public class GlobalExceptionHandler {
         } catch (Exception e) {
             return "unknown";
         }
+    }
+
+    @ExceptionHandler(VerificationCodeExpiredException.class)
+    public ResponseEntity<ErrorResponse> handleVerificationCodeExpired(
+            VerificationCodeExpiredException ex) {
+
+        log.warn("인증 코드 만료: {}", ex.getMessage());
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                "VERIFICATION_CODE_EXPIRED",
+                ex.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.GONE) // 410 Gone
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(AccountNotVerifiedException.class)
+    public ResponseEntity<ErrorResponse> handleAccountNotVerified(
+            AccountNotVerifiedException ex) {
+
+        log.warn("계정 미인증 로그인 시도 - email: {}", ex.getEmail());
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                "ACCOUNT_NOT_VERIFIED",
+                ex.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN) // 403 Forbidden
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(InvalidVerificationCodeException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidVerificationCode(
+            InvalidVerificationCodeException ex) {
+
+        log.warn("잘못된 인증 코드 입력: {}", ex.getMessage());
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                "INVALID_VERIFICATION_CODE",
+                ex.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST) // 400 Bad Request
+                .body(errorResponse);
     }
 }
