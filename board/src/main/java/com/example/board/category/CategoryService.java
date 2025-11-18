@@ -18,6 +18,7 @@ import com.example.board.team.Team;
 import com.example.board.teamMember.TeamMemberService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +32,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class CategoryService {
     private final TeamRoleRepository roleRepository;
     private final CategoryRepository categoryRepository;
@@ -49,13 +51,18 @@ public class CategoryService {
         if (categoryRepository.existsByTeamAndName(team, request.name())) {
             throw new IllegalArgumentException("Category name '" + request.name() + "' already exists in this team");
         }
-        TeamCategory category = TeamCategory.createCategory(
+        // 마지막 순서 값 조회 후 +1
+        Integer maxOrder = categoryRepository.findMaxDisplayOrderByTeamId(teamId);
+        Integer newOrder = maxOrder + 1;
+
+
+        TeamCategory category = TeamCategory.createCategoryWithOrder(
                 request.name(),
                 request.description(),
-                team
+                team,
+                newOrder
         );
 
-        // 카테고리 저장 (ID 생성을 위해)
         category = categoryRepository.save(category);
 
         Map<Long, TeamRole> teamRoles = getTeamRoles(team, request);
@@ -134,24 +141,39 @@ public class CategoryService {
     @Transactional
     public void deleteCategory(Long categoryId) {
         TeamCategory category = validationService.validateCategoryExists(categoryId);
+        Long teamId = category.getTeam().getId();
+        Integer deletedOrder = category.getDisplayOrder();
+
         List<Post> postsInCategory = postRepository.findAllByCategory(category);
         List<Long> postIds = postsInCategory.stream().map(Post::getId).toList();
         commentRepository.deleteAllByPostIdIn(postIds);
+
         for (Post post : postsInCategory) {
             try {
                 imageService.deleteAllPostImages(post);
             } catch (IOException e) {
-//                log.error("Error deleting images for post {}: {}", post.getId(), e.getMessage());
+                log.error("Error deleting images for post {}: {}", post.getId(), e.getMessage());
             }
         }
+
         List<CategoryRolePermission> categoryRolePermissions = categoryPermissionRepository.findAllByCategory(category);
         categoryRolePermissions.forEach(categoryPermission -> {
             categoryPermission.setCategory(null);
             categoryPermission.setRole(null);
         });
+
         categoryPermissionRepository.deleteAll(categoryRolePermissions);
         postRepository.deleteAll(postsInCategory);
         categoryRepository.deleteById(categoryId);
+
+        // 삭제 후 순서 재정렬
+        List<TeamCategory> categoriesAfter = categoryRepository.findByTeamIdAndDisplayOrderBetween(
+                teamId, deletedOrder + 1, Integer.MAX_VALUE
+        );
+
+        categoriesAfter.forEach(c -> c.updateDisplayOrder(c.getDisplayOrder() - 1));
+        categoryRepository.saveAll(categoriesAfter);
+
     }
 
     @Transactional
@@ -216,5 +238,81 @@ public class CategoryService {
     public CategoryResponse getCategoryInfo(Long categoryId) {
         TeamCategory category = validationService.validateCategoryExists(categoryId);
         return CategoryResponse.from(category);
+    }
+
+
+    /**
+     * 카테고리 순서 변경 (단일 이동)
+     */
+    @Transactional
+    public void updateCategoryOrder(Long categoryId, Integer newOrder) {
+        TeamCategory category = validationService.validateCategoryExists(categoryId);
+        Long teamId = category.getTeam().getId();
+
+        Integer oldOrder = category.getDisplayOrder();
+
+        if (oldOrder.equals(newOrder)) {
+            return; // 순서 변경 없음
+        }
+
+        List<TeamCategory> affectedCategories;
+
+        if (newOrder > oldOrder) {
+            // 아래로 이동: oldOrder < order <= newOrder 범위의 카테고리들을 위로
+            affectedCategories = categoryRepository.findByTeamIdAndDisplayOrderBetween(
+                    teamId, oldOrder + 1, newOrder
+            );
+            affectedCategories.forEach(c -> c.updateDisplayOrder(c.getDisplayOrder() - 1));
+        } else {
+            // 위로 이동: newOrder <= order < oldOrder 범위의 카테고리들을 아래로
+            affectedCategories = categoryRepository.findByTeamIdAndDisplayOrderBetween(
+                    teamId, newOrder, oldOrder - 1
+            );
+            affectedCategories.forEach(c -> c.updateDisplayOrder(c.getDisplayOrder() + 1));
+        }
+
+        category.updateDisplayOrder(newOrder);
+
+        categoryRepository.saveAll(affectedCategories);
+        categoryRepository.save(category);
+
+        log.info("카테고리 순서 변경 완료 - categoryId: {}, oldOrder: {}, newOrder: {}",
+                categoryId, oldOrder, newOrder);
+    }
+
+    /**
+     * 카테고리 순서 일괄 변경 (드래그 앤 드롭)
+     */
+    @Transactional
+    public void reorderCategories(Long teamId, List<Long> categoryIds) {
+        Team team = validationService.validateTeamExists(teamId);
+        List<TeamCategory> categories = categoryRepository.findAllById(categoryIds);
+
+        // 모든 카테고리가 같은 팀인지 확인
+        boolean allSameTeam = categories.stream()
+                .allMatch(c -> c.getTeam().getId().equals(teamId));
+
+        if (!allSameTeam) {
+            throw new IllegalArgumentException("다른 팀의 카테고리는 재정렬할 수 없습니다.");
+        }
+
+        if (categories.size() != categoryIds.size()) {
+            throw new IllegalArgumentException("일부 카테고리를 찾을 수 없습니다.");
+        }
+
+        // 순서대로 displayOrder 업데이트
+        for (int i = 0; i < categoryIds.size(); i++) {
+            Long categoryId = categoryIds.get(i);
+            TeamCategory category = categories.stream()
+                    .filter(c -> c.getId().equals(categoryId))
+                    .findFirst()
+                    .orElseThrow(() -> new CategoryNotFoundException("카테고리를 찾을 수 없습니다."));
+
+            category.updateDisplayOrder(i);
+        }
+
+        categoryRepository.saveAll(categories);
+
+        log.info("카테고리 일괄 순서 변경 완료 - teamId: {}, count: {}", teamId, categories.size());
     }
 }

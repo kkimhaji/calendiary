@@ -21,14 +21,17 @@ public interface CategoryRepository extends JpaRepository<TeamCategory, Long> {
             @Param("roleId") Long roleId
     );
 
-    // 카테고리와 팀을 함께 조회 (N+1 문제 방지)
     @Query("SELECT c FROM TeamCategory c JOIN FETCH c.team WHERE c.id = :categoryId")
     Optional<TeamCategory> findWithTeamById(@Param("categoryId") Long categoryId);
 
     List<TeamCategory> findAllByTeam(Team team);
 
-    @Query("SELECT new com.example.board.category.dto.CategoryListDTO(c.id, c.name) " +
-            "FROM TeamCategory c WHERE c.team.id = :teamId")
+    // 순서대로 조회하도록 수정
+    @Query("SELECT c FROM TeamCategory c WHERE c.team = :team ORDER BY c.displayOrder ASC, c.id ASC")
+    List<TeamCategory> findAllByTeamOrderByDisplayOrder(@Param("team") Team team);
+
+    @Query("SELECT new com.example.board.category.dto.CategoryListDTO(c.id, c.name, c.displayOrder) " +
+            "FROM TeamCategory c WHERE c.team.id = :teamId ORDER BY c.displayOrder ASC, c.id ASC")
     List<CategoryListDTO> findCategoryListByTeamId(@Param("teamId") Long teamId);
 
     boolean existsByTeamAndName(Team team, String name);
@@ -40,4 +43,15 @@ public interface CategoryRepository extends JpaRepository<TeamCategory, Long> {
             "WHERE c.id = :categoryId")
     Optional<TeamCategory> findByIdWithPermissions(@Param("categoryId") Long categoryId);
 
+    // 순서 관련 쿼리 추가
+    @Query("SELECT COALESCE(MAX(c.displayOrder), 0) FROM TeamCategory c WHERE c.team.id = :teamId")
+    Integer findMaxDisplayOrderByTeamId(@Param("teamId") Long teamId);
+
+    @Query("SELECT c FROM TeamCategory c WHERE c.team.id = :teamId " +
+            "AND c.displayOrder BETWEEN :start AND :end ORDER BY c.displayOrder ASC")
+    List<TeamCategory> findByTeamIdAndDisplayOrderBetween(
+            @Param("teamId") Long teamId,
+            @Param("start") Integer start,
+            @Param("end") Integer end
+    );
 }

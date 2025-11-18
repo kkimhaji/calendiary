@@ -20,6 +20,8 @@ public class TeamCategory {
 
     private String name;
     private String description;
+    @Column(name = "display_order", nullable = false)
+    private Integer displayOrder = 0;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id")
@@ -28,10 +30,11 @@ public class TeamCategory {
     @OneToMany(mappedBy = "category")
     private Set<CategoryRolePermission> rolePermissions = new HashSet<>();
 
-    private TeamCategory(String name, String description, Team team) {
+    private TeamCategory(String name, String description, Team team, Integer displayOrder) {
         this.name = name;
         this.description = description;
         this.team = team;
+        this.displayOrder = displayOrder != null ? displayOrder : 0;
     }
 
     public void addPost(Post post) {
@@ -39,6 +42,10 @@ public class TeamCategory {
         if (post.getCategory() != this) {
             post.setCategory(this);
         }
+    }
+
+    public void updateDisplayOrder(Integer newOrder) {
+        this.displayOrder = newOrder;
     }
 
     public void clearRolePermissions(){
@@ -59,6 +66,13 @@ public class TeamCategory {
     }
 
     public static TeamCategory createCategory(String name, String description, Team team) {
-        return new TeamCategory(name, description, team);
+        return new TeamCategory(name, description, team, 0);
+    }
+
+    /**
+     * 카테고리 생성 (순서 지정)
+     */
+    public static TeamCategory createCategoryWithOrder(String name, String description, Team team, Integer displayOrder) {
+        return new TeamCategory(name, description, team, displayOrder);
     }
 }

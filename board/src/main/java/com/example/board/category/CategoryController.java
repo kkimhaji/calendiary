@@ -1,12 +1,11 @@
 package com.example.board.category;
 
-import com.example.board.category.dto.CategoryListDTO;
-import com.example.board.category.dto.CategoryResponse;
-import com.example.board.category.dto.CreateCategoryRequest;
-import com.example.board.category.dto.UpdateCategoryRequest;
+import com.example.board.auth.UserPrincipal;
+import com.example.board.category.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
@@ -47,6 +46,35 @@ public class CategoryController {
     @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_CATEGORIES)")
     public ResponseEntity<Void> deleteCategory(@PathVariable("teamId") @P("teamId") Long teamId, @PathVariable("categoryId") Long categoryId){
         categoryService.deleteCategory(categoryId);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 카테고리 순서 변경 (단일)
+     */
+    @PutMapping("/teams/{teamId}/categories/{categoryId}/order")
+    public ResponseEntity<Void> updateCategoryOrder(
+            @PathVariable("teamId") Long teamId,
+            @PathVariable("categoryId") Long categoryId,
+            @RequestBody CategoryOrderUpdateRequest request,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+
+        request.validate();
+        categoryService.updateCategoryOrder(categoryId, request.newOrder());
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 카테고리 순서 일괄 변경 (드래그 앤 드롭)
+     */
+    @PutMapping("/teams/{teamId}/categories/reorder")
+    public ResponseEntity<Void> reorderCategories(
+            @PathVariable("teamId") Long teamId,
+            @RequestBody CategoryReorderRequest request,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+
+        request.validate();
+        categoryService.reorderCategories(teamId, request.categoryIds());
         return ResponseEntity.ok().build();
     }
 }
