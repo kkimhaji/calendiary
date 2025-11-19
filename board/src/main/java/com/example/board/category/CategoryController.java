@@ -52,7 +52,7 @@ public class CategoryController {
     /**
      * 카테고리 순서 변경 (단일)
      */
-    @PutMapping("/teams/{teamId}/categories/{categoryId}/order")
+    @PutMapping("/{categoryId}/order")
     public ResponseEntity<Void> updateCategoryOrder(
             @PathVariable("teamId") Long teamId,
             @PathVariable("categoryId") Long categoryId,
@@ -67,7 +67,7 @@ public class CategoryController {
     /**
      * 카테고리 순서 일괄 변경 (드래그 앤 드롭)
      */
-    @PutMapping("/teams/{teamId}/categories/reorder")
+    @PutMapping("/reorder")
     public ResponseEntity<Void> reorderCategories(
             @PathVariable("teamId") Long teamId,
             @RequestBody CategoryReorderRequest request,
