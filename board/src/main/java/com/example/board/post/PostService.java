@@ -25,6 +25,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,6 +36,9 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static com.example.board.permission.CategoryPermission.CREATE_POST;
+import static com.example.board.permission.CategoryPermission.VIEW_POST;
 
 @Service
 @RequiredArgsConstructor
@@ -54,6 +59,9 @@ public class PostService {
         Team team = validationService.validateTeamExists(teamId);
         TeamCategory category = validationService.validateCategoryExists(categoryId);
 
+        if (!permissionService.checkPermission(categoryId, CREATE_POST))
+            throw new AccessDeniedException("게시글을 삭제할 권한이 없습니다.");
+
         // HTML 콘텐츠 처리 (임시 → 영구 이미지 변환)
         String sanitized = htmlSanitizer.sanitize(req.content());
         String processedContent = imageService.processContentImages(sanitized, ImageDomain.POST);
@@ -71,11 +79,14 @@ public class PostService {
     }
 
     @Transactional
-    public PostResponse updatePost(Long categoryId, Long postId, UpdatePostRequestDTO request) throws IOException {
+    public PostResponse updatePost(Long categoryId, Long postId, UpdatePostRequestDTO request, UserPrincipal user) throws IOException {
 
         Post post = validationService.validatePostExists(postId);
         TeamCategory category = validationService.validateCategoryExists(categoryId);
 
+        if (!post.getAuthor().equals(user.getMember())){
+            throw new AccessDeniedException("");
+        }
         // HTML 콘텐츠 처리
         String sanitized = htmlSanitizer.sanitize(request.content());
         String processedContent = imageService.processContentImages(sanitized, ImageDomain.POST);
@@ -98,6 +109,7 @@ public class PostService {
     public PostDetailDTO getPostDetail(Long teamId, Long categoryId, Long postId) {
         validationService.validatePath(teamId, categoryId);
         Post post = validationService.validatePostExists(postId);
+        permissionService.checkPermission(categoryId, VIEW_POST);
         //조회수 증가: 비동기로 처리
         increaseViewCount(postId);
 
