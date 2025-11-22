@@ -2,7 +2,6 @@ package com.example.board.permission;
 
 import com.example.board.auth.UserPrincipal;
 import com.example.board.comment.Comment;
-import com.example.board.comment.CommentRepository;
 import com.example.board.common.service.EntityValidationService;
 import com.example.board.member.Member;
 import com.example.board.permission.evaluator.DelegatingPermissionEvaluator;
@@ -27,7 +26,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PermissionService {
     private final DelegatingPermissionEvaluator permissionEvaluator;
-    private final CommentRepository commentRepository;
     private final ConversionService conversionService;
     private final EntityValidationService validationService;
 
