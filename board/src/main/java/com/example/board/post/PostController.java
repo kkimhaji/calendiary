@@ -65,7 +65,7 @@ public class PostController {
             @RequestBody @Valid UpdatePostRequestDTO request,
             @AuthenticationPrincipal UserPrincipal user) throws IOException {
 
-        return ResponseEntity.ok(postService.updatePost(categoryId, postId, request, user));
+        return ResponseEntity.ok(postService.updatePost(categoryId, postId, request, user.getMember()));
     }
 
     //팀의 최근 게시글 목록 조회

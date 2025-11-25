@@ -77,12 +77,12 @@ public class PostService {
     }
 
     @Transactional
-    public PostResponse updatePost(Long categoryId, Long postId, UpdatePostRequestDTO request, UserPrincipal user) throws IOException {
+    public PostResponse updatePost(Long categoryId, Long postId, UpdatePostRequestDTO request, Member member) throws IOException {
 
         Post post = validationService.validatePostExists(postId);
         TeamCategory category = validationService.validateCategoryExists(categoryId);
 
-        if (!post.getAuthor().equals(user.getMember())) {
+        if (!post.getAuthor().equals(member)) {
             throw new AccessDeniedException("");
         }
         // HTML 콘텐츠 처리
