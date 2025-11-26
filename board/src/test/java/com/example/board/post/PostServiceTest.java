@@ -372,7 +372,7 @@ public class PostServiceTest extends AbstractTestSupport {
 
         // when
         PostResponse response =
-                postService.updatePost(testCategory.getId(), testPost.getId(), dto);
+                postService.updatePost(testCategory.getId(), testPost.getId(), dto, member2);
 
         // then
         Post updated = postRepository.findById(testPost.getId()).orElseThrow();

@@ -1,5 +1,6 @@
 package com.example.board.post;
 
+import com.example.board.auth.UserPrincipal;
 import com.example.board.category.TeamCategory;
 import com.example.board.common.exception.PostNotFoundException;
 import com.example.board.common.exception.TeamNotFoundException;
@@ -188,6 +189,7 @@ public class PostControllerTest extends AbstractControllerTestSupport {
         Long teamId = testDataBuilder.getCurrentTestTeamId();
         Long categoryId = testDataBuilder.getCurrentCategoryId();
         Long postId = 1L;
+        Member member = testDataBuilder.getCurrentUserPrincipal().getMember();
 
         UpdatePostRequestDTO request = new UpdatePostRequestDTO(
                 "수정된 게시글",
@@ -207,7 +209,7 @@ public class PostControllerTest extends AbstractControllerTestSupport {
                 3L
         );
 
-        given(postService.updatePost(eq(categoryId), eq(postId), any(UpdatePostRequestDTO.class)))
+        given(postService.updatePost(eq(categoryId), eq(postId), any(UpdatePostRequestDTO.class), member))
                 .willReturn(expectedResponse);
 
         // When & Then
@@ -220,7 +222,7 @@ public class PostControllerTest extends AbstractControllerTestSupport {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("수정된 게시글"));
 
-        verify(postService).updatePost(eq(categoryId), eq(postId), any(UpdatePostRequestDTO.class));
+        verify(postService).updatePost(eq(categoryId), eq(postId), any(UpdatePostRequestDTO.class), member);
     }
 
     @Test
@@ -231,6 +233,7 @@ public class PostControllerTest extends AbstractControllerTestSupport {
         Long teamId = testDataBuilder.getCurrentTestTeamId();
         Long categoryId = testDataBuilder.getCurrentCategoryId();
         Long postId = testDataBuilder.createPost("테스트", "테스트용 게시글", categoryId, teamId).getId();
+        Member member = testDataBuilder.getCurrentUserPrincipal().getMember();
 
         UpdatePostRequestDTO request = new UpdatePostRequestDTO(
                 "수정된 제목",
@@ -243,7 +246,7 @@ public class PostControllerTest extends AbstractControllerTestSupport {
                 teamId, categoryId, "개발팀", 5, LocalDateTime.now(), 3L
         );
 
-        given(postService.updatePost(eq(categoryId), eq(postId), any(UpdatePostRequestDTO.class)))
+        given(postService.updatePost(eq(categoryId), eq(postId), any(UpdatePostRequestDTO.class), member))
                 .willReturn(mockResponse);
 
         String jsonBody = objectMapper.writeValueAsString(request);
