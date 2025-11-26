@@ -170,7 +170,7 @@ public class TeamServiceTest extends AbstractTestSupport{
 
         // then
         assertThat(resp.id()).isEqualTo(team.getId());
-        assertThat(resp.teamName()).isEqualTo(team.getName());
+        assertThat(resp.name()).isEqualTo(team.getName());
         assertThat(resp.description()).isEqualTo(team.getDescription());
         assertThat(resp.created_by()).isEqualTo(adminTeamMember.getTeamNickname());
         assertThat(resp.createdAt()).isEqualTo(team.getCreatedAt());
@@ -198,7 +198,7 @@ public class TeamServiceTest extends AbstractTestSupport{
 
         // then
         assertThat(resp.id()).isEqualTo(team.getId());
-        assertThat(resp.teamName()).isEqualTo(team.getName());
+        assertThat(resp.name()).isEqualTo(team.getName());
         assertThat(resp.description()).isEqualTo(team.getDescription());
         assertThat(resp.created_by()).isEqualTo(team.getCreatedBy().getNickname());
         assertThat(resp.createdAt()).isEqualTo(team.getCreatedAt());

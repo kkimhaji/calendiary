@@ -33,7 +33,7 @@ class DiaryServiceTest extends AbstractTestSupport {
         CreateDiaryRequest request = new CreateDiaryRequest(
                 "오늘의 일기",
                 "오늘은 즐거운 하루였다.",
-                Visibility.PRIVATE
+                Visibility.PRIVATE, null
         );
 
         // When
@@ -55,7 +55,7 @@ class DiaryServiceTest extends AbstractTestSupport {
     void getDiary_Success_Owner() throws IOException {
         // Given
         CreateDiaryRequest request = new CreateDiaryRequest(
-                "개인 일기", "비밀 내용", Visibility.PRIVATE);
+                "개인 일기", "비밀 내용", Visibility.PRIVATE, null);
         Diary savedDiary = diaryService.createDiary(request, member1);
 
         // When
@@ -75,7 +75,7 @@ class DiaryServiceTest extends AbstractTestSupport {
     void getDiary_Fail_AccessDenied() throws IOException {
         // Given
         CreateDiaryRequest request = new CreateDiaryRequest(
-                "비공개 일기", "다른 사람이 볼 수 없는 내용", Visibility.PRIVATE);
+                "비공개 일기", "다른 사람이 볼 수 없는 내용", Visibility.PRIVATE, null);
         Diary savedDiary = diaryService.createDiary(request, member1);
 
         // When & Then
@@ -89,7 +89,7 @@ class DiaryServiceTest extends AbstractTestSupport {
     void getDiary_Success_PublicDiary() throws IOException {
         // Given
         CreateDiaryRequest request = new CreateDiaryRequest(
-                "공개 일기", "모두가 볼 수 있는 내용", Visibility.PUBLIC);
+                "공개 일기", "모두가 볼 수 있는 내용", Visibility.PUBLIC, null);
         Diary savedDiary = diaryService.createDiary(request, member1);
 
         // When
@@ -107,11 +107,11 @@ class DiaryServiceTest extends AbstractTestSupport {
     void updateDiary_Success() throws IOException {
         // Given
         CreateDiaryRequest createRequest = new CreateDiaryRequest(
-                "원래 제목", "원래 내용", Visibility.PRIVATE);
+                "원래 제목", "원래 내용", Visibility.PRIVATE, null);
         Diary savedDiary = diaryService.createDiary(createRequest, member1);
 
         UpdateDiaryRequest updateRequest = new UpdateDiaryRequest(
-                "수정된 제목", "수정된 내용", Visibility.PUBLIC, List.of());
+                "수정된 제목", "수정된 내용", Visibility.PUBLIC, null, List.of());
 
         // When
         DiaryDetailResponse result = diaryService.updateDiary(
@@ -133,11 +133,11 @@ class DiaryServiceTest extends AbstractTestSupport {
     void updateDiary_Fail_AccessDenied() throws IOException {
         // Given
         CreateDiaryRequest createRequest = new CreateDiaryRequest(
-                "member1의 일기", "내용", Visibility.PRIVATE);
+                "member1의 일기", "내용", Visibility.PRIVATE, null);
         Diary savedDiary = diaryService.createDiary(createRequest, member1);
 
         UpdateDiaryRequest updateRequest = new UpdateDiaryRequest(
-                "해킹 시도", "악의적 수정", Visibility.PUBLIC, List.of());
+                "해킹 시도", "악의적 수정", Visibility.PUBLIC, null, List.of());
 
         // When & Then
         assertThatThrownBy(() -> diaryService.updateDiary(
@@ -152,7 +152,7 @@ class DiaryServiceTest extends AbstractTestSupport {
     void deleteDiary_Success() throws IOException {
         // Given
         CreateDiaryRequest request = new CreateDiaryRequest(
-                "삭제할 일기", "내용", Visibility.PRIVATE);
+                "삭제할 일기", "내용", Visibility.PRIVATE, null);
         Diary savedDiary = diaryService.createDiary(request, member1);
         Long diaryId = savedDiary.getId();
 
@@ -168,7 +168,7 @@ class DiaryServiceTest extends AbstractTestSupport {
     void deleteDiary_Fail_AccessDenied() throws IOException {
         // Given
         CreateDiaryRequest request = new CreateDiaryRequest(
-                "member1의 일기", "내용", Visibility.PRIVATE);
+                "member1의 일기", "내용", Visibility.PRIVATE, null);
         Diary savedDiary = diaryService.createDiary(request, member1);
 
         // When & Then
@@ -183,14 +183,14 @@ class DiaryServiceTest extends AbstractTestSupport {
     void findByAuthor_Success() throws IOException {
         // Given
         CreateDiaryRequest request1 = new CreateDiaryRequest(
-                "일기1", "내용1", Visibility.PRIVATE);
+                "일기1", "내용1", Visibility.PRIVATE, null);
         CreateDiaryRequest request2 = new CreateDiaryRequest(
-                "일기2", "내용2", Visibility.PUBLIC);
+                "일기2", "내용2", Visibility.PUBLIC, null);
 
         diaryService.createDiary(request1, member1);
         diaryService.createDiary(request2, member1);
         diaryService.createDiary(new CreateDiaryRequest(
-                "다른 사람 일기", "내용", Visibility.PRIVATE), member2);
+                "다른 사람 일기", "내용", Visibility.PRIVATE, null), member2);
 
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -213,9 +213,9 @@ class DiaryServiceTest extends AbstractTestSupport {
     void findMonthlyDiaries_Success() throws IOException {
         // Given
         CreateDiaryRequest request1 = new CreateDiaryRequest(
-                "8월 일기1", "내용1", Visibility.PRIVATE);
+                "8월 일기1", "내용1", Visibility.PRIVATE, null);
         CreateDiaryRequest request2 = new CreateDiaryRequest(
-                "8월 일기2", "내용2", Visibility.PUBLIC);
+                "8월 일기2", "내용2", Visibility.PUBLIC, null);
 
         diaryService.createDiary(request1, member1);
         diaryService.createDiary(request2, member1);
@@ -226,7 +226,7 @@ class DiaryServiceTest extends AbstractTestSupport {
         // Then
         assertThat(result).hasSize(2);
         result.forEach(dto -> {
-            LocalDate date = dto.date(); // 헬퍼 메서드 사용
+            LocalDate date = dto.diaryDate(); // 헬퍼 메서드 사용
             assertThat(date.getYear()).isEqualTo(2025);
             assertThat(date.getMonthValue()).isEqualTo(8);
         });
@@ -237,9 +237,9 @@ class DiaryServiceTest extends AbstractTestSupport {
     void findMonthlyDiaries_OnlyOwnDiaries() throws IOException {
         // Given
         diaryService.createDiary(new CreateDiaryRequest(
-                "member1 일기", "내용", Visibility.PRIVATE), member1);
+                "member1 일기", "내용", Visibility.PRIVATE, null), member1);
         diaryService.createDiary(new CreateDiaryRequest(
-                "member2 일기", "내용", Visibility.PRIVATE), member2);
+                "member2 일기", "내용", Visibility.PRIVATE, null), member2);
 
         // When
         List<DiaryCalendarDTO> result = diaryService.findMonthlyDiaries(member1, 2025, 8);

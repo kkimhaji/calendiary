@@ -20,6 +20,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -57,7 +58,8 @@ class DiaryControllerTest extends AbstractControllerTestSupport {
         CreateDiaryRequest request = new CreateDiaryRequest(
                 "오늘의 일기",
                 "<p>오늘은 좋은 하루였다.</p>",
-                PUBLIC
+                PUBLIC,
+                LocalDate.of(2025, 9, 3) // diaryDate 추가
         );
         Member testMember = principal1.getMember();
         Diary mockDiary = Diary.create("오늘의 일기", "<p>오늘은 좋은 하루였다.</p>", testMember, PUBLIC);
@@ -86,7 +88,8 @@ class DiaryControllerTest extends AbstractControllerTestSupport {
         CreateDiaryRequest request = new CreateDiaryRequest(
                 "", // 빈 제목
                 "내용입니다.",
-                Visibility.PRIVATE
+                Visibility.PRIVATE,
+                LocalDate.now()
         );
 
         // When & Then
@@ -103,7 +106,7 @@ class DiaryControllerTest extends AbstractControllerTestSupport {
     @DisplayName("일기 생성 실패 - visibility 누락")
     void createDiary_missingVisibility_badRequest() throws Exception {
         // Given - visibility가 null인 요청 (JSON에서 누락)
-        String invalidJson = "{\"title\":\"제목\",\"content\":\"내용\"}"; // visibility 없음
+        String invalidJson = "{\"title\":\"제목\",\"content\":\"내용\",\"diaryDate\":\"2025-09-03\"}"; // visibility 없음
 
         // When & Then
         mockMvc.perform(post("/diary")
@@ -128,6 +131,7 @@ class DiaryControllerTest extends AbstractControllerTestSupport {
                 "<p>일기 내용</p>",
                 "테스트사용자",
                 LocalDateTime.of(2025, 9, 3, 14, 30),
+                LocalDate.of(2025, 9, 3), // diaryDate 추가
                 "PUBLIC",
                 Arrays.asList("https://example.com/image1.jpg", "https://example.com/image2.jpg")
         );
@@ -143,6 +147,7 @@ class DiaryControllerTest extends AbstractControllerTestSupport {
                 .andExpect(jsonPath("$.title").value("일기 제목"))
                 .andExpect(jsonPath("$.content").value("<p>일기 내용</p>"))
                 .andExpect(jsonPath("$.authorNickname").value("테스트사용자"))
+                .andExpect(jsonPath("$.diaryDate").value("2025-09-03"))
                 .andExpect(jsonPath("$.visibility").value("PUBLIC"))
                 .andExpect(jsonPath("$.imageUrls", hasSize(2)))
                 .andExpect(jsonPath("$.imageUrls[0]").value("https://example.com/image1.jpg"));
@@ -172,7 +177,6 @@ class DiaryControllerTest extends AbstractControllerTestSupport {
         // Given
         Long diaryId = 1L;
 
-        // ✅ 권한 없음 예외를 던지도록 Mock 설정
         given(diaryService.getDiary(eq(diaryId), any(Member.class)))
                 .willThrow(new AccessDeniedException("본인만 열람할 수 있습니다."));
 
@@ -190,13 +194,13 @@ class DiaryControllerTest extends AbstractControllerTestSupport {
         // Given
         Long diaryId = 2L;
 
-        // ✅ 공개 일기 응답 Mock 설정
         DiaryDetailResponse publicDiaryResponse = new DiaryDetailResponse(
                 diaryId,
                 "공개 일기",
                 "모두가 볼 수 있는 내용",
-                "테스트사용자1", // 원작성자
+                "테스트사용자1",
                 LocalDateTime.of(2025, 9, 3, 10, 30),
+                LocalDate.of(2025, 9, 3),
                 "PUBLIC",
                 List.of("https://example.com/public-image.jpg")
         );
@@ -221,7 +225,7 @@ class DiaryControllerTest extends AbstractControllerTestSupport {
     @DisplayName("일기 조회 - 성공 (작성자 본인)")
     @WithMockUser(username = "test1@test.com")
     void getDiary_Success_AuthorAccess() throws Exception {
-        // Given - 작성자 본인으로 인증 설정
+        // Given
         Long diaryId = 1L;
 
         DiaryDetailResponse privateDiaryResponse = new DiaryDetailResponse(
@@ -230,6 +234,7 @@ class DiaryControllerTest extends AbstractControllerTestSupport {
                 "비밀 내용",
                 "작성자",
                 LocalDateTime.of(2025, 9, 3, 10, 30),
+                LocalDate.of(2025, 9, 3),
                 "PRIVATE",
                 Collections.emptyList()
         );
@@ -253,13 +258,21 @@ class DiaryControllerTest extends AbstractControllerTestSupport {
         // Given
         Long diaryId = 1L;
         UpdateDiaryRequest request = new UpdateDiaryRequest(
-                "수정된 제목", "<p>수정된 내용</p>",
-                Visibility.PRIVATE, Arrays.asList(1L, 2L)
+                "수정된 제목",
+                "<p>수정된 내용</p>",
+                Visibility.PRIVATE,
+                LocalDate.of(2025, 9, 5), // diaryDate 추가
+                Arrays.asList(1L, 2L)
         );
 
         DiaryDetailResponse mockResponse = new DiaryDetailResponse(
-                diaryId, "수정된 제목", "<p>수정된 내용</p>",
-                "테스트사용자", LocalDateTime.now(), "PRIVATE",
+                diaryId,
+                "수정된 제목",
+                "<p>수정된 내용</p>",
+                "테스트사용자",
+                LocalDateTime.now(),
+                LocalDate.of(2025, 9, 5),
+                "PRIVATE",
                 Collections.emptyList()
         );
 
@@ -272,7 +285,8 @@ class DiaryControllerTest extends AbstractControllerTestSupport {
                         .with(csrf())
                         .with(user(principal1)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("수정된 제목"));
+                .andExpect(jsonPath("$.title").value("수정된 제목"))
+                .andExpect(jsonPath("$.diaryDate").value("2025-09-05"));
     }
 
     @Test
@@ -281,7 +295,11 @@ class DiaryControllerTest extends AbstractControllerTestSupport {
         // Given
         Long diaryId = 1L;
         UpdateDiaryRequest request = new UpdateDiaryRequest(
-                "수정 시도", "수정 내용", Visibility.PRIVATE, Collections.emptyList()
+                "수정 시도",
+                "수정 내용",
+                Visibility.PRIVATE,
+                LocalDate.now(),
+                Collections.emptyList()
         );
 
         given(diaryService.updateDiary(eq(diaryId), any(UpdateDiaryRequest.class), any(Member.class)))
@@ -341,18 +359,21 @@ class DiaryControllerTest extends AbstractControllerTestSupport {
         List<DiaryCalendarDTO> mockDiaries = Arrays.asList(
                 new DiaryCalendarDTO(
                         1L,
+                        "9월 1일 일기",
                         LocalDateTime.of(2025, 9, 1, 14, 30),
                         "https://example.com/thumbnail1.jpg",
                         3L
                 ),
                 new DiaryCalendarDTO(
                         2L,
+                        "9월 15일 일기",
                         LocalDateTime.of(2025, 9, 15, 10, 15),
                         "https://example.com/thumbnail2.jpg",
                         1L
                 ),
                 new DiaryCalendarDTO(
                         3L,
+                        "9월 30일 일기",
                         LocalDateTime.of(2025, 9, 30, 20, 45),
                         null, // 썸네일 없음
                         0L
@@ -370,6 +391,8 @@ class DiaryControllerTest extends AbstractControllerTestSupport {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(3)))
                 .andExpect(jsonPath("$[0].diaryId").value(1L))
+                .andExpect(jsonPath("$[0].title").value("9월 1일 일기"))
+                .andExpect(jsonPath("$[0].diaryDate").value("2025-09-01"))
                 .andExpect(jsonPath("$[0].thumbnailImageUrl").value("https://example.com/thumbnail1.jpg"))
                 .andExpect(jsonPath("$[0].imageCount").value(3L))
                 .andExpect(jsonPath("$[1].diaryId").value(2L))
