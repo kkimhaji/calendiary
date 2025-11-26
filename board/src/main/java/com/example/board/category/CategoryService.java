@@ -8,6 +8,7 @@ import com.example.board.common.service.EntityValidationService;
 import com.example.board.member.Member;
 import com.example.board.permission.CategoryPermission;
 import com.example.board.image.ImageService;
+import com.example.board.permission.PermissionService;
 import com.example.board.post.Post;
 import com.example.board.post.PostRepository;
 import com.example.board.role.CategoryPermissionRepository;
@@ -19,6 +20,7 @@ import com.example.board.teamMember.TeamMemberService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +30,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.example.board.permission.TeamPermission.MANAGE_CATEGORIES;
 
 @Service
 @RequiredArgsConstructor
@@ -43,6 +47,7 @@ public class CategoryService {
     private final ImageService imageService;
     private final EntityManager entityManager;
     private final EntityValidationService validationService;
+    private final PermissionService permissionService;
 
     @Transactional
     public TeamCategory createCategory(Long teamId, CreateCategoryRequest request) {
@@ -142,6 +147,8 @@ public class CategoryService {
     public void deleteCategory(Long categoryId) {
         TeamCategory category = validationService.validateCategoryExists(categoryId);
         Long teamId = category.getTeam().getId();
+        if (!permissionService.checkPermission(teamId, MANAGE_CATEGORIES))
+            throw new AccessDeniedException("카테고리 삭제 권한이 없습니다.");
         Integer deletedOrder = category.getDisplayOrder();
 
         List<Post> postsInCategory = postRepository.findAllByCategory(category);
@@ -180,6 +187,8 @@ public class CategoryService {
     //카테고리 수정 -> 게시글에 저장된 카테고리 정보도 수정
     public CategoryResponse updateCategory(Long teamId, Long categoryId, UpdateCategoryRequest request) {
         TeamCategory category = validationService.validateCategoryExists(categoryId);
+        if (!permissionService.checkPermission(teamId, MANAGE_CATEGORIES))
+            throw new AccessDeniedException("카테고리 수정 권한이 없습니다.");
 
         category.updateDescription(request.description());
         if (categoryRepository.existsByTeamAndNameAndIdNot(category.getTeam(), request.name(), categoryId)) {
@@ -205,6 +214,8 @@ public class CategoryService {
 
     @Transactional
     private void updateCategoryPermissions(TeamCategory category, UpdateCategoryRequest request, Long teamId) {
+        if (!permissionService.checkPermission(teamId, MANAGE_CATEGORIES))
+            throw new AccessDeniedException("카테고리 수정 권한이 없습니다.");
         categoryPermissionRepository.deleteAllByCategoryId(category.getId());
         entityManager.flush(); // 즉시 삭제 반영
         category.getRolePermissions().clear(); // 엔티티 상태 동기화
@@ -248,6 +259,8 @@ public class CategoryService {
     public void updateCategoryOrder(Long categoryId, Integer newOrder) {
         TeamCategory category = validationService.validateCategoryExists(categoryId);
         Long teamId = category.getTeam().getId();
+        if (!permissionService.checkPermission(teamId, MANAGE_CATEGORIES))
+            throw new AccessDeniedException("카테고리 수정 권한이 없습니다.");
 
         Integer oldOrder = category.getDisplayOrder();
 
@@ -285,7 +298,9 @@ public class CategoryService {
      */
     @Transactional
     public void reorderCategories(Long teamId, List<Long> categoryIds) {
-        Team team = validationService.validateTeamExists(teamId);
+        if (!permissionService.checkPermission(teamId, MANAGE_CATEGORIES))
+            throw new AccessDeniedException("카테고리 수정 권한이 없습니다.");
+        validationService.validateTeamExists(teamId);
         List<TeamCategory> categories = categoryRepository.findAllById(categoryIds);
 
         // 모든 카테고리가 같은 팀인지 확인

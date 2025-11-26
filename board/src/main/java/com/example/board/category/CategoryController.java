@@ -53,8 +53,9 @@ public class CategoryController {
      * 카테고리 순서 변경 (단일)
      */
     @PutMapping("/{categoryId}/order")
+    @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_CATEGORIES)")
     public ResponseEntity<Void> updateCategoryOrder(
-            @PathVariable("teamId") Long teamId,
+            @PathVariable("teamId") @P("teamId") Long teamId,
             @PathVariable("categoryId") Long categoryId,
             @RequestBody CategoryOrderUpdateRequest request,
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
@@ -68,8 +69,9 @@ public class CategoryController {
      * 카테고리 순서 일괄 변경 (드래그 앤 드롭)
      */
     @PutMapping("/reorder")
+    @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_CATEGORIES)")
     public ResponseEntity<Void> reorderCategories(
-            @PathVariable("teamId") Long teamId,
+            @PathVariable("teamId") @P("teamId") Long teamId,
             @RequestBody CategoryReorderRequest request,
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
 

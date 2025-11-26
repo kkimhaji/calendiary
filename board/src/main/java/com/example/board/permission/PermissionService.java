@@ -139,6 +139,4 @@ public class PermissionService {
             return EditAndDeletePermissionResponse.of(false, false);
         }
     }
-
-
 }
