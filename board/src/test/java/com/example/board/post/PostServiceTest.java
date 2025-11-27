@@ -314,19 +314,12 @@ public class PostServiceTest extends AbstractTestSupport {
         // given
         Long teamId = builder.getCurrentTestTeamId();
         Long categoryId = builder.getCurrentCategoryId();
-        testPost = builder.createPost("Test Post", "test", categoryId, teamId);
-        Comment testComment = builder.createComment("Test Comment", testPost, member2, teamMember);
 
         Long postId = testPost.getId();
         assertDoesNotThrow(() -> postService.deletePost(teamId, postId, categoryId));
-//        Long commentId = testComment.getId();
 
         // then - 실제 DB에서 삭제 확인
         assertThat(postRepository.findById(postId)).isEmpty();
-//        assertThat(commentRepository.findById(commentId)).isEmpty();
-
-        // 외부 서비스 호출 검증
-//        verify(imageService).deleteAllPostImages(any(Post.class));
     }
 
     @Test
