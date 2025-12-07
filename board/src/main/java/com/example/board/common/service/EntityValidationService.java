@@ -15,6 +15,8 @@ import com.example.board.role.TeamRole;
 import com.example.board.role.TeamRoleRepository;
 import com.example.board.team.Team;
 import com.example.board.team.TeamRepository;
+import com.example.board.teamMember.TeamMember;
+import com.example.board.teamMember.TeamMemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +30,7 @@ public class EntityValidationService {
     private final CommentRepository commentRepository;
     private final MemberRepository memberRepository;
     private final DiaryRepository diaryRepository;
+    private final TeamMemberRepository teamMemberRepository;
 
     public Team validateTeamExists(Long teamId) {
         if (teamId == null) throw new IllegalArgumentException("teamId는 null일 수 없습니다.");
@@ -88,5 +91,10 @@ public class EntityValidationService {
     public void validatePath(Long teamId, Long categoryId){
         validateCategoryExists(categoryId);
         validateTeamExists(teamId);
+    }
+
+    public TeamMember validateTeamMemberExists(Long teamMemberId){
+        return teamMemberRepository.findById(teamMemberId)
+                .orElseThrow(TeamMemberNotFoundException::new);
     }
 }
