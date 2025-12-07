@@ -1,15 +1,16 @@
 package com.example.board.teamMember;
 
 import com.example.board.comment.CommentRepository;
+import com.example.board.common.exception.TeamMemberNotFoundException;
 import com.example.board.common.service.EntityValidationService;
 import com.example.board.image.ImageService;
 import com.example.board.member.Member;
 import com.example.board.member.dto.AddTeamMemberToRoleDTO;
+import com.example.board.permission.PermissionService;
 import com.example.board.post.Post;
 import com.example.board.post.PostRepository;
 import com.example.board.role.TeamRole;
 import com.example.board.team.Team;
-import com.example.board.team.TeamService;
 import com.example.board.team.dto.TeamInfoResponse;
 import com.example.board.team.dto.TeamListDTO;
 import com.example.board.teamMember.dto.MemberProfileResponse;
@@ -29,6 +30,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.example.board.permission.TeamPermission.MANAGE_MEMBERS;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -38,7 +41,8 @@ public class TeamMemberService {
     private final PostRepository postRepository;
     private final ImageService imageService;
     private final EntityValidationService validationService;
-    
+    private final PermissionService permissionService;
+
     @Transactional(readOnly = true)
     public TeamRole getCurrentUserRole(Long teamId, Member member) {
         validationService.validateTeamExists(teamId);
@@ -89,6 +93,7 @@ public class TeamMemberService {
         List<TeamMemberInfoListDTO> members = teamMemberRepository.findMembersByTeamId(teamId);
         return members.stream()
                 .map(dto -> new TeamMemberInfoListDTO(
+                        dto.teamMemberId(),
                         maskEmail(dto.email()),
                         dto.teamNickname(),
                         dto.roleName(),
@@ -147,7 +152,7 @@ public class TeamMemberService {
         validationService.validateMemberExists(member.getMemberId());
 
         TeamMember teamMember = teamMemberRepository.findByTeamIdAndMember(teamId, member)
-                .orElseThrow(() -> new EntityNotFoundException("member is not in team"));
+                .orElseThrow(() -> new TeamMemberNotFoundException("member is not in team"));
 
         Long adminRoleId = team.getAdminRoleId();
         if (teamMember.getRole().getId().equals(adminRoleId) && isLastOwner(teamId, adminRoleId)) {
@@ -157,6 +162,26 @@ public class TeamMemberService {
         if (deleteContents) {
             deleteTeamMemberContents(teamId, member.getMemberId());
         }
+
+        teamMemberRepository.delete(teamMember);
+    }
+
+    @Transactional
+    public void removeMember(Long teamId, Long teamMemberId) {
+        Team team = validationService.validateTeamExists(teamId);
+
+        if (!permissionService.checkPermission(teamId, MANAGE_MEMBERS))
+            throw new AccessDeniedException("팀 멤버 관리 권한이 없습니다.");
+
+        TeamMember teamMember = validationService.validateTeamMemberExists(teamMemberId);
+
+        // 4. 같은 팀인지 확인
+        if (!teamMember.getTeam().getId().equals(teamId)) {
+            throw new IllegalArgumentException("해당 팀의 멤버가 아닙니다.");
+        }
+        // 5. 팀 소유자는 탈퇴 불가
+        // 6. 자기 자신은 탈퇴 불가 (일반 탈퇴 사용)
+        /** 나중에 검증 코드 추가할 것 **/
 
         teamMemberRepository.delete(teamMember);
     }

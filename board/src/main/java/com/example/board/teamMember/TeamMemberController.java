@@ -14,7 +14,9 @@ import com.example.board.teamMember.dto.TeamNicknameCheckResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -78,6 +80,16 @@ public class TeamMemberController {
                                           @RequestParam(required = false, defaultValue = "false", name = "deleteContents") boolean deleteContents) {
         teamMemberService.leaveTeam(teamId, userPrincipal.getMember(), deleteContents);
         return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/members/{teamMemberId}")
+    @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_MEMBERS)")
+    public ResponseEntity<Void> removeMember(
+            @PathVariable("teamId") @P("teamId") Long teamId,
+            @PathVariable("teamMemberId") Long teamMemberId) {
+
+        teamMemberService.removeMember(teamId, teamMemberId);
+        return ResponseEntity.noContent().build();
     }
 
     //팀에서 작성한 게시글 목록
