@@ -29,12 +29,16 @@ public record CommentResponse(
 
         String displayName = Optional.ofNullable(comment.getTeamMember())
                 .map(TeamMember::getTeamNickname)
-                .orElse(comment.getAuthor().getNickname());
+                .orElse("Unknown");
+
+        Long authorId = Optional.ofNullable(comment.getTeamMember())
+                .map(TeamMember::getId)
+                .orElse(null);
 
         return new CommentResponse(
                 comment.getId(),
                 comment.getContent(),
-                comment.getTeamMember().getId(),
+                authorId,
                 displayName,
                 comment.getCreatedDate(),
                 comment.isDeleted(),

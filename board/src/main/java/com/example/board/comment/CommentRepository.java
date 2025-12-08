@@ -2,6 +2,7 @@ package com.example.board.comment;
 
 import com.example.board.comment.dto.CommentResponse;
 import com.example.board.comment.dto.MemberCommentResponse;
+import com.example.board.teamMember.TeamMember;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,6 +24,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
             "AND c.parent IS NULL " +
             "ORDER BY c.createdDate ASC")
     List<Comment> findAllByPostIdWithReplies(@Param("postId") Long postId);
+    List<Comment> findAllByTeamMember(TeamMember teamMember);
 
     @Query("SELECT new com.example.board.comment.dto.CommentResponse(" +
             "c.id, " +

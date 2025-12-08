@@ -161,4 +161,8 @@ public class Comment extends BaseTimeEntity {
                 .filter(reply -> !reply.isDeleted())
                 .count();
     }
+
+    public void setTeamMember(TeamMember teamMember){
+        this.teamMember = teamMember;
+    }
 }

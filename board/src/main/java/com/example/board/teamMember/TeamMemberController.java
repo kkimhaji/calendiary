@@ -7,10 +7,7 @@ import com.example.board.common.dto.PageResponse;
 import com.example.board.member.dto.AddTeamMemberToRoleDTO;
 import com.example.board.post.PostService;
 import com.example.board.post.dto.PostListResponse;
-import com.example.board.teamMember.dto.ChangeTeamNicknameRequest;
-import com.example.board.teamMember.dto.MemberProfileResponse;
-import com.example.board.teamMember.dto.TeamMemberInfoListDTO;
-import com.example.board.teamMember.dto.TeamNicknameCheckResponse;
+import com.example.board.teamMember.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -86,9 +83,9 @@ public class TeamMemberController {
     @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_MEMBERS)")
     public ResponseEntity<Void> removeMember(
             @PathVariable("teamId") @P("teamId") Long teamId,
-            @PathVariable("teamMemberId") Long teamMemberId) {
+            @PathVariable("teamMemberId") Long teamMemberId, @RequestBody RemoveMemberRequestDTO request) {
 
-        teamMemberService.removeMember(teamId, teamMemberId);
+        teamMemberService.removeMember(teamId, teamMemberId, request);
         return ResponseEntity.noContent().build();
     }
 

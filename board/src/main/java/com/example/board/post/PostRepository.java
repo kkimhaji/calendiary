@@ -3,6 +3,7 @@ package com.example.board.post;
 import com.example.board.member.Member;
 import com.example.board.category.TeamCategory;
 import com.example.board.post.dto.PostListResponse;
+import com.example.board.teamMember.TeamMember;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,6 +18,8 @@ import java.util.List;
 public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findAllByAuthor(Member member);
     List<Post> findAllByCategory(TeamCategory category);
+    List<Post> findAllByTeamMember(TeamMember teamMember);
+
 
     @Query("SELECT p FROM Post p WHERE p.category.team.id = :teamId AND p.author.id = :authorId")
     List<Post> findAllByTeamIdAndAuthorId(@Param("teamId") Long teamId, @Param("authorId") Long authorId);

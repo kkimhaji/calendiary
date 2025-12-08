@@ -1,5 +1,6 @@
 package com.example.board.teamMember;
 
+import com.example.board.comment.Comment;
 import com.example.board.comment.CommentRepository;
 import com.example.board.common.exception.TeamMemberNotFoundException;
 import com.example.board.common.service.EntityValidationService;
@@ -14,6 +15,7 @@ import com.example.board.team.Team;
 import com.example.board.team.dto.TeamInfoResponse;
 import com.example.board.team.dto.TeamListDTO;
 import com.example.board.teamMember.dto.MemberProfileResponse;
+import com.example.board.teamMember.dto.RemoveMemberRequestDTO;
 import com.example.board.teamMember.dto.TeamMemberDTO;
 import com.example.board.teamMember.dto.TeamMemberInfoListDTO;
 import jakarta.persistence.EntityNotFoundException;
@@ -162,12 +164,14 @@ public class TeamMemberService {
         if (deleteContents) {
             deleteTeamMemberContents(teamId, member.getMemberId());
         }
-
+        else{
+            anonymizeMemberContent(teamMember);
+        }
         teamMemberRepository.delete(teamMember);
     }
 
     @Transactional
-    public void removeMember(Long teamId, Long teamMemberId) {
+    public void removeMember(Long teamId, Long teamMemberId, RemoveMemberRequestDTO request) {
         Team team = validationService.validateTeamExists(teamId);
 
         if (!permissionService.checkPermission(teamId, MANAGE_MEMBERS))
@@ -182,6 +186,17 @@ public class TeamMemberService {
         // 5. 팀 소유자는 탈퇴 불가
         // 6. 자기 자신은 탈퇴 불가 (일반 탈퇴 사용)
         /** 나중에 검증 코드 추가할 것 **/
+
+        if (request.deleteContent()) {
+            // 옵션 1: 모든 게시글과 댓글 삭제
+            deleteTeamMemberContents(teamId, teamMemberId);
+            log.info("팀 멤버 ID: {}의 모든 게시글과 댓글을 삭제했습니다.", teamMemberId);
+        } else {
+            // 옵션 2: 작성자만 null로 변경 (익명 처리)
+            anonymizeMemberContent(teamMember);
+            log.info("팀 멤버 ID: {}의 게시글과 댓글을 익명 처리했습니다.", teamMemberId);
+        }
+
 
         teamMemberRepository.delete(teamMember);
     }
@@ -221,6 +236,20 @@ public class TeamMemberService {
                 postRepository.delete(post);
             }
         }
+    }
+
+    private void anonymizeMemberContent(TeamMember teamMember) {
+        // 1. 게시글 작성자를 null로 변경
+        List<Post> posts = postRepository.findAllByTeamMember(teamMember);
+        posts.forEach(post -> post.setTeamMember(null));
+        postRepository.saveAll(posts);
+        log.debug("익명 처리된 게시글 수: {}", posts.size());
+
+        // 2. 댓글 작성자를 null로 변경
+        List<Comment> comments = commentRepository.findAllByTeamMember(teamMember);
+        comments.forEach(comment -> comment.setTeamMember(null));
+        commentRepository.saveAll(comments);
+        log.debug("익명 처리된 댓글 수: {}", comments.size());
     }
 
     // 팀 ID로 중복 검사하는 오버로딩 메서드

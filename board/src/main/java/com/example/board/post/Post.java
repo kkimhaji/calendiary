@@ -110,4 +110,8 @@ public class Post extends BaseContentEntity {
             throw new PostValidationException("Team cannot be null.");
         }
     }
+
+    public void setTeamMember(TeamMember teamMember) {
+        this.teamMember = teamMember;
+    }
 }
