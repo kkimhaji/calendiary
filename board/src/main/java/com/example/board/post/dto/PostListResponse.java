@@ -15,7 +15,7 @@ public record PostListResponse(
         LocalDateTime createdDate,
         long commentCount
 ) {
-    public static PostListResponse from(Post post){
+    public static PostListResponse from(Post post) {
         String nickname = "Unknown";
         if (post.getTeamMember() != null) {
             nickname = post.getTeamMember().getTeamNickname();

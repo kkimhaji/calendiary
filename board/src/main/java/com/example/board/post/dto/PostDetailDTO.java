@@ -17,7 +17,7 @@ public record PostDetailDTO(
         LocalDateTime createdDate,
         List<String> imageUrls
 ) {
-    public static PostDetailDTO from(Post post){
+    public static PostDetailDTO from(Post post) {
 
         return new PostDetailDTO(
                 post.getId(),
@@ -28,8 +28,8 @@ public record PostDetailDTO(
                 post.getViewCount(),
                 post.getCreatedDate(),
                 post.getImages().stream()
-                                .map(PostImage::getImageUrl)
-                                        .collect(Collectors.toList())
+                        .map(PostImage::getImageUrl)
+                        .collect(Collectors.toList())
         );
     }
 }

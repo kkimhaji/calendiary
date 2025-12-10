@@ -5,7 +5,9 @@ import com.example.board.member.Member;
 import com.example.board.post.Post;
 import com.example.board.teamMember.TeamMember;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +17,8 @@ import java.util.stream.Collectors;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Comment extends BaseTimeEntity {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(columnDefinition = "TEXT")
@@ -70,22 +73,22 @@ public class Comment extends BaseTimeEntity {
         this.replies = new ArrayList<>();
     }
 
-    public void setPost(Post post){
+    public static Comment createComment(String content, Post post, Member author, TeamMember teamMember, Comment parent) {
+        return new Comment(content, post, author, teamMember, parent);
+    }
+
+    public void setPost(Post post) {
         this.post = post;
     }
 
-    public void deleteByAuthor(){
+    public void deleteByAuthor() {
         this.isDeleted = true;
         this.content = "작성자에 의해 삭제된 댓글입니다.";
     }
 
-    public void delete(){
+    public void delete() {
         this.isDeleted = true;
         this.content = "삭제된 댓글입니다.";
-    }
-
-    public static Comment createComment(String content,Post post, Member author, TeamMember teamMember, Comment parent){
-        return new Comment(content, post, author, teamMember, parent);
     }
 
     /**
@@ -162,7 +165,7 @@ public class Comment extends BaseTimeEntity {
                 .count();
     }
 
-    public void setTeamMember(TeamMember teamMember){
+    public void setTeamMember(TeamMember teamMember) {
         this.teamMember = teamMember;
     }
 }
