@@ -50,7 +50,7 @@ public class TeamMemberService {
         validationService.validateTeamExists(teamId);
         return teamMemberRepository.findByTeamIdAndMember(teamId, member)
                 .map(TeamMember::getRole)
-                .orElseThrow(() -> new AccessDeniedException("You are not a member of this team!!"));
+                .orElseThrow(() -> new TeamMemberNotFoundException("You are not a member of this team!!"));
     }
 
     @Transactional
@@ -59,7 +59,7 @@ public class TeamMemberService {
         validationService.validateMemberExists(member.getMemberId());
         validateTeamNickname(newNickname);
         TeamMember teamMember = teamMemberRepository.findByTeamIdAndMemberId(teamId, member.getMemberId())
-                .orElseThrow(() -> new EntityNotFoundException("cannot find team member"));
+                .orElseThrow(() -> new TeamMemberNotFoundException("cannot find team member"));
         String normalizedNickname = newNickname.trim();
 
         teamMember.updateTeamNickname(normalizedNickname);
@@ -79,7 +79,7 @@ public class TeamMemberService {
 
     public MemberProfileResponse getTeamMemberProfile(Long teamMemberId) {
         MemberProfileResponse dto = teamMemberRepository.findMemberProfileByTeamMemberId(teamMemberId)
-                .orElseThrow(() -> new EntityNotFoundException("team member not found"));
+                .orElseThrow(() -> new TeamMemberNotFoundException("team member not found"));
 
         return new MemberProfileResponse(
                 maskEmail(dto.email()),
@@ -163,8 +163,7 @@ public class TeamMemberService {
 
         if (deleteContents) {
             deleteTeamMemberContents(teamId, member.getMemberId());
-        }
-        else{
+        } else {
             anonymizeMemberContent(teamMember);
         }
         teamMemberRepository.delete(teamMember);
@@ -213,7 +212,7 @@ public class TeamMemberService {
         validationService.validateMemberExists(memberId);
 
         teamMemberRepository.findByTeamIdAndMemberId(teamId, memberId)
-                .orElseThrow(() -> new EntityNotFoundException("member is not in team"));
+                .orElseThrow(() -> new TeamMemberNotFoundException("member is not in team"));
 
         // 1. 사용자가 작성한 댓글 삭제
         commentRepository.deleteAllByTeamIdAndMemberId(teamId, memberId);
