@@ -20,7 +20,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findAllByCategory(TeamCategory category);
     List<Post> findAllByTeamMember(TeamMember teamMember);
 
-
     @Query("SELECT p FROM Post p WHERE p.category.team.id = :teamId AND p.author.id = :authorId")
     List<Post> findAllByTeamIdAndAuthorId(@Param("teamId") Long teamId, @Param("authorId") Long authorId);
 

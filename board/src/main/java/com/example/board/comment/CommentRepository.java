@@ -59,7 +59,9 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
             "WHERE c.post.id = :postId AND c.parent IS NULL")
     List<Comment> findByPostIdWithAuthorAndReplies(@Param("postId") Long postId);
 
-    void deleteAllByPostId(Long postId);
+    @Modifying
+    @Query("DELETE FROM Comment c WHERE c.post.id = :postId")
+    void deleteAllByPostId(@Param("postId") Long postId);
 
     void deleteAllByPostIdIn(List<Long> postIds);
 
@@ -90,7 +92,31 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
             @Param("teamMemberId") Long teamMemberId,
             Pageable pageable);
 
-    // 최대 depth 조회
+    /**
+     * ✅ TeamMember 기준으로 최대 depth 조회
+     */
+    @Query("""
+                SELECT MAX(c.depth) 
+                FROM Comment c 
+                WHERE c.teamMember = :teamMember
+            """)
+    Optional<Integer> findMaxDepthByTeamMember(@Param("teamMember") TeamMember teamMember);
+
+    /**
+     * ✅ TeamMember와 특정 depth의 댓글만 삭제
+     */
+    @Query("""
+                DELETE FROM Comment c 
+                WHERE c.teamMember = :teamMember 
+                AND c.depth = :depth
+            """)
+    @Modifying
+    int deleteAllByTeamMemberAndDepth(@Param("teamMember") TeamMember teamMember,
+                                      @Param("depth") int depth);
+
+
+    // ✅ 기존 memberId 기반 메서드들은 제거 또는 deprecated
+    @Deprecated
     @Query("""
                 SELECT MAX(c.depth) 
                 FROM Comment c 
@@ -105,7 +131,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     Optional<Integer> findMaxDepthByTeamIdAndMemberId(@Param("teamId") Long teamId,
                                                       @Param("memberId") Long memberId);
 
-    // 특정 depth의 댓글만 삭제
+    @Deprecated
     @Query("""
                 DELETE FROM Comment c 
                 WHERE c.depth = :depth 
@@ -118,7 +144,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
                 )
             """)
     @Modifying
-    void deleteAllByTeamIdAndMemberIdAndDepth(@Param("teamId") Long teamId,
-                                              @Param("memberId") Long memberId,
-                                              @Param("depth") int depth);
+    int deleteAllByTeamIdAndMemberIdAndDepth(@Param("teamId") Long teamId,
+                                             @Param("memberId") Long memberId,
+                                             @Param("depth") int depth);
 }

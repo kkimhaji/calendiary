@@ -161,7 +161,7 @@ public class TeamMemberService {
         }
 
         if (deleteContents) {
-            deleteTeamMemberContents(teamId, member.getMemberId());
+            deleteTeamMemberContents(teamMember);
         } else {
             anonymizeMemberContent(teamMember);
         }
@@ -170,7 +170,7 @@ public class TeamMemberService {
 
     @Transactional
     public void removeMember(Long teamId, Long teamMemberId, RemoveMemberRequestDTO request) {
-        Team team = validationService.validateTeamExists(teamId);
+        validationService.validateTeamExists(teamId);
 
         if (!permissionService.checkPermission(teamId, MANAGE_MEMBERS))
             throw new AccessDeniedException("팀 멤버 관리 권한이 없습니다.");
@@ -187,7 +187,7 @@ public class TeamMemberService {
 
         if (request.deleteContent()) {
             // 옵션 1: 모든 게시글과 댓글 삭제
-            deleteTeamMemberContents(teamId, teamMemberId);
+            deleteTeamMemberContents(teamMember);
             log.info("팀 멤버 ID: {}의 모든 게시글과 댓글을 삭제했습니다.", teamMemberId);
         } else {
             // 옵션 2: 작성자만 null로 변경 (익명 처리)
@@ -206,42 +206,58 @@ public class TeamMemberService {
     }
 
     @Transactional
-    private void deleteTeamMemberContents(Long teamId, Long memberId) {
-        validationService.validateTeamExists(teamId);
-        validationService.validateMemberExists(memberId);
+    private void deleteTeamMemberContents(TeamMember teamMember) {
+        // 1. 댓글을 depth 역순으로 삭제 (자식부터 삭제)
+        deleteCommentsInReverseDepthOrder(teamMember);
+        // 2. 사용자가 작성한 게시글 삭제
+        deleteUserPosts(teamMember);
+    }
 
-        teamMemberRepository.findByTeamIdAndMemberId(teamId, memberId)
-                .orElseThrow(() -> new TeamMemberNotFoundException("member is not in team"));
-
-        // 사용자가 작성한 댓글 삭제
-        // 1. depth가 깊은 댓글부터 삭제 (최대 depth부터 0까지)
-        int maxDepth = commentRepository.findMaxDepthByTeamIdAndMemberId(teamId, memberId)
+    /**
+     * 댓글을 depth 역순으로 삭제 (자식 댓글부터 삭제)
+     */
+    private void deleteCommentsInReverseDepthOrder(TeamMember teamMember) {
+        // 최대 depth 조회
+        int maxDepth = commentRepository.findMaxDepthByTeamMember(teamMember)
                 .orElse(0);
 
-        for (int depth = maxDepth; depth >= 0; depth--) {
-            commentRepository.deleteAllByTeamIdAndMemberIdAndDepth(teamId, memberId, depth);
-        }
+        log.debug("팀 멤버 ID: {}의 최대 댓글 depth: {}", teamMember.getId(), maxDepth);
 
-        // 2. 사용자가 작성한 게시글 삭제
-        List<Post> posts = postRepository.findAllByTeamIdAndAuthorId(teamId, memberId);
+        // depth가 깊은 댓글부터 삭제 (역순)
+        for (int depth = maxDepth; depth >= 0; depth--) {
+            int deletedCount = commentRepository.deleteAllByTeamMemberAndDepth(teamMember, depth);
+            log.debug("Depth {} 댓글 {}개 삭제", depth, deletedCount);
+        }
+    }
+
+    /**
+     * 팀 멤버가 작성한 게시글 삭제
+     */
+    private void deleteUserPosts(TeamMember teamMember) {
+        List<Post> posts = postRepository.findAllByTeamMember(teamMember);
+
+        log.debug("팀 멤버 ID: {}의 게시글 {}개 삭제 시작", teamMember.getId(), posts.size());
+
         for (Post post : posts) {
             try {
                 // 게시글 이미지 파일 삭제
                 imageService.deleteAllPostImages(post);
 
-                // 게시글에 달린 모든 댓글 삭제
+                // 게시글에 달린 모든 댓글 삭제 (다른 사람의 댓글 포함)
                 commentRepository.deleteAllByPostId(post.getId());
 
                 // 게시글 삭제
                 postRepository.delete(post);
+
+                log.debug("게시글 ID: {} 삭제 완료", post.getId());
             } catch (IOException e) {
+                log.warn("이미지 삭제 실패, 게시글만 삭제 진행: {}", post.getId(), e);
                 // 이미지 삭제 실패해도 게시글은 삭제 진행
                 commentRepository.deleteAllByPostId(post.getId());
                 postRepository.delete(post);
             }
         }
     }
-
     private void anonymizeMemberContent(TeamMember teamMember) {
         // 1. 게시글 작성자를 null로 변경
         List<Post> posts = postRepository.findAllByTeamMember(teamMember);
