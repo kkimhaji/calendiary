@@ -3,8 +3,11 @@ package com.example.board.teamMember;
 import com.example.board.category.TeamCategory;
 import com.example.board.comment.Comment;
 import com.example.board.comment.CommentRepository;
+import com.example.board.common.exception.TeamMemberNotFoundException;
 import com.example.board.common.exception.TeamNotFoundException;
 import com.example.board.member.Member;
+import com.example.board.permission.PermissionService;
+import com.example.board.permission.TeamPermission;
 import com.example.board.post.Post;
 import com.example.board.post.PostRepository;
 import com.example.board.role.TeamRole;
@@ -15,11 +18,13 @@ import com.example.board.team.TeamRepository;
 import com.example.board.team.dto.TeamListDTO;
 import com.example.board.teamMember.dto.MemberProfileResponse;
 import com.example.board.teamMember.dto.RemoveMemberRequestDTO;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.access.AccessDeniedException;
 
 import java.util.HashSet;
@@ -28,6 +33,9 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 
 public class TeamMemberServiceTest extends AbstractTestSupport {
     @Autowired
@@ -50,9 +58,13 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
     private TeamMember teamMember2; // member
     private TeamMember teamMember3; // member
     private TeamCategory testCategory;
+    @MockBean
+    private PermissionService permissionService;
+    @Autowired
+    private EntityManager entityManager;
 
     @BeforeEach
-    void init(){
+    void init() {
         member3 = testDataBuilder.createMember("thirdmember", "third");
         testTeam = testDataBuilder.createTeam(member1);
         Long teamId = testTeam.getId();
@@ -305,6 +317,12 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
         Long teamMemberId = teamMember2.getId();
         RemoveMemberRequestDTO request = new RemoveMemberRequestDTO(true);
 
+        entityManager.flush();
+        entityManager.clear();
+
+        // MANAGE_MEMBERS 권한 허용
+        given(permissionService.checkPermission(eq(testTeam.getId()), eq(TeamPermission.MANAGE_MEMBERS)))
+                .willReturn(true);
         // when
         teamMemberService.removeMember(testTeam.getId(), teamMemberId, request);
 
@@ -312,6 +330,8 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
         assertThat(teamMemberRepository.findById(teamMemberId)).isEmpty();
         assertThat(postRepository.findById(postId)).isEmpty();
         assertThat(commentRepository.findById(commentId)).isEmpty();
+        // 권한 확인 메서드가 호출되었는지 검증
+        verify(permissionService).checkPermission(eq(testTeam.getId()), eq(TeamPermission.MANAGE_MEMBERS));
     }
 
     @Test
@@ -333,6 +353,13 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
         Long teamMemberId = teamMember2.getId();
         RemoveMemberRequestDTO request = new RemoveMemberRequestDTO(false);
 
+        entityManager.flush();
+        entityManager.clear();
+
+        //MANAGE_MEMBERS 권한 허용
+        given(permissionService.checkPermission(eq(testTeam.getId()), eq(TeamPermission.MANAGE_MEMBERS)))
+                .willReturn(true);
+
         // when
         teamMemberService.removeMember(testTeam.getId(), teamMemberId, request);
 
@@ -345,23 +372,34 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
 
         Comment updatedComment = commentRepository.findById(commentId).orElseThrow();
         assertThat(updatedComment.getTeamMember()).isNull();
+        verify(permissionService).checkPermission(eq(testTeam.getId()), eq(TeamPermission.MANAGE_MEMBERS));
     }
 
     @Test
-    @DisplayName("팀 멤버 강제 탈퇴 실패 - 팀 소유자는 탈퇴 불가")
-    void removeMember_ownerCannotBeRemoved_throwsException() {
+    @DisplayName("팀 멤버 강제 탈퇴 실패 - 권한 없음")
+    void removeMember_noPermission_fail() {
         // given
-        Long ownerTeamMemberId = teamMember1.getId();
+        Long teamMemberId = teamMember2.getId();
         RemoveMemberRequestDTO request = new RemoveMemberRequestDTO(true);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        // MANAGE_MEMBERS 권한 거부
+        given(permissionService.checkPermission(eq(testTeam.getId()), eq(TeamPermission.MANAGE_MEMBERS)))
+                .willReturn(false);
 
         // when & then
         assertThatThrownBy(() ->
-                teamMemberService.removeMember(testTeam.getId(), ownerTeamMemberId, request))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("팀 소유자는 강제 탈퇴시킬 수 없습니다.");
+                teamMemberService.removeMember(testTeam.getId(), teamMemberId, request))
+                .isInstanceOf(AccessDeniedException.class)
+                .hasMessageContaining("권한");
 
-        // 소유자는 여전히 존재
-        assertThat(teamMemberRepository.findById(ownerTeamMemberId)).isPresent();
+        // 멤버가 여전히 존재하는지 확인
+        assertThat(teamMemberRepository.findById(teamMemberId)).isPresent();
+
+        // 권한 확인이 호출되었는지 검증
+        verify(permissionService).checkPermission(eq(testTeam.getId()), eq(TeamPermission.MANAGE_MEMBERS));
     }
 
     @Test
@@ -370,6 +408,8 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
         // given
         Long nonExistentTeamId = 999L;
         RemoveMemberRequestDTO request = new RemoveMemberRequestDTO(true);
+        given(permissionService.checkPermission(eq(testTeam.getId()), eq(TeamPermission.MANAGE_MEMBERS)))
+                .willReturn(true);
 
         // when & then
         assertThatThrownBy(() ->
@@ -384,11 +424,13 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
         // given
         Long nonExistentMemberId = 999L;
         RemoveMemberRequestDTO request = new RemoveMemberRequestDTO(true);
+        given(permissionService.checkPermission(eq(testTeam.getId()), eq(TeamPermission.MANAGE_MEMBERS)))
+                .willReturn(true);
 
         // when & then
         assertThatThrownBy(() ->
                 teamMemberService.removeMember(testTeam.getId(), nonExistentMemberId, request))
-                .isInstanceOf(EntityNotFoundException.class)
+                .isInstanceOf(TeamMemberNotFoundException.class)
                 .hasMessage("team member not found");
     }
 
@@ -399,16 +441,18 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
         Team anotherTeam = testDataBuilder.createTeam(member2);
         TeamMember anotherTeamMember = testDataBuilder.addMemberToTeam(member3, anotherTeam.getId());
         RemoveMemberRequestDTO request = new RemoveMemberRequestDTO(true);
+        given(permissionService.checkPermission(eq(testTeam.getId()), eq(TeamPermission.MANAGE_MEMBERS)))
+                .willReturn(true);
 
         // when & then
         assertThatThrownBy(() ->
                 teamMemberService.removeMember(testTeam.getId(), anotherTeamMember.getId(), request))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("해당 멤버는 이 팀에 속하지 않습니다.");
+                .hasMessage("해당 팀의 멤버가 아닙니다.");
     }
 
     @Test
-    @DisplayName("팀 멤버 강제 탈퇴 - 여러 게시글/댓글 삭제")
+    @DisplayName("팀 멤버 강제 탈퇴 - 여러 게시글/댓글 삭제(권한 있음)")
     void removeMember_multipleContents_deleteAll_success() {
         // given
         Post post1 = testDataBuilder.createPost(
@@ -428,8 +472,17 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
         Long teamMemberId = teamMember2.getId();
         RemoveMemberRequestDTO request = new RemoveMemberRequestDTO(true);
 
+        entityManager.flush();
+        entityManager.clear();
+
+        given(permissionService.checkPermission(eq(testTeam.getId()), eq(TeamPermission.MANAGE_MEMBERS)))
+                .willReturn(true);
+
         // when
         teamMemberService.removeMember(testTeam.getId(), teamMemberId, request);
+
+        entityManager.flush();
+        entityManager.clear();
 
         // then
         assertThat(teamMemberRepository.findById(teamMemberId)).isEmpty();
@@ -441,10 +494,13 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
         assertThat(commentRepository.findById(comment1.getId())).isEmpty();
         assertThat(commentRepository.findById(comment2.getId())).isEmpty();
         assertThat(commentRepository.findById(comment3.getId())).isEmpty();
+
+        // 권한 확인 메서드가 호출되었는지 검증
+        verify(permissionService).checkPermission(eq(testTeam.getId()), eq(TeamPermission.MANAGE_MEMBERS));
     }
 
     @Test
-    @DisplayName("팀 멤버 강제 탈퇴 - 여러 게시글/댓글 익명 처리")
+    @DisplayName("팀 멤버 강제 탈퇴 - 여러 게시글/댓글 익명 처리(권한 있음)")
     void removeMember_multipleContents_anonymizeAll_success() {
         // given
         Post post1 = testDataBuilder.createPost(
@@ -465,8 +521,18 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
 
         RemoveMemberRequestDTO request = new RemoveMemberRequestDTO(false);
 
+        entityManager.flush();
+        entityManager.clear();
+
+        // 권한 허용
+        given(permissionService.checkPermission(eq(testTeam.getId()), eq(TeamPermission.MANAGE_MEMBERS)))
+                .willReturn(true);
+
         // when
         teamMemberService.removeMember(testTeam.getId(), teamMemberId, request);
+
+        entityManager.flush();
+        entityManager.clear();
 
         // then
         assertThat(teamMemberRepository.findById(teamMemberId)).isEmpty();
@@ -483,10 +549,13 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
 
         Comment updatedComment2 = commentRepository.findById(comment2Id).orElseThrow();
         assertThat(updatedComment2.getTeamMember()).isNull();
+
+        // 권한 확인 메서드가 호출되었는지 검증
+        verify(permissionService).checkPermission(eq(testTeam.getId()), eq(TeamPermission.MANAGE_MEMBERS));
     }
 
     @Test
-    @DisplayName("팀 멤버 강제 탈퇴 - 게시글 없이 댓글만 있는 경우")
+    @DisplayName("팀 멤버 강제 탈퇴 - 게시글 없이 댓글만 있는 경우(권한 있음)")
     void removeMember_onlyComments_deleteAll_success() {
         // given
         // 다른 사람이 작성한 게시글
@@ -506,8 +575,18 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
         Long teamMemberId = teamMember2.getId();
         RemoveMemberRequestDTO request = new RemoveMemberRequestDTO(true);
 
+        entityManager.flush();
+        entityManager.clear();
+
+        // 권한 허용
+        given(permissionService.checkPermission(eq(testTeam.getId()), eq(TeamPermission.MANAGE_MEMBERS)))
+                .willReturn(true);
+
         // when
         teamMemberService.removeMember(testTeam.getId(), teamMemberId, request);
+
+        entityManager.flush();
+        entityManager.clear();
 
         // then
         assertThat(teamMemberRepository.findById(teamMemberId)).isEmpty();
@@ -515,10 +594,13 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
 
         // 다른 사람의 게시글은 유지
         assertThat(postRepository.findById(otherPost.getId())).isPresent();
+
+        // 권한 확인 메서드가 호출되었는지 검증
+        verify(permissionService).checkPermission(eq(testTeam.getId()), eq(TeamPermission.MANAGE_MEMBERS));
     }
 
     @Test
-    @DisplayName("팀 멤버 강제 탈퇴 - 게시글만 있고 댓글 없는 경우")
+    @DisplayName("팀 멤버 강제 탈퇴 - 게시글만 있고 댓글 없는 경우(권한 있음)")
     void removeMember_onlyPosts_deleteAll_success() {
         // given
         Post post = testDataBuilder.createPost(
@@ -534,20 +616,41 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
         Long teamMemberId = teamMember2.getId();
         RemoveMemberRequestDTO request = new RemoveMemberRequestDTO(true);
 
+
+        entityManager.flush();
+        entityManager.clear();
+
+        // 권한 허용
+        given(permissionService.checkPermission(eq(testTeam.getId()), eq(TeamPermission.MANAGE_MEMBERS)))
+                .willReturn(true);
+
         // when
         teamMemberService.removeMember(testTeam.getId(), teamMemberId, request);
+
+        entityManager.flush();
+        entityManager.clear();
 
         // then
         assertThat(teamMemberRepository.findById(teamMemberId)).isEmpty();
         assertThat(postRepository.findById(postId)).isEmpty();
+
+        // 권한 확인 메서드가 호출되었는지 검증
+        verify(permissionService).checkPermission(eq(testTeam.getId()), eq(TeamPermission.MANAGE_MEMBERS));
     }
 
     @Test
-    @DisplayName("팀 멤버 강제 탈퇴 - 게시글/댓글이 없는 경우")
+    @DisplayName("팀 멤버 강제 탈퇴 - 게시글/댓글이 없는 경우(권한 있음)")
     void removeMember_noContent_success() {
         // given
         Long teamMemberId = teamMember2.getId();
         RemoveMemberRequestDTO request = new RemoveMemberRequestDTO(true);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        // 권한 허용
+        given(permissionService.checkPermission(eq(testTeam.getId()), eq(TeamPermission.MANAGE_MEMBERS)))
+                .willReturn(true);
 
         // when & then
         assertDoesNotThrow(() ->
@@ -555,6 +658,9 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
         );
 
         assertThat(teamMemberRepository.findById(teamMemberId)).isEmpty();
+
+        // 권한 확인 메서드가 호출되었는지 검증
+        verify(permissionService).checkPermission(eq(testTeam.getId()), eq(TeamPermission.MANAGE_MEMBERS));
     }
 
     @Test
@@ -574,8 +680,18 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
         Long teamMemberId = teamMember2.getId();
         RemoveMemberRequestDTO request = new RemoveMemberRequestDTO(null); // null -> false로 변환
 
+        entityManager.flush();
+        entityManager.clear();
+
+        // 권한 허용
+        given(permissionService.checkPermission(eq(testTeam.getId()), eq(TeamPermission.MANAGE_MEMBERS)))
+                .willReturn(true);
+
         // when
         teamMemberService.removeMember(testTeam.getId(), teamMemberId, request);
+
+        entityManager.flush();
+        entityManager.clear();
 
         // then
         assertThat(teamMemberRepository.findById(teamMemberId)).isEmpty();
@@ -583,10 +699,13 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
         // 게시글은 유지되고 작성자만 null (익명 처리)
         Post updatedPost = postRepository.findById(postId).orElseThrow();
         assertThat(updatedPost.getTeamMember()).isNull();
+
+        // 권한 확인 메서드가 호출되었는지 검증
+        verify(permissionService).checkPermission(eq(testTeam.getId()), eq(TeamPermission.MANAGE_MEMBERS));
     }
 
     @Test
-    @DisplayName("팀 멤버 강제 탈퇴 - 대댓글이 있는 경우도 함께 삭제")
+    @DisplayName("팀 멤버 강제 탈퇴 - 대댓글이 있는 경우도 함께 삭제(권한 있음)")
     void removeMember_withNestedComments_deleteAll_success() {
         // given
         Post post = testDataBuilder.createPost(
@@ -615,13 +734,26 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
         Long teamMemberId = teamMember2.getId();
         RemoveMemberRequestDTO request = new RemoveMemberRequestDTO(true);
 
+        entityManager.flush();
+        entityManager.clear();
+
+        // 권한 허용
+        given(permissionService.checkPermission(eq(testTeam.getId()), eq(TeamPermission.MANAGE_MEMBERS)))
+                .willReturn(true);
+
         // when
         teamMemberService.removeMember(testTeam.getId(), teamMemberId, request);
+
+        entityManager.flush();
+        entityManager.clear();
 
         // then
         assertThat(teamMemberRepository.findById(teamMemberId)).isEmpty();
         assertThat(commentRepository.findById(parentCommentId)).isEmpty();
         assertThat(commentRepository.findById(childCommentId)).isEmpty();
+
+        //  권한 확인 메서드가 호출되었는지 검증
+        verify(permissionService).checkPermission(eq(testTeam.getId()), eq(TeamPermission.MANAGE_MEMBERS));
     }
 
     @Test
@@ -642,7 +774,7 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
 
         // 잘못된 요청 (존재하지 않는 팀)
         Long invalidTeamId = 999L;
-        RemoveMemberRequestDTO request = new  RemoveMemberRequestDTO(true);
+        RemoveMemberRequestDTO request = new RemoveMemberRequestDTO(true);
 
         // when & then
         assertThatThrownBy(() ->
