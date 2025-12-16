@@ -24,6 +24,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
             "AND c.parent IS NULL " +
             "ORDER BY c.createdDate ASC")
     List<Comment> findAllByPostIdWithReplies(@Param("postId") Long postId);
+
     List<Comment> findAllByTeamMember(TeamMember teamMember);
 
     @Query("SELECT new com.example.board.comment.dto.CommentResponse(" +
@@ -89,4 +90,35 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
             @Param("teamMemberId") Long teamMemberId,
             Pageable pageable);
 
+    // 최대 depth 조회
+    @Query("""
+                SELECT MAX(c.depth) 
+                FROM Comment c 
+                WHERE EXISTS (
+                    SELECT 1 FROM Post p 
+                    JOIN TeamCategory tc ON tc.id = p.category.id 
+                    WHERE p.id = c.post.id 
+                    AND tc.team.id = :teamId 
+                    AND c.author.id = :memberId
+                )
+            """)
+    Optional<Integer> findMaxDepthByTeamIdAndMemberId(@Param("teamId") Long teamId,
+                                                      @Param("memberId") Long memberId);
+
+    // 특정 depth의 댓글만 삭제
+    @Query("""
+                DELETE FROM Comment c 
+                WHERE c.depth = :depth 
+                AND EXISTS (
+                    SELECT 1 FROM Post p 
+                    JOIN TeamCategory tc ON tc.id = p.category.id 
+                    WHERE p.id = c.post.id 
+                    AND tc.team.id = :teamId 
+                    AND c.author.id = :memberId
+                )
+            """)
+    @Modifying
+    void deleteAllByTeamIdAndMemberIdAndDepth(@Param("teamId") Long teamId,
+                                              @Param("memberId") Long memberId,
+                                              @Param("depth") int depth);
 }

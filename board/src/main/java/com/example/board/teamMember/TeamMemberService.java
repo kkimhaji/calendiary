@@ -18,7 +18,6 @@ import com.example.board.teamMember.dto.MemberProfileResponse;
 import com.example.board.teamMember.dto.RemoveMemberRequestDTO;
 import com.example.board.teamMember.dto.TeamMemberDTO;
 import com.example.board.teamMember.dto.TeamMemberInfoListDTO;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -214,8 +213,14 @@ public class TeamMemberService {
         teamMemberRepository.findByTeamIdAndMemberId(teamId, memberId)
                 .orElseThrow(() -> new TeamMemberNotFoundException("member is not in team"));
 
-        // 1. 사용자가 작성한 댓글 삭제
-        commentRepository.deleteAllByTeamIdAndMemberId(teamId, memberId);
+        // 사용자가 작성한 댓글 삭제
+        // 1. depth가 깊은 댓글부터 삭제 (최대 depth부터 0까지)
+        int maxDepth = commentRepository.findMaxDepthByTeamIdAndMemberId(teamId, memberId)
+                .orElse(0);
+
+        for (int depth = maxDepth; depth >= 0; depth--) {
+            commentRepository.deleteAllByTeamIdAndMemberIdAndDepth(teamId, memberId, depth);
+        }
 
         // 2. 사용자가 작성한 게시글 삭제
         List<Post> posts = postRepository.findAllByTeamIdAndAuthorId(teamId, memberId);
