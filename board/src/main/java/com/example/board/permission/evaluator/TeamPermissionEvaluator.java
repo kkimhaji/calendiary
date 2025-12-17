@@ -37,11 +37,11 @@ public class TeamPermissionEvaluator implements CustomPermissionEvaluator {
             Long teamId = (Long) targetId;
             TeamPermission teamPermission = (TeamPermission) permission;
 
-            // ✅ 팀 멤버 존재 여부 확인 (예외 발생 방지)
+            // 팀 멤버 존재 여부 확인 (예외 발생 방지)
             Optional<TeamMember> teamMemberOpt = teamMemberRepository.findByTeamIdAndMember(teamId, member);
             if (teamMemberOpt.isEmpty()) {
                 log.warn("팀 멤버를 찾을 수 없습니다: teamId={}, memberId={}", teamId, member.getMemberId());
-                return false; // ✅ 예외 대신 false 반환으로 403 처리
+                return false; // 예외 대신 false 반환으로 403 처리
             }
 
             TeamMember teamMember = teamMemberOpt.get();
@@ -56,11 +56,11 @@ public class TeamPermissionEvaluator implements CustomPermissionEvaluator {
             return hasPermission;
 
         } catch (EntityNotFoundException e) {
-            // ✅ EntityNotFoundException을 명시적으로 처리
+            // EntityNotFoundException을 명시적으로 처리
             log.warn("엔티티를 찾을 수 없습니다 - teamId: {}, message: {}", targetId, e.getMessage());
             return false;
         } catch (Exception e) {
-            // ✅ 기타 모든 예외를 안전하게 처리
+            // 기타 모든 예외를 안전하게 처리
             log.error("팀 권한 검사 중 예상치 못한 오류 발생 - teamId: {}, error: {}", targetId, e.getMessage(), e);
             return false;
         }
