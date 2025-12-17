@@ -171,16 +171,14 @@ public class TeamMemberService {
     @Transactional
     public void removeMember(Long teamId, Long teamMemberId, RemoveMemberRequestDTO request) {
         validationService.validateTeamExists(teamId);
-
-        if (!permissionService.checkPermission(teamId, MANAGE_MEMBERS))
-            throw new AccessDeniedException("팀 멤버 관리 권한이 없습니다.");
-
         TeamMember teamMember = validationService.validateTeamMemberExists(teamMemberId);
 
-        // 4. 같은 팀인지 확인
         if (!teamMember.getTeam().getId().equals(teamId)) {
-            throw new IllegalArgumentException("해당 팀의 멤버가 아닙니다.");
+            throw new IllegalArgumentException("해당 멤버는 이 팀에 속하지 않습니다.");
         }
+        if (!permissionService.checkPermission(teamId, MANAGE_MEMBERS))
+            throw new AccessDeniedException("팀 멤버 관리 권한이 없습니다. TeamMemberService");
+
         // 5. 팀 소유자는 탈퇴 불가
         // 6. 자기 자신은 탈퇴 불가 (일반 탈퇴 사용)
         /** 나중에 검증 코드 추가할 것 **/
