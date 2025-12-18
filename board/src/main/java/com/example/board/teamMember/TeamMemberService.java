@@ -193,7 +193,6 @@ public class TeamMemberService {
             log.info("팀 멤버 ID: {}의 게시글과 댓글을 익명 처리했습니다.", teamMemberId);
         }
 
-
         teamMemberRepository.delete(teamMember);
     }
 
@@ -232,7 +231,7 @@ public class TeamMemberService {
      * 팀 멤버가 작성한 게시글 삭제
      */
     private void deleteUserPosts(TeamMember teamMember) {
-        List<Post> posts = postRepository.findAllByTeamMember(teamMember);
+        List<Post> posts = postRepository.findAllByTeamMemberWithImages(teamMember);
 
         log.debug("팀 멤버 ID: {}의 게시글 {}개 삭제 시작", teamMember.getId(), posts.size());
 
