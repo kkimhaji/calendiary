@@ -6,27 +6,36 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.TypeMismatchException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
 @Slf4j
-public class GlobalExceptionHandler {
+public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(RefreshTokenExpiredException.class)
     public ResponseEntity<ErrorResponse> handleRefreshTokenExpired(RefreshTokenExpiredException ex) {
         ErrorResponse errorResponse = new ErrorResponse("REFRESH_TOKEN_EXPIRED", ex.getMessage());
@@ -315,27 +324,87 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Validation 예외 처리 (@Valid, @Validated)
+     * HttpMessageNotReadableException 처리 (400 Bad Request)
+     * - Request body가 없거나 파싱 실패 시 발생
      */
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationExceptions(
-            MethodArgumentNotValidException ex,
+    @Override
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(
+            HttpMessageNotReadableException ex,
+            HttpHeaders headers,
+            HttpStatusCode status,
             WebRequest request) {
 
-        // 모든 필드 에러를 수집
-        String errorMessage = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
-                .collect(Collectors.joining(", "));
+        log.error("잘못된 요청 본문 - URI: {}, 예외: {}",
+                ((ServletWebRequest) request).getRequest().getRequestURI(),
+                ex.getClass().getSimpleName());
 
-        log.warn("Validation 실패 - URI: {}, 에러: {}",
-                request.getDescription(false), errorMessage);
+        ErrorResponse errorResponse = new ErrorResponse("BAD_REQUEST", "잘못된 요청입니다. 요청 본문을 확인해주세요.");
 
-        ErrorResponse errorResponse = new ErrorResponse(
-                "VALIDATION_FAILED",
-                errorMessage
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(errorResponse);
+    }
+
+    /**
+     * 유효성 검증 실패 (400 Bad Request)
+     */
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(
+            MethodArgumentNotValidException ex,
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request) {
+
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(error ->
+                errors.put(error.getField(), error.getDefaultMessage())
         );
+
+        String uri = ((ServletWebRequest) request).getRequest().getRequestURI();
+        log.error("유효성 검증 실패 - URI: {}, 오류: {}", uri, errors);
+
+        ErrorResponse errorResponse = new ErrorResponse("VALIDATION_FAILED", "입력값 검증에 실패했습니다.");
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(errorResponse);
+    }
+
+    /**
+     * HTTP 메서드 지원 안 함 (405 Method Not Allowed)
+     */
+    @Override
+    protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(
+            HttpRequestMethodNotSupportedException ex,
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request) {
+
+        String uri = ((ServletWebRequest) request).getRequest().getRequestURI();
+        log.error("지원하지 않는 HTTP 메서드 - URI: {}, 메서드: {}", uri, ex.getMethod());
+
+        ErrorResponse errorResponse = new ErrorResponse("METHOD_NOT_ALLOWED", "지원하지 않는 HTTP 메서드입니다.");
+
+        return ResponseEntity
+                .status(HttpStatus.METHOD_NOT_ALLOWED)
+                .body(errorResponse);
+    }
+
+
+    /**
+     *  타입 불일치 (400 Bad Request)
+     */
+    @Override
+    protected ResponseEntity<Object> handleTypeMismatch(
+            TypeMismatchException ex,
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request) {
+
+        String uri = ((ServletWebRequest) request).getRequest().getRequestURI();
+        log.error("타입 불일치 - URI: {}, 예외: {}", uri, ex.getMessage());
+
+        ErrorResponse errorResponse = new ErrorResponse("BAD_REQUEST", "잘못된 타입의 값이 입력되었습니다.");
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
