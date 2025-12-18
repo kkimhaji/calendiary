@@ -59,7 +59,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
             "WHERE c.post.id = :postId AND c.parent IS NULL")
     List<Comment> findByPostIdWithAuthorAndReplies(@Param("postId") Long postId);
 
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("DELETE FROM Comment c WHERE c.post.id = :postId")
     void deleteAllByPostId(@Param("postId") Long postId);
 
@@ -103,14 +103,14 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     Optional<Integer> findMaxDepthByTeamMember(@Param("teamMember") TeamMember teamMember);
 
     /**
-     * ✅ TeamMember와 특정 depth의 댓글만 삭제
+     * TeamMember와 특정 depth의 댓글만 삭제
      */
     @Query("""
                 DELETE FROM Comment c 
                 WHERE c.teamMember = :teamMember 
                 AND c.depth = :depth
             """)
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     int deleteAllByTeamMemberAndDepth(@Param("teamMember") TeamMember teamMember,
                                       @Param("depth") int depth);
 
