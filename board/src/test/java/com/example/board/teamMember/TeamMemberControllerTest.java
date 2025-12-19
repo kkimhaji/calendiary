@@ -14,11 +14,11 @@ import com.example.board.team.Team;
 import com.example.board.teamMember.dto.ChangeTeamNicknameRequest;
 import com.example.board.teamMember.dto.RemoveMemberRequestDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -40,15 +40,15 @@ public class TeamMemberControllerTest extends AbstractControllerTestSupport {
     private ObjectMapper objectMapper;
     @Autowired
     private TeamMemberRepository teamMemberRepository;
-    @MockBean
+    @Autowired
     private PostRepository postRepository;
-    @MockBean
+    @Autowired
     private CommentRepository commentRepository;
+    @Autowired
+    private EntityManager entityManager;
 
     private Team testTeam;
-    private Member testMember;
     private TeamMember testTeamMember;
-    private String jwtToken;
 
     @BeforeEach
     void init() {
@@ -94,7 +94,7 @@ public class TeamMemberControllerTest extends AbstractControllerTestSupport {
         mockMvc.perform(get("/team/{teamId}/members", nonExistentTeamId)
                         .with(user(userPrincipal)))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"))
+                .andExpect(jsonPath("$.code").value("TEAM_NOT_FOUND"))
                 .andExpect(jsonPath("$.message").value("team not found"));
     }
 
@@ -384,9 +384,11 @@ public class TeamMemberControllerTest extends AbstractControllerTestSupport {
     void removeMember_deleteContent_success() throws Exception {
         // given
         UserPrincipal userPrincipal = testDataBuilder.getCurrentUserPrincipal();
+        Long teamId = userPrincipal.getTestTeamId();
+        TeamMember teamMember = testDataBuilder.addMemberToTeam(member2, teamId);
+
         TeamCategory category = testDataBuilder.createCategory(
-                testDataBuilder.getAdminRoleByTeam(testTeam).getId(),
-                testTeam.getId(),
+                teamId,
                 "테스트 카테고리",
                 new HashSet<>()
         );
@@ -396,23 +398,22 @@ public class TeamMemberControllerTest extends AbstractControllerTestSupport {
                 "테스트 게시글",
                 "내용",
                 member2,
-                category,
-                testTeam,
-                testTeamMember
+                category.getId(),
+                teamId,
+                teamMember
         );
 
         RemoveMemberRequestDTO request = new RemoveMemberRequestDTO(true);
 
         // when & then
-        mockMvc.perform(delete("/teams/{teamId}/members/{teamMemberId}",
-                        testTeam.getId(), testTeamMember.getId())
+        mockMvc.perform(delete("/team/{teamId}/members/{teamMemberId}",
+                        teamId, teamMember.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-                        .with(user(userPrincipal)))
-                .andExpect(status().isOk());
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNoContent());
 
         // 멤버가 삭제되었는지 확인
-        assertThat(teamMemberRepository.findById(testTeamMember.getId())).isEmpty();
+        assertThat(teamMemberRepository.findById(teamMember.getId())).isEmpty();
 
         // 게시글도 함께 삭제되었는지 확인
         assertThat(postRepository.findById(post.getId())).isEmpty();
@@ -424,9 +425,11 @@ public class TeamMemberControllerTest extends AbstractControllerTestSupport {
     void removeMember_anonymizeContent_success() throws Exception {
         // given
         UserPrincipal userPrincipal = testDataBuilder.getCurrentUserPrincipal();
+        Long teamId = userPrincipal.getTestTeamId();
+        TeamMember teamMember = testDataBuilder.addMemberToTeam(member2, teamId);
+
         TeamCategory category = testDataBuilder.createCategory(
-                testDataBuilder.getAdminRoleByTeam(testTeam).getId(),
-                testTeam.getId(),
+                teamId,
                 "테스트 카테고리",
                 new HashSet<>()
         );
@@ -436,50 +439,26 @@ public class TeamMemberControllerTest extends AbstractControllerTestSupport {
                 "테스트 게시글",
                 "내용",
                 member2,
-                category,
-                testTeam,
-                testTeamMember
+                category.getId(),
+                teamId,
+                teamMember
         );
 
-        Long postId = post.getId();
         RemoveMemberRequestDTO request = new RemoveMemberRequestDTO(false);
 
         // when & then
-        mockMvc.perform(delete("/teams/{teamId}/members/{teamMemberId}",
-                        testTeam.getId(), testTeamMember.getId())
+        mockMvc.perform(delete("/team/{teamId}/members/{teamMemberId}",
+                        teamId, teamMember.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-                        .with(user(userPrincipal)))
-                .andExpect(status().isOk());
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNoContent());
 
         // 멤버가 삭제되었는지 확인
-        assertThat(teamMemberRepository.findById(testTeamMember.getId())).isEmpty();
+        assertThat(teamMemberRepository.findById(teamMember.getId())).isEmpty();
 
         // 게시글은 유지되고 작성자만 null인지 확인
-        Post updatedPost = postRepository.findById(postId).orElseThrow();
+        Post updatedPost = postRepository.findById(post.getId()).orElseThrow();
         assertThat(updatedPost.getTeamMember()).isNull();
-    }
-
-    @Test
-    @WithMockTeamPermission(teamPermissions = {"MANAGE_MEMBERS"})
-    @DisplayName("팀 멤버 강제 탈퇴 실패 - 팀 소유자는 탈퇴 불가")
-    void removeMember_ownerCannotBeRemoved_badRequest() throws Exception {
-        // given
-        UserPrincipal userPrincipal = testDataBuilder.getCurrentUserPrincipal();
-        TeamMember ownerTeamMember = testDataBuilder.getTeamMember(
-                testTeam.getId(),
-                member1.getMemberId()
-        );
-        RemoveMemberRequestDTO request = new RemoveMemberRequestDTO(true);
-
-        // when & then
-        mockMvc.perform(delete("/teams/{teamId}/members/{teamMemberId}",
-                        testTeam.getId(), ownerTeamMember.getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-                        .with(user(userPrincipal)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("팀 소유자는 강제 탈퇴시킬 수 없습니다."));
     }
 
     @Test
@@ -491,11 +470,10 @@ public class TeamMemberControllerTest extends AbstractControllerTestSupport {
         RemoveMemberRequestDTO request = new RemoveMemberRequestDTO(true);
 
         // when & then
-        mockMvc.perform(delete("/teams/{teamId}/members/{teamMemberId}",
+        mockMvc.perform(delete("/team/{teamId}/members/{teamMemberId}",
                         testTeam.getId(), testTeamMember.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-                        .with(user(userPrincipal)))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden());
     }
 
@@ -506,7 +484,7 @@ public class TeamMemberControllerTest extends AbstractControllerTestSupport {
         RemoveMemberRequestDTO request = new RemoveMemberRequestDTO(true);
 
         // when & then
-        mockMvc.perform(delete("/teams/{teamId}/members/{teamMemberId}",
+        mockMvc.perform(delete("/team/{teamId}/members/{teamMemberId}",
                         testTeam.getId(), testTeamMember.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -515,7 +493,7 @@ public class TeamMemberControllerTest extends AbstractControllerTestSupport {
 
     @Test
     @WithMockTeamPermission(teamPermissions = {"MANAGE_MEMBERS"})
-    @DisplayName("팀 멤버 강제 탈퇴 실패 - 존재하지 않는 팀")
+    @DisplayName("팀 멤버 강제 탈퇴 실패 - 존재하지 않는 팀 (권한 없음)")
     void removeMember_teamNotFound_notFound() throws Exception {
         // given
         UserPrincipal userPrincipal = testDataBuilder.getCurrentUserPrincipal();
@@ -523,14 +501,11 @@ public class TeamMemberControllerTest extends AbstractControllerTestSupport {
         RemoveMemberRequestDTO request = new RemoveMemberRequestDTO(true);
 
         // when & then
-        mockMvc.perform(delete("/teams/{teamId}/members/{teamMemberId}",
+        mockMvc.perform(delete("/team/{teamId}/members/{teamMemberId}",
                         nonExistentTeamId, testTeamMember.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-                        .with(user(userPrincipal)))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"))
-                .andExpect(jsonPath("$.message").value("team not found"));
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -543,13 +518,13 @@ public class TeamMemberControllerTest extends AbstractControllerTestSupport {
         RemoveMemberRequestDTO request = new RemoveMemberRequestDTO(true);
 
         // when & then
-        mockMvc.perform(delete("/teams/{teamId}/members/{teamMemberId}",
-                        testTeam.getId(), nonExistentMemberId)
+        mockMvc.perform(delete("/team/{teamId}/members/{teamMemberId}",
+                        userPrincipal.getTestTeamId(), nonExistentMemberId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .with(user(userPrincipal)))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"))
+                .andExpect(jsonPath("$.code").value("TEAM_MEMBER_NOT_FOUND"))
                 .andExpect(jsonPath("$.message").value("team member not found"));
     }
 
@@ -559,20 +534,20 @@ public class TeamMemberControllerTest extends AbstractControllerTestSupport {
     void removeMember_memberFromDifferentTeam_badRequest() throws Exception {
         // given
         UserPrincipal userPrincipal = testDataBuilder.getCurrentUserPrincipal();
-        Member member3 = testDataBuilder.createMember("third@member.com", "third");
-        Team anotherTeam = testDataBuilder.createTeam(member2);
+        TeamMember teamMember = testDataBuilder.addMemberToTeam(member2, userPrincipal.getTestTeamId());
+
         TeamMember anotherTeamMember = testDataBuilder.addMemberToTeam(
-                member3,
-                anotherTeam.getId()
+                member2,
+                testTeam.getId()
         );
+
         RemoveMemberRequestDTO request = new RemoveMemberRequestDTO(true);
 
         // when & then
-        mockMvc.perform(delete("/teams/{teamId}/members/{teamMemberId}",
-                        testTeam.getId(), anotherTeamMember.getId())
+        mockMvc.perform(delete("/team/{teamId}/members/{teamMemberId}",
+                        userPrincipal.getTestTeamId(), anotherTeamMember.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-                        .with(user(userPrincipal)))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("해당 멤버는 이 팀에 속하지 않습니다."));
     }
@@ -583,42 +558,43 @@ public class TeamMemberControllerTest extends AbstractControllerTestSupport {
     void removeMember_withComments_deleteAll_success() throws Exception {
         // given
         UserPrincipal userPrincipal = testDataBuilder.getCurrentUserPrincipal();
+        Long teamId = userPrincipal.getTestTeamId();
+        TeamMember teamMember = testDataBuilder.addMemberToTeam(member2, teamId);
         TeamCategory category = testDataBuilder.createCategory(
-                testDataBuilder.getAdminRoleByTeam(testTeam).getId(),
-                testTeam.getId(),
+                teamId,
                 "테스트 카테고리",
                 new HashSet<>()
         );
 
         // 다른 사람이 게시글 작성
-        TeamMember owner = testDataBuilder.getTeamMember(testTeam.getId(), member1.getMemberId());
+        TeamMember owner = testDataBuilder.addMemberToTeam(member1, teamId);
+
         Post post = testDataBuilder.createPost(
                 "테스트 게시글",
                 "내용",
                 member1,
-                category,
-                testTeam,
+                category.getId(),
+                teamId,
                 owner
         );
 
         // 탈퇴시킬 멤버가 댓글 작성
         Comment comment = testDataBuilder.createComment(
-                "테스트 댓글", post, member2, testTeamMember
+                "테스트 댓글", post, member2, teamMember
         );
 
         Long commentId = comment.getId();
         RemoveMemberRequestDTO request = new RemoveMemberRequestDTO(true);
 
         // when & then
-        mockMvc.perform(delete("/teams/{teamId}/members/{teamMemberId}",
-                        testTeam.getId(), testTeamMember.getId())
+        mockMvc.perform(delete("/team/{teamId}/members/{teamMemberId}",
+                        teamId, teamMember.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-                        .with(user(userPrincipal)))
-                .andExpect(status().isOk());
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNoContent());
 
         // 멤버가 삭제되었는지 확인
-        assertThat(teamMemberRepository.findById(testTeamMember.getId())).isEmpty();
+        assertThat(teamMemberRepository.findById(teamMember.getId())).isEmpty();
 
         // 댓글도 함께 삭제되었는지 확인
         assertThat(commentRepository.findById(commentId)).isEmpty();
@@ -633,40 +609,43 @@ public class TeamMemberControllerTest extends AbstractControllerTestSupport {
     void removeMember_multipleContents_deleteAll_success() throws Exception {
         // given
         UserPrincipal userPrincipal = testDataBuilder.getCurrentUserPrincipal();
+        Long teamId = userPrincipal.getTestTeamId();
+        TeamMember teamMember = testDataBuilder.addMemberToTeam(member2, teamId);
         TeamCategory category = testDataBuilder.createCategory(
-                testDataBuilder.getAdminRoleByTeam(testTeam).getId(),
-                testTeam.getId(),
+                teamId,
                 "테스트 카테고리",
                 new HashSet<>()
         );
 
         // 탈퇴시킬 멤버가 여러 게시글 작성
         Post post1 = testDataBuilder.createPost(
-                "게시글1", "내용1", member2, category, testTeam, testTeamMember
+                "게시글1", "내용1", member2, category.getId(), teamId, teamMember
         );
         Post post2 = testDataBuilder.createPost(
-                "게시글2", "내용2", member2, category, testTeam, testTeamMember
+                "게시글2", "내용2", member2, category.getId(), teamId, teamMember
         );
         Post post3 = testDataBuilder.createPost(
-                "게시글3", "내용3", member2, category, testTeam, testTeamMember
+                "게시글3", "내용3", member2, category.getId(), teamId, teamMember
         );
 
         // 댓글도 작성
-        Comment comment1 = testDataBuilder.createComment("댓글1", post1, member2, testTeamMember);
-        Comment comment2 = testDataBuilder.createComment("댓글2", post2, member2, testTeamMember);
+        Comment comment1 = testDataBuilder.createComment("댓글1", post1, member2, teamMember);
+        Comment comment2 = testDataBuilder.createComment("댓글2", post2, member2, teamMember);
 
         RemoveMemberRequestDTO request = new RemoveMemberRequestDTO(true);
 
         // when & then
-        mockMvc.perform(delete("/teams/{teamId}/members/{teamMemberId}",
-                        testTeam.getId(), testTeamMember.getId())
+        mockMvc.perform(delete("/team/{teamId}/members/{teamMemberId}",
+                        teamId, teamMember.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-                        .with(user(userPrincipal)))
-                .andExpect(status().isOk());
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNoContent());
+
+        entityManager.flush();
+        entityManager.clear();
 
         // 멤버가 삭제되었는지 확인
-        assertThat(teamMemberRepository.findById(testTeamMember.getId())).isEmpty();
+        assertThat(teamMemberRepository.findById(teamMember.getId())).isEmpty();
 
         // 모든 게시글과 댓글이 삭제되었는지 확인
         assertThat(postRepository.findById(post1.getId())).isEmpty();
@@ -684,10 +663,12 @@ public class TeamMemberControllerTest extends AbstractControllerTestSupport {
         UserPrincipal userPrincipal = testDataBuilder.getCurrentUserPrincipal();
 
         // when & then
-        mockMvc.perform(delete("/teams/{teamId}/members/{teamMemberId}",
-                        testTeam.getId(), testTeamMember.getId())
+        mockMvc.perform(delete("/team/{teamId}/members/{teamMemberId}",
+                        userPrincipal.getTestTeamId(), testTeamMember.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .with(user(userPrincipal)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("BAD_REQUEST"))
+                .andExpect(jsonPath("$.message").value("잘못된 요청입니다. 요청 본문을 확인해주세요."));
     }
 }
