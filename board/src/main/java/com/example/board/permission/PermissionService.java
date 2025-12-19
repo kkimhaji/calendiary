@@ -30,7 +30,8 @@ public class PermissionService {
     private final EntityValidationService validationService;
 
     //단일 권한 검사
-    @Cacheable(value = "permission-checks", key = "#targetId + '-' + #permission.getCode()")
+    @Cacheable(value = "permission-checks",
+            key = "#targetId + '-' + #permission.getCode() + '-' + @permissionService.getCurrentUserId()")
     public boolean checkPermission(Long targetId, PermissionType permission) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String targetType = getTargetType(permission);
@@ -137,6 +138,18 @@ public class PermissionService {
 
         } catch (EntityNotFoundException e) {
             return EditAndDeletePermissionResponse.of(false, false);
+        }
+    }
+
+    public Long getCurrentUserId() {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.getPrincipal() instanceof UserPrincipal) {
+                return ((UserPrincipal) auth.getPrincipal()).getMember().getMemberId();
+            }
+            return -1L; // 인증되지 않은 경우
+        } catch (Exception e) {
+            return -1L;
         }
     }
 }
