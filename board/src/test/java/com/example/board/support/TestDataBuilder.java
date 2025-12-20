@@ -8,6 +8,8 @@ import com.example.board.category.dto.CategoryRolePermissionDTO;
 import com.example.board.category.dto.CreateCategoryRequest;
 import com.example.board.comment.Comment;
 import com.example.board.comment.CommentRepository;
+import com.example.board.common.exception.CategoryNotFoundException;
+import com.example.board.common.exception.TeamNotFoundException;
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
 import com.example.board.permission.CategoryPermission;
@@ -25,7 +27,6 @@ import com.example.board.team.dto.AddMemberRequestDTO;
 import com.example.board.team.dto.TeamCreateRequestDTO;
 import com.example.board.teamMember.TeamMember;
 import com.example.board.teamMember.TeamMemberRepository;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -92,11 +93,9 @@ public class TestDataBuilder {
     }
 
     public TeamCategory createCategory(Long teamId, String categoryName, Set<CategoryPermission> categoryPermissions) {
-        Long basicRoleId = teamRepository.findById(teamId).orElseThrow(() -> new EntityNotFoundException("team not found")).getBasicRoleId();
+        Long basicRoleId = teamRepository.findById(teamId).orElseThrow(() -> new TeamNotFoundException("team not found")).getBasicRoleId();
         return categoryService.createCategory(teamId, forCreateCategoryRequest(teamId, basicRoleId, categoryName, categoryPermissions));
     }
-
-//    public TeamCategory createCategoryWith
 
     public void updateRolePermission(Long roleId, Set<TeamPermission> permissions) {
         teamRoleService.updateRolePermissions(roleId, permissions);
@@ -140,8 +139,8 @@ public class TestDataBuilder {
     }
 
     public Post createPost(String title, String content, Member author, Long categoryId, Long teamId, TeamMember teamMember) {
-        Team team = teamRepository.findById(teamId).orElseThrow(() -> new EntityNotFoundException("team not found"));
-        TeamCategory category = categoryRepository.findById(categoryId).orElseThrow(() -> new EntityNotFoundException("category not found"));
+        Team team = teamRepository.findById(teamId).orElseThrow(() -> new TeamNotFoundException("team not found"));
+        TeamCategory category = categoryRepository.findById(categoryId).orElseThrow(() -> new CategoryNotFoundException("category not found"));
         return postRepository.save(Post.create(title, content, author, category, team, teamMember));
     }
 
@@ -149,8 +148,8 @@ public class TestDataBuilder {
         Member author = getCurrentUserPrincipal().getMember();
         TeamMember teamMember = teamMemberRepository.findByTeamIdAndMemberId(teamId, author.getMemberId())
                 .orElseThrow();
-        Team team = teamRepository.findById(teamId).orElseThrow(() -> new EntityNotFoundException("team not found"));
-        TeamCategory category = categoryRepository.findById(categoryId).orElseThrow(() -> new EntityNotFoundException("category not found"));
+        Team team = teamRepository.findById(teamId).orElseThrow(() -> new TeamNotFoundException("team not found"));
+        TeamCategory category = categoryRepository.findById(categoryId).orElseThrow(() -> new CategoryNotFoundException("category not found"));
         return postRepository.save(
                 Post.create(title, content, author, category, team, teamMember));
     }
@@ -178,12 +177,12 @@ public class TestDataBuilder {
         return teamRoleService.getRoleById(team.getBasicRoleId());
     }
 
-    public Team getCurrentTeam(){
+    public Team getCurrentTeam() {
         Long teamId = getCurrentTestTeamId();
         return teamRepository.findById(teamId).orElseThrow();
     }
 
-    public TeamCategory getCurrentCategory(){
+    public TeamCategory getCurrentCategory() {
         Long categoryId = getCurrentCategoryId();
         return categoryRepository.findById(categoryId).orElseThrow();
     }
