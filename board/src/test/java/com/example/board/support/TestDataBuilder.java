@@ -27,8 +27,10 @@ import com.example.board.team.dto.AddMemberRequestDTO;
 import com.example.board.team.dto.TeamCreateRequestDTO;
 import com.example.board.teamMember.TeamMember;
 import com.example.board.teamMember.TeamMemberRepository;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -53,6 +55,8 @@ public class TestDataBuilder {
     private final CommentRepository commentRepository;
     private final CategoryRepository categoryRepository;
     private final TeamMemberRepository teamMemberRepository;
+    @Autowired
+    private EntityManager entityManager;
 
     public Member createMember(String email, String nickname) {
         return memberRepository.save(
@@ -63,7 +67,9 @@ public class TestDataBuilder {
 
     public Team createTeam(Member member1) {
         var request = new TeamCreateRequestDTO("testTeam", "test");
-        return teamService.createTeam(member1, request);
+        Team team = teamService.createTeam(member1, request);
+        entityManager.flush();
+        return team;
     }
 
     public TeamMember addMemberToTeam(Member member2, Long teamId) {

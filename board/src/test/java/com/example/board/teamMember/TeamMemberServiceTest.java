@@ -1,5 +1,6 @@
 package com.example.board.teamMember;
 
+import com.example.board.auth.UserPrincipal;
 import com.example.board.category.TeamCategory;
 import com.example.board.comment.Comment;
 import com.example.board.comment.CommentRepository;
@@ -23,6 +24,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.access.AccessDeniedException;
@@ -35,20 +37,20 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 public class TeamMemberServiceTest extends AbstractTestSupport {
     @Autowired
     private TeamMemberService teamMemberService;
     @Autowired
     private TestDataBuilder testDataBuilder;
-    @Autowired
+    @Mock
     private TeamMemberRepository teamMemberRepository;
     @Autowired
     private TeamRepository teamRepository;
-    @Autowired
+    @Mock
     private PostRepository postRepository;
-    @Autowired
+    @Mock
     private CommentRepository commentRepository;
     private Team testTeam;
     private Member member3;
@@ -62,6 +64,7 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
     private PermissionService permissionService;
     @Autowired
     private EntityManager entityManager;
+    private UserPrincipal principal;
 
     @BeforeEach
     void init() {
@@ -85,6 +88,8 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
                 "테스트 카테고리",
                 new HashSet<>()
         );
+
+        principal = new UserPrincipal(member1, testTeam.getId());
     }
 
     @Test
@@ -324,7 +329,7 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
         given(permissionService.checkPermission(eq(testTeam.getId()), eq(TeamPermission.MANAGE_MEMBERS)))
                 .willReturn(true);
         // when
-        teamMemberService.removeMember(testTeam.getId(), teamMemberId, request);
+        teamMemberService.removeMember(testTeam.getId(), teamMemberId, request, principal);
 
         // then
         assertThat(teamMemberRepository.findById(teamMemberId)).isEmpty();
@@ -361,7 +366,7 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
                 .willReturn(true);
 
         // when
-        teamMemberService.removeMember(testTeam.getId(), teamMemberId, request);
+        teamMemberService.removeMember(testTeam.getId(), teamMemberId, request, principal);
 
         // then
         assertThat(teamMemberRepository.findById(teamMemberId)).isEmpty();
@@ -391,7 +396,7 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
 
         // when & then
         assertThatThrownBy(() ->
-                teamMemberService.removeMember(testTeam.getId(), teamMemberId, request))
+                teamMemberService.removeMember(testTeam.getId(), teamMemberId, request, principal))
                 .isInstanceOf(AccessDeniedException.class)
                 .hasMessageContaining("권한");
 
@@ -413,7 +418,7 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
 
         // when & then
         assertThatThrownBy(() ->
-                teamMemberService.removeMember(nonExistentTeamId, teamMember2.getId(), request))
+                teamMemberService.removeMember(nonExistentTeamId, teamMember2.getId(), request, principal))
                 .isInstanceOf(TeamNotFoundException.class)
                 .hasMessage("team not found");
     }
@@ -429,7 +434,7 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
 
         // when & then
         assertThatThrownBy(() ->
-                teamMemberService.removeMember(testTeam.getId(), nonExistentMemberId, request))
+                teamMemberService.removeMember(testTeam.getId(), nonExistentMemberId, request, principal))
                 .isInstanceOf(TeamMemberNotFoundException.class)
                 .hasMessage("team member not found");
     }
@@ -446,7 +451,7 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
 
         // when & then
         assertThatThrownBy(() ->
-                teamMemberService.removeMember(testTeam.getId(), anotherTeamMember.getId(), request))
+                teamMemberService.removeMember(testTeam.getId(), anotherTeamMember.getId(), request, principal))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("해당 팀의 멤버가 아닙니다.");
     }
@@ -479,7 +484,7 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
                 .willReturn(true);
 
         // when
-        teamMemberService.removeMember(testTeam.getId(), teamMemberId, request);
+        teamMemberService.removeMember(testTeam.getId(), teamMemberId, request, principal);
 
         entityManager.flush();
         entityManager.clear();
@@ -529,7 +534,7 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
                 .willReturn(true);
 
         // when
-        teamMemberService.removeMember(testTeam.getId(), teamMemberId, request);
+        teamMemberService.removeMember(testTeam.getId(), teamMemberId, request, principal);
 
         entityManager.flush();
         entityManager.clear();
@@ -583,7 +588,7 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
                 .willReturn(true);
 
         // when
-        teamMemberService.removeMember(testTeam.getId(), teamMemberId, request);
+        teamMemberService.removeMember(testTeam.getId(), teamMemberId, request, principal);
 
         entityManager.flush();
         entityManager.clear();
@@ -625,7 +630,7 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
                 .willReturn(true);
 
         // when
-        teamMemberService.removeMember(testTeam.getId(), teamMemberId, request);
+        teamMemberService.removeMember(testTeam.getId(), teamMemberId, request, principal);
 
         entityManager.flush();
         entityManager.clear();
@@ -654,7 +659,7 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
 
         // when & then
         assertDoesNotThrow(() ->
-                teamMemberService.removeMember(testTeam.getId(), teamMemberId, request)
+                teamMemberService.removeMember(testTeam.getId(), teamMemberId, request, principal)
         );
 
         assertThat(teamMemberRepository.findById(teamMemberId)).isEmpty();
@@ -688,7 +693,7 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
                 .willReturn(true);
 
         // when
-        teamMemberService.removeMember(testTeam.getId(), teamMemberId, request);
+        teamMemberService.removeMember(testTeam.getId(), teamMemberId, request, principal);
 
         entityManager.flush();
         entityManager.clear();
@@ -742,7 +747,7 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
                 .willReturn(true);
 
         // when
-        teamMemberService.removeMember(testTeam.getId(), teamMemberId, request);
+        teamMemberService.removeMember(testTeam.getId(), teamMemberId, request, principal);
 
         entityManager.flush();
         entityManager.clear();
@@ -778,11 +783,32 @@ public class TeamMemberServiceTest extends AbstractTestSupport {
 
         // when & then
         assertThatThrownBy(() ->
-                teamMemberService.removeMember(invalidTeamId, teamMemberId, request))
+                teamMemberService.removeMember(invalidTeamId, teamMemberId, request, principal))
                 .isInstanceOf(TeamNotFoundException.class);
 
         // 롤백되어 멤버와 게시글이 여전히 존재
         assertThat(teamMemberRepository.findById(teamMemberId)).isPresent();
         assertThat(postRepository.findById(postId)).isPresent();
+    }
+
+    @Test
+    @DisplayName("자기 자신 강제 탈퇴 실패 - IllegalArgumentException")
+    void removeMember_self_throwsIllegalArgumentException() {
+        // given
+        Long teamId = testTeam.getId();
+        Long teamMemberId = teamMember1.getId();
+        RemoveMemberRequestDTO request = new RemoveMemberRequestDTO(true);
+
+        when(permissionService.checkPermission(teamId, TeamPermission.MANAGE_MEMBERS)).thenReturn(true);
+
+        // when & then
+        assertThatThrownBy(() -> teamMemberService.removeMember(teamId, teamMemberId, request, principal))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("자기 자신은 강제 탈퇴시킬 수 없습니다. 팀 탈퇴 메뉴를 이용해주세요.");
+
+        // 검증: 삭제되지 않았는지 확인
+        verify(teamMemberRepository, never()).delete(any(TeamMember.class));
+        verify(postRepository, never()).findAllByTeamMemberWithImages(any());
+        verify(commentRepository, never()).deleteAllByTeamMemberAndDepth(any(), anyInt());
     }
 }
