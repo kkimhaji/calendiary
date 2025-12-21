@@ -1,5 +1,6 @@
 package com.example.board.teamMember;
 
+import com.example.board.auth.UserPrincipal;
 import com.example.board.comment.Comment;
 import com.example.board.comment.CommentRepository;
 import com.example.board.common.exception.TeamMemberNotFoundException;
@@ -24,6 +25,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -169,7 +172,7 @@ public class TeamMemberService {
     }
 
     @Transactional
-    public void removeMember(Long teamId, Long teamMemberId, RemoveMemberRequestDTO request) {
+    public void removeMember(Long teamId, Long teamMemberId, RemoveMemberRequestDTO request, UserPrincipal principal) {
         validationService.validateTeamExists(teamId);
         TeamMember teamMember = validationService.validateTeamMemberExists(teamMemberId);
 
@@ -181,6 +184,9 @@ public class TeamMemberService {
 
         // 5. 팀 소유자는 탈퇴 불가
         // 6. 자기 자신은 탈퇴 불가 (일반 탈퇴 사용)
+        if (principal.getMember().equals(teamMember.getMember()))
+            throw new IllegalArgumentException("자기 자신은 강제 탈퇴시킬 수 없습니다. 팀 탈퇴 메뉴를 이용해주세요.");
+
         /** 나중에 검증 코드 추가할 것 **/
 
         if (request.deleteContent()) {
