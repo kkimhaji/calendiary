@@ -5,9 +5,9 @@ import com.example.board.comment.CommentRepository;
 import com.example.board.common.exception.CategoryNotFoundException;
 import com.example.board.common.exception.RoleNotFoundException;
 import com.example.board.common.service.EntityValidationService;
+import com.example.board.image.ImageService;
 import com.example.board.member.Member;
 import com.example.board.permission.CategoryPermission;
-import com.example.board.image.ImageService;
 import com.example.board.permission.PermissionService;
 import com.example.board.post.Post;
 import com.example.board.post.PostRepository;
@@ -56,10 +56,10 @@ public class CategoryService {
         if (categoryRepository.existsByTeamAndName(team, request.name())) {
             throw new IllegalArgumentException("Category name '" + request.name() + "' already exists in this team");
         }
+
         // 마지막 순서 값 조회 후 +1
         Integer maxOrder = categoryRepository.findMaxDisplayOrderByTeamId(teamId);
         Integer newOrder = maxOrder + 1;
-
 
         TeamCategory category = TeamCategory.createCategoryWithOrder(
                 request.name(),
