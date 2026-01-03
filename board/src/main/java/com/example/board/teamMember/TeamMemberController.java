@@ -83,9 +83,10 @@ public class TeamMemberController {
     @PreAuthorize("hasPermission(#teamId, 'Team', T(com.example.board.permission.TeamPermission).MANAGE_MEMBERS)")
     public ResponseEntity<Void> removeMember(
             @PathVariable("teamId") @P("teamId") Long teamId,
-            @PathVariable("teamMemberId") Long teamMemberId, @RequestBody RemoveMemberRequestDTO request) {
+            @PathVariable("teamMemberId") Long teamMemberId, @RequestBody RemoveMemberRequestDTO request,
+            @AuthenticationPrincipal UserPrincipal principal) {
 
-        teamMemberService.removeMember(teamId, teamMemberId, request);
+        teamMemberService.removeMember(teamId, teamMemberId, request, principal);
         return ResponseEntity.noContent().build();
     }
 
