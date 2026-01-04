@@ -1,0 +1,60 @@
+# Git 관련
+.git
+.gitignore
+.gitattributes
+.github/
+
+# Docker 관련
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# 문서
+README.md
+*.md
+docs/
+
+# IDE 설정
+.idea/
+.vscode/
+.eclipse/
+*.iml
+*.swp
+*.swo
+
+# 빌드 산출물 (멀티 스테이지 빌드로 관리)
+build/
+target/
+out/
+bin/
+*.jar
+*.war
+
+# 테스트 관련
+.gradle/test
+test-results/
+coverage/
+
+# 로그 파일
+*.log
+logs/
+
+# OS 파일
+.DS_Store
+Thumbs.db
+
+# 환경 변수 파일 (빌드 시 포함 안함)
+.env
+.env.*
+local.env
+
+# CI/CD 설정
+.travis.yml
+.gitlab-ci.yml
+.circleci/
+.github/workflows/
+
+# 데이터베이스 파일
+*.db
+*.sqlite
+mysql_data/

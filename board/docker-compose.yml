@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      TZ: Asia/Seoul
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - shared-network
+
+  backend:
+    build:
+      context: .
+    container_name: backend
+    env_file:
+      - local.env
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+    networks:
+      - shared-network
+
+volumes:
+  mysql_data:
+
+networks:
+  shared-network:
+    name: myproject_network

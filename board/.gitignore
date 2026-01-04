@@ -17,11 +17,33 @@ bin/
 *.properties
 !**/src/main/**/bin/
 !**/src/test/**/bin/
-*.env
+# Docker 관련
 .env
-.env.*
-!.env.example
+.env.local
+.env.*.local
+local.env
+
+# Docker 볼륨 데이터
 mysql_data/
+volumes/
+docker-volumes/
+
+# IDE 및 OS 파일
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 빌드 산출물
+target/
+*.jar
+*.war
+
+# 로그 파일
+*.log
+logs/
+
 ### IntelliJ IDEA ###
 .idea
 *.iws
