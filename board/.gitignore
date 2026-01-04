@@ -18,6 +18,10 @@ bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
 *.env
+.env
+.env.*
+!.env.example
+mysql_data/
 ### IntelliJ IDEA ###
 .idea
 *.iws
