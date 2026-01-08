@@ -21,7 +21,6 @@ bin/
 .env
 .env.local
 .env.*.local
-local.env
 
 # Docker 볼륨 데이터
 mysql_data/

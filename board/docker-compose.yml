@@ -1,12 +1,11 @@
-version: '3.8'
-
 services:
   mysql:
     image: mysql:8.0
     container_name: mysql
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_DATABASE: calendiary
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_USER: ${MYSQL_USERNAME}
       TZ: Asia/Seoul
     ports:
       - "3306:3306"
@@ -19,14 +18,16 @@ services:
     build:
       context: .
     container_name: backend
-    env_file:
-      - local.env
     ports:
       - "8080:8080"
     depends_on:
       - mysql
     networks:
       - shared-network
+    environment:
+      SPRING_DATASOURCE_URL: ${MYSQL_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
 
 volumes:
   mysql_data:
