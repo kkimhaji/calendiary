@@ -3,6 +3,7 @@ package com.example.board.post;
 import com.example.board.auth.UserPrincipal;
 import com.example.board.category.TeamCategory;
 import com.example.board.comment.CommentRepository;
+import com.example.board.common.exception.PostNotFoundException;
 import com.example.board.common.exception.TeamMemberNotFoundException;
 import com.example.board.common.service.EntityValidationService;
 import com.example.board.config.HtmlSanitizer;
@@ -83,7 +84,7 @@ public class PostService {
         TeamCategory category = validationService.validateCategoryExists(categoryId);
 
         if (!post.getAuthor().equals(member)) {
-            throw new AccessDeniedException("");
+            throw new AccessDeniedException("작성자 본인만 수정할 수 있습니다.");
         }
         // HTML 콘텐츠 처리
         String sanitized = htmlSanitizer.sanitize(request.content());
@@ -185,7 +186,8 @@ public class PostService {
     @Transactional
     public void deletePost(Long teamId, Long postId, Long categoryId) throws IOException {
         validationService.validatePath(teamId, categoryId);
-        Post post = validationService.validatePostExists(postId);
+        Post post = postRepository.findByIdWithImages(postId)
+                .orElseThrow(() -> new PostNotFoundException("게시글을 찾을 수 없습니다."));
 
         if (!permissionService.hasPermissionOrAuthor(categoryId, postId, CategoryPermission.DELETE_POST))
             throw new AccessDeniedException("게시글을 삭제할 권한이 없습니다.");

@@ -13,6 +13,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
@@ -28,6 +29,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         WHERE p.teamMember = :teamMember
     """)
     List<Post> findAllByTeamMemberWithImages(@Param("teamMember") TeamMember teamMember);
+
+    @Query("SELECT p FROM Post p LEFT JOIN FETCH p.images WHERE p.id = :postId")
+    Optional<Post> findByIdWithImages(@Param("postId") Long postId);
 
     @Query("SELECT p FROM Post p WHERE p.category.team.id = :teamId AND p.author.id = :authorId")
     List<Post> findAllByTeamIdAndAuthorId(@Param("teamId") Long teamId, @Param("authorId") Long authorId);
