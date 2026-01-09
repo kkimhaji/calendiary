@@ -1,37 +1,46 @@
 services:
   mysql:
     image: mysql:8.0
-    container_name: mysql
+    container_name: calendiary-mysql
     environment:
       MYSQL_DATABASE: calendiary
       MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_USER: ${MYSQL_USERNAME}
       TZ: Asia/Seoul
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
-      - shared-network
+      - calendiary_network
 
   backend:
     build:
       context: .
-    container_name: backend
+    container_name: calendiary-server
+    image: calendiary-server:v1
     ports:
       - "8080:8080"
     depends_on:
       - mysql
     networks:
-      - shared-network
+      - calendiary_network
     environment:
-      SPRING_DATASOURCE_URL: ${MYSQL_DATASOURCE_URL}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      FILE_LOCATION: ${FILE_LOCATION}
+      FILE_UPLOAD_TEMP: ${FILE_UPLOAD_TEMP}
+      DIARY_FILE_LOCATION: ${DIARY_FILE_LOCATION}
+      DIARY_FILE_UPLOAD_TEMP: ${DIARY_FILE_UPLOAD_TEMP}
+      SUPPORT_EMAIL: ${SUPPORT_EMAIL}
+      APP_PASSWORD: ${APP_PASSWORD}
+    volumes:
+      - ${HOST_UPLOAD_PATH:-./uploads}:/app/uploads  # .env에서 정의
 
 volumes:
   mysql_data:
 
 networks:
-  shared-network:
-    name: myproject_network
+  calendiary_network:
+    name: calendiary_network
