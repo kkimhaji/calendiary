@@ -25,7 +25,7 @@ services:
     networks:
       - calendiary_network
     environment:
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_URL: jdbc:mysql://calendiary-mysql:3306/calendiary
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
