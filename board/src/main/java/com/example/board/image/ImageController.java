@@ -26,12 +26,12 @@ public class ImageController {
         return ResponseEntity.ok(imageUrl);
     }
 
-    @PostMapping("/confirm")
-    public ResponseEntity<Void> confirmImage(@RequestBody ImageConfirmRequest request) throws IOException {
-        ImageDomain domain = ImageDomain.valueOf(request.domain().toUpperCase());
-        imageService.moveToPermanent(request.tempUrl(), domain);
-        return ResponseEntity.ok().build();
-    }
+//    @PostMapping("/confirm")
+//    public ResponseEntity<Void> confirmImage(@RequestBody ImageConfirmRequest request) throws IOException {
+//        ImageDomain domain = ImageDomain.valueOf(request.domain().toUpperCase());
+//        imageService.moveToPermanent(request.tempUrl(), domain);
+//        return ResponseEntity.ok().build();
+//    }
 
     @DeleteMapping
     public ResponseEntity<Void> deleteImage(@RequestBody ImageDeleteRequest request) {

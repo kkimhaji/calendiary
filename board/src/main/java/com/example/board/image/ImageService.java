@@ -69,30 +69,57 @@ public class ImageService {
     }
 
     public String processContentImages(String content, ImageDomain domain) throws IOException {
-        for (String tempUrl : extractImageUrlsFromContent(content)) {
-            if (tempUrl.startsWith(domain.tempPrefix())) {
-                String permUrl = moveToPermanent(tempUrl, domain);
-                content = content.replace(tempUrl, permUrl);
+        if (content == null || content.isEmpty()) {
+            return content;
+        }
+
+        List<String> imageUrls = extractImageUrlsFromContent(content);
+
+        for (String imageUrl : imageUrls) {
+            // 전체 URL에서 경로 추출
+            String pathOnly = extractPathFromUrl(imageUrl);
+//            임시 이미지 경로인지 확인
+            if (pathOnly.startsWith(domain.tempPrefix())) {
+
+                try {
+                    // 영구 저장소로 이동
+                    String permPath = moveToPermanent(pathOnly, domain);
+                    // content에서 모든 형태의 URL 교체
+                    content = content.replace(imageUrl, permPath);
+
+                } catch (IOException e) {
+                    log.error("❌ 이미지 이동 실패: {}", pathOnly, e);
+                    // 실패해도 계속 진행 (다른 이미지 처리)
+                }
+            } else {
+                log.debug("임시 이미지 아님, 건너뜀: {}", pathOnly);
             }
         }
         return content;
     }
 
-    public String moveToPermanent(String tempUrl, ImageDomain domain) throws IOException {
-        String file = tempUrl.substring(tempUrl.lastIndexOf('/') + 1);
+    public String moveToPermanent(String tempPath, ImageDomain domain) throws IOException {
+        // 파일명 추출
+        String fileName = tempPath.substring(tempPath.lastIndexOf('/') + 1);
+        Path source = Paths.get(resolveTempDir(domain), fileName);
+        Path target = Paths.get(resolveUploadDir(domain), fileName);
 
-        Path source = Paths.get(resolveTempDir(domain), file);
-        Path target = Paths.get(resolveUploadDir(domain), file);
+        if (!Files.exists(source)) {
+            log.error("❌ 원본 파일이 존재하지 않음: {}", source);
+            throw new IOException("임시 파일을 찾을 수 없습니다: " + fileName);
+        }
 
+        Files.createDirectories(target.getParent());
         Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
-        return tempUrl.replace(domain.tempPrefix(), domain.permPrefix());
+
+        // 영구 경로 반환 (상대 경로)
+        return domain.permPrefix() + fileName;
     }
 
     public void deleteImage(String storedName, ImageDomain domain) {
         Path path = Paths.get(resolveUploadDir(domain), storedName);
         try {
             Files.deleteIfExists(path);
-            log.info("Deleted file: {}", storedName);
         } catch (IOException e) {
             log.error("Delete failed: {}", storedName, e);
             throw new FileDeleteException("파일 삭제 중 오류: " + storedName, e);
@@ -102,6 +129,35 @@ public class ImageService {
     public void deleteAllPostImages(Post post) throws IOException {
         for (PostImage img : post.getImages()) deleteImage(img.getStoredFileName(), ImageDomain.POST);
         post.clearImages();
+    }
+
+    private String extractPathFromUrl(String url) {
+        if (url == null || url.isEmpty()) {
+            return url;
+        }
+
+        // 이미 상대 경로면 그대로 반환
+        if (url.startsWith("/")) {
+            return url;
+        }
+
+        // 전체 URL이면 경로만 추출
+        // http://localhost:8080/post-temp-images/xxx.png
+        // → /post-temp-images/xxx.png
+        try {
+            // protocol://host/path 형태에서 path 추출
+            int protocolEnd = url.indexOf("://");
+            if (protocolEnd != -1) {
+                int pathStart = url.indexOf("/", protocolEnd + 3);
+                if (pathStart != -1) {
+                    return url.substring(pathStart);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("URL 파싱 실패, 원본 반환: {}", url, e);
+        }
+
+        return url;
     }
 
     public List<String> extractImageUrlsFromContent(String html) {

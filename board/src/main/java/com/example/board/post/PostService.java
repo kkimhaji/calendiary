@@ -199,18 +199,18 @@ public class PostService {
     }
 
     // 새로운 이미지 처리 로직을 별도 메서드로 분리
-    private void processNewImages(Post post, String processedContent) {
-        List<String> newUrls = imageService.extractImageUrlsFromContent(processedContent).stream()
-                .filter(u -> u.startsWith(ImageDomain.POST.permPrefix()))
-                .filter(u -> post.getImages().stream()
-                        .noneMatch(img -> u.endsWith(img.getStoredFileName())))
-                .toList();
-
-        for (String url : newUrls) {
-            String fileName = url.substring(url.lastIndexOf('/') + 1);   // ← 변경
-            post.addImage(PostImage.createPostImage(post, fileName, fileName));
-        }
-    }
+//    private void processNewImages(Post post, String processedContent) {
+//        List<String> newUrls = imageService.extractImageUrlsFromContent(processedContent).stream()
+//                .filter(u -> u.startsWith(ImageDomain.POST.permPrefix()))
+//                .filter(u -> post.getImages().stream()
+//                        .noneMatch(img -> u.endsWith(img.getStoredFileName())))
+//                .toList();
+//
+//        for (String url : newUrls) {
+//            String fileName = url.substring(url.lastIndexOf('/') + 1);   // ← 변경
+//            post.addImage(PostImage.createPostImage(post, fileName, fileName));
+//        }
+//    }
 
     @Transactional
     private void deleteImages(Post post, List<Long> imageIds) {
@@ -230,14 +230,14 @@ public class PostService {
         }
     }
 
-    @Transactional
-    private void addNewImages(Post post, List<MultipartFile> newImages) throws FileUploadException {
-        for (MultipartFile image : newImages) {
-            String storedFileName = imageService.saveFile(image, ImageDomain.POST);
-            PostImage postImage = PostImage.createPostImage(post, image.getOriginalFilename(), storedFileName);
-            post.addImage(postImage);
-        }
-    }
+//    @Transactional
+//    private void addNewImages(Post post, List<MultipartFile> newImages) throws FileUploadException {
+//        for (MultipartFile image : newImages) {
+//            String storedFileName = imageService.saveFile(image, ImageDomain.POST);
+//            PostImage postImage = PostImage.createPostImage(post, image.getOriginalFilename(), storedFileName);
+//            post.addImage(postImage);
+//        }
+//    }
 
     public Page<PostListResponse> getLatestPostsByUserTeams(UserPrincipal user, Pageable pageable) {
         // 1. 사용자가 속한 팀 ID 목록 조회
