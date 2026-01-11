@@ -18,7 +18,6 @@ import com.example.board.teamMember.TeamMember;
 import com.example.board.teamMember.TeamMemberRepository;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.RequiredArgsConstructor;
-import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,7 +27,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
@@ -83,7 +81,7 @@ public class PostService {
         Post post = validationService.validatePostExists(postId);
         TeamCategory category = validationService.validateCategoryExists(categoryId);
 
-        if (!post.getAuthor().equals(member)) {
+        if (!post.getAuthor().getMemberId().equals(member.getMemberId())) {
             throw new AccessDeniedException("작성자 본인만 수정할 수 있습니다.");
         }
         // HTML 콘텐츠 처리
