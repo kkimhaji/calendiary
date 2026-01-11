@@ -29,14 +29,14 @@ services:
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
-      FILE_LOCATION: ${FILE_LOCATION}
-      FILE_UPLOAD_TEMP: ${FILE_UPLOAD_TEMP}
-      DIARY_FILE_LOCATION: ${DIARY_FILE_LOCATION}
-      DIARY_FILE_UPLOAD_TEMP: ${DIARY_FILE_UPLOAD_TEMP}
+      FILE_LOCATION: /app/uploads/post/upload
+      FILE_UPLOAD_TEMP: /app/uploads/post/temp
+      DIARY_FILE_LOCATION: /app/uploads/diary/upload
+      DIARY_FILE_UPLOAD_TEMP: /app/uploads/diary/temp
       SUPPORT_EMAIL: ${SUPPORT_EMAIL}
       APP_PASSWORD: ${APP_PASSWORD}
     volumes:
-      - ${HOST_UPLOAD_PATH:-./uploads}:/app/uploads  # .env에서 정의
+      - ${HOST_UPLOAD_PATH}:/app/uploads
 
 volumes:
   mysql_data:
