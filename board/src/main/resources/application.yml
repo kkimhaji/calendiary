@@ -29,6 +29,10 @@ spring:
         smtp:
           auth: true
           starttls.enable: true
+    app:
+      mail:
+        from-name: Calendiary
+
   task:
     scheduling:
       thread-name-prefix: scheduled-task-pool-

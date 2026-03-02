@@ -3,12 +3,15 @@ package com.example.board.teamMember;
 import com.example.board.member.Member;
 import com.example.board.member.MemberRepository;
 import jakarta.mail.MessagingException;
+import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Random;
@@ -20,10 +23,16 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final MemberRepository memberRepository;
 
-    public void sendEmail(String to, String subject, String text) throws MessagingException {
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+    @Value("${spring.mail.username}")
+    private String fromEmail;
 
+    @Value("${app.mail.from-name}")
+    private String fromName;
+    public void sendEmail(String to, String subject, String text) throws MessagingException, UnsupportedEncodingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+        helper.setFrom(new InternetAddress(fromEmail, fromName, "UTF-8")); // 발신자 이름 설정
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(text, true);
@@ -31,7 +40,7 @@ public class EmailService {
         mailSender.send(message);
     }
 
-    public void sendVerificationEmail(Member member){
+    public void sendVerificationEmail(Member member) throws UnsupportedEncodingException {
         String subject = "Account Verification";
         String verificationCode = member.getVerificationCode();
         String htmlMessage = "<html>"
@@ -53,7 +62,7 @@ public class EmailService {
         }
     }
 
-    public void resendVerificationCode(String email){
+    public void resendVerificationCode(String email) throws UnsupportedEncodingException {
         Optional<Member> optionalMember = memberRepository.findByEmail(email);
         if (optionalMember.isPresent()){
             Member member = optionalMember.get();
@@ -72,7 +81,7 @@ public class EmailService {
         return String.valueOf(code);
     }
 
-    public void sendTempPasswordEmail(Member member, String tmpPwd){
+    public void sendTempPasswordEmail(Member member, String tmpPwd) throws UnsupportedEncodingException {
         String subject = "Your Temporary Password";
         String htmlMessage = "<html>"
                 + "<body style=\"font-family: Arial, sans-serif;\">"
