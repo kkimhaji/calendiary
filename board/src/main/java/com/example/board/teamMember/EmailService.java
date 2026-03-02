@@ -28,11 +28,17 @@ public class EmailService {
 
     @Value("${app.mail.from-name}")
     private String fromName;
-    public void sendEmail(String to, String subject, String text) throws MessagingException, UnsupportedEncodingException {
+    public void sendEmail(String to, String subject, String text) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+        MimeMessageHelper helper;
 
-        helper.setFrom(new InternetAddress(fromEmail, fromName, "UTF-8")); // 발신자 이름 설정
+        try {
+            helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(new InternetAddress(fromEmail, fromName, "UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            // UTF-8은 Java 표준에서 항상 지원되므로 실질적으로 도달하지 않는 분기
+            throw new MessagingException("Failed to encode email address: " + fromName, e);
+        }
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(text, true);
@@ -40,7 +46,7 @@ public class EmailService {
         mailSender.send(message);
     }
 
-    public void sendVerificationEmail(Member member) throws UnsupportedEncodingException {
+    public void sendVerificationEmail(Member member) {
         String subject = "Account Verification";
         String verificationCode = member.getVerificationCode();
         String htmlMessage = "<html>"
@@ -62,7 +68,7 @@ public class EmailService {
         }
     }
 
-    public void resendVerificationCode(String email) throws UnsupportedEncodingException {
+    public void resendVerificationCode(String email) {
         Optional<Member> optionalMember = memberRepository.findByEmail(email);
         if (optionalMember.isPresent()){
             Member member = optionalMember.get();
@@ -81,7 +87,7 @@ public class EmailService {
         return String.valueOf(code);
     }
 
-    public void sendTempPasswordEmail(Member member, String tmpPwd) throws UnsupportedEncodingException {
+    public void sendTempPasswordEmail(Member member, String tmpPwd) {
         String subject = "Your Temporary Password";
         String htmlMessage = "<html>"
                 + "<body style=\"font-family: Arial, sans-serif;\">"
