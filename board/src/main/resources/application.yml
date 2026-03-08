@@ -74,3 +74,5 @@ token:
 app:
   mail:
     from-name: Calendiary
+  frontend:
+    base-url: ${APP_FRONTEND_BASE_URL:http://localhost:3000}

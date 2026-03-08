@@ -13,6 +13,7 @@ import com.example.board.teamMember.TeamMember;
 import com.example.board.teamMember.TeamMemberRepository;
 import com.example.board.teamMember.TeamMemberService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,13 +28,16 @@ public class TeamInviteService {
     private final TeamMemberService teamMemberService;
     private final EntityValidationService validationService;
 
+    @Value("${app.frontend.base-url}")
+    private String frontendBaseUrl;
+
     @Transactional
     public InviteResponse createInvite(InviteCreateRequest request, Long teamId) {
         Team team = validationService.validateTeamExists(teamId);
         String code = UUID.randomUUID().toString().replace("-", "");
         TeamInvite invite = TeamInvite.create(code, team, request.expiresAt(), request.maxUses());
         inviteRepository.save(invite);
-        String inviteLink = "http://localhost:3000/teams/" + team.getId() + "/join?code=" + code;
+        String inviteLink = String.format("%s/teams/%d/join?code=%s", frontendBaseUrl, team.getId(), code);
         return new InviteResponse(inviteLink);
     }
 
