@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -122,38 +123,27 @@ public class AuthenticationService {
     }
 
     public AuthenticationResponse authenticate(AuthenticationRequestDTO request, HttpServletResponse response) {
-        // 로그인 유지 여부 확인
-        boolean rememberMe = request.rememberMe() != null && request.rememberMe();
-        //authenticationManager를 통해 검사를 모두 하고, 잘못된 경우 알아서 에러를 내고 끝내기 때문에 아래와 같은 모든 동작을 호출하는 것은 secure하다
-        //authenticationManager를 통해서 이메일과 비밀번호가 일치하는지 확인
-        var member = memberRepository.findByEmail(request.email())
-                .orElseThrow();
+        Member member = memberRepository.findByEmail(request.email())
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
 
         if (!member.isEnabled()) {
-            throw new AccountNotVerifiedException("Account is not verified. Please verify your account first");
+            throw new DisabledException("Please verify your account first");
         }
 
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.email(), request.password()
-                )
+                new UsernamePasswordAuthenticationToken(request.email(), request.password())
         );
+
         UserPrincipal user = new UserPrincipal(member);
 
-        var jwtToken = jwtService.generateToken(user, rememberMe);
-        //rememberMe 선택 시만 refreshToken 생성
-        revokeToken(member);
-        saveUserToken(member, jwtToken);
+        String accessToken = jwtService.generateToken(user, false);
+        String refreshToken = jwtService.generateRefreshToken(user);
 
-        String refreshToken = null;
-        if (rememberMe) {
-            refreshToken = jwtService.generateRefreshToken(user);
-            revokeToken(member);
-            saveRefreshToken(member, refreshToken);
-        }
+        revokeAllTokens(member);
+        saveUserToken(member, accessToken);
+        saveRefreshToken(member, refreshToken); // rememberMe 조건 없이 항상 저장
 
-//        cookieUtil.addRefreshTokenCookie(response, refreshToken, jwtService.getRefreshTokenExpiration());
-        return new AuthenticationResponse(jwtToken, refreshToken);
+        return new AuthenticationResponse(accessToken, refreshToken);
     }
 
     private void saveUserToken(Member member, String jwtToken) {

@@ -46,10 +46,19 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(req->
+                .authorizeHttpRequests(req ->
                         req
-                                .requestMatchers("/auth/**", "/team/{teamId}", "/api/test", "/images/**",
-                                        "/post-images/**", "/post-temp-images/**", "/diary-images/**", "/diary-temp-images/**").permitAll()
+                                .requestMatchers(
+                                        "/auth/**",
+                                        "/team/{teamId}",
+                                        "/teams/{teamId}/invite/validate",
+                                        "/api/test",
+                                        "/images/**",
+                                        "/post-images/**",
+                                        "/post-temp-images/**",
+                                        "/diary-images/**",
+                                        "/diary-temp-images/**"
+                                ).permitAll()
                                 .anyRequest()
                                 .authenticated()
                 )
