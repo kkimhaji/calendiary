@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -176,7 +177,22 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
+    /**
+     * BadCredentialsException 처리 - 잘못된 이메일/비밀번호 시 401 반환
+     * AuthenticationException보다 먼저 매칭되도록 구체적인 타입으로 등록
+     */
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentials(
+            BadCredentialsException ex, HttpServletRequest request) {
 
+        log.warn("로그인 실패 (잘못된 자격증명) - URI: {}", request.getRequestURI());
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                "INVALID_CREDENTIALS",
+                "이메일 또는 비밀번호가 올바르지 않습니다."
+        );
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+    }
     /**
      * AuthenticationException 처리 - 인증 실패 시 401 반환
      */
@@ -392,7 +408,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 
     /**
-     *  타입 불일치 (400 Bad Request)
+     * 타입 불일치 (400 Bad Request)
      */
     @Override
     protected ResponseEntity<Object> handleTypeMismatch(
