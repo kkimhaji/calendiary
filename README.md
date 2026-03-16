@@ -1,132 +1,295 @@
-<div align="center">
-
 # Calendiary
 
-**팀 기반 협업 게시판 시스템**
-
-팀별 카테고리 구조와 세분화된 권한 시스템을 갖춘 풀스택 협업 플랫폼입니다.  
-Rich Text 에디터 기반의 게시글/일기 작성, 이미지 업로드, 댓글 기능을 지원합니다.
+> 팀 협업 게시판과 개인 다이어리를 하나로 통합한 웹 플랫폼
 
 <br/>
 
 ![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
+![Spring Security](https://img.shields.io/badge/Spring_Security-6DB33F?style=for-the-badge&logo=Spring-Security&logoColor=white)
+![Hibernate](https://img.shields.io/badge/Hibernate-59666C?style=for-the-badge&logo=Hibernate&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-005C84?style=for-the-badge&logo=mysql&logoColor=white)
+![JWT](https://img.shields.io/badge/json%20web%20tokens-323330?style=for-the-badge&logo=json-web-tokens&logoColor=pink)
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![MySQL](https://img.shields.io/badge/MySQL-00000F?style=for-the-badge&logo=mysql&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white)
+![Redux](https://img.shields.io/badge/Redux-593D88?style=for-the-badge&logo=redux&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=JavaScript&logoColor=white)
+![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
 
-</div>
+---
+
+## 목차
+
+- [프로젝트 소개](#프로젝트-소개)
+- [화면 미리보기](#화면-미리보기)
+- [주요 기능](#주요-기능)
+- [기술 스택](#기술-스택)
+- [시스템 아키텍처](#시스템-아키텍처)
+- [ERD](#erd)
+- [API 명세](#api-명세)
+- [구현 시 고려한 사항](#구현-시-고려한-사항)
 
 ---
 
 ## 프로젝트 소개
 
-Calendiary는 팀 단위로 게시글을 카테고리별로 관리하고, 세분화된 권한 시스템을 통해 팀원 간 협업을 지원하는 웹 애플리케이션입니다.
+Calendiary는 팀 단위의 협업 게시판과 개인 다이어리를 하나의 플랫폼에서 제공합니다.
 
-단순한 CRUD를 넘어 **팀 권한 + 카테고리 권한의 이중 권한 구조**, **CKEditor 5 기반 Rich Text 편집**, **Docker 환경에서의 이미지 URL 처리** 등 실무에 가까운 기술적 고민을 담았습니다.
+팀 내에서는 카테고리별로 게시글을 관리하고, 역할 기반의 2단계 권한 시스템으로 세밀하게 접근을 제어합니다.
+개인 다이어리는 달력 뷰와 리스트 뷰를 지원하며, 게시글별 공개/비공개 설정이 가능합니다.
+
+> **개발 기간:** 2024.xx ~ 2025.xx
+
+---
+
+## 화면 미리보기
+
+### 로그인 / 회원가입
+| 로그인 | 회원가입 |
+|--------|---------|
+| 추가 예정 | 추가 예정 |
+
+### 팀 협업 게시판
+| 팀 메인 | 카테고리 글 목록 |
+|---------|---------------|
+| 추가 예정 | 추가 예정 |
+
+| 게시글 상세 | 게시글 작성 |
+|-----------|-----------|
+| 추가 예정 | 추가 예정 |
+
+### 권한 관리
+| 팀 정보 / 역할 설정 | 카테고리 권한 설정 |
+|------------------|----------------|
+| 추가 예정 | 추가 예정 |
+
+### 개인 다이어리
+| 달력 뷰 | 리스트 뷰 |
+|--------|---------|
+| 추가 예정 | 추가 예정 |
+
+| 다이어리 작성 | 다이어리 상세 |
+|------------|------------|
+| 추가 예정 | 추가 예정 |
 
 ---
 
 ## 주요 기능
 
-- **권한 시스템** — 팀 역할(ADMIN/MEMBER) + 카테고리별 읽기/쓰기 권한 세분화
-- **Rich Text 에디터** — CKEditor 5 기반 게시글/일기 작성, 이미지 업로드 지원
-- **다이어리 기능** — 달력 뷰 + 목록 뷰 전환, 썸네일 미리보기
-- **이미지 처리 파이프라인** — 임시 업로드 → 본문 저장 시 영구 이동 자동화
-- **보안** — Spring Security + JWT 인증, OWASP HTML Sanitizer 기반 XSS 방어
-- **Docker 컨테이너화** — 프론트/백엔드 분리 컨테이너 운영
+### 인증 / 회원
+- 이메일 인증 기반 회원가입
+- JWT Access Token + Refresh Token 인증
+- 토큰 자동 갱신 (Axios 인터셉터)
+- 임시 비밀번호 발급 (이메일 전송)
 
----
+### 팀 협업 게시판
+- 팀 생성 및 초대 링크를 통한 팀원 초대
+- 팀 내 별명(닉네임) 설정
+- 카테고리별 게시글 관리
+- 게시글 / 댓글 작성, 수정, 삭제
+- 카테고리 순서 드래그 앤 드롭으로 변경
+- 작성자 클릭 시 해당 팀원의 게시글 / 댓글 활동 모아보기
 
-## 시스템 아키텍처
+### 2단계 권한 시스템
+| 레벨 | 권한 항목 |
+|------|----------|
+| 팀 | 팀 정보 수정, 카테고리 관리, 멤버 추가/삭제, 역할 변경 |
+| 카테고리 | 게시글 조회/작성/삭제, 댓글 작성/삭제 |
 
-```
-[React : 3000]  ←──axios──→  [Spring Boot : 8080]  ←──JPA──→  [MySQL]
-     │                               │
-  DOMPurify                    HtmlSanitizer
-  CKEditor 5               ImageService (임시→영구)
-  imageUtils.js              Spring Security + JWT
-```
+- 팀 내 역할(Role)에 권한을 부여하고, 팀원에게 역할을 할당하는 구조
+- `@PreAuthorize` + 커스텀 `PermissionEvaluator`로 API 레벨에서 권한 검사
+- 프론트엔드에서 권한에 따라 버튼 / 입력창 조건부 렌더링
+
+### 개인 다이어리
+- 게시글별 공개 / 비공개 설정
+- 달력 뷰: 날짜별 다이어리 썸네일 표시
+- 리스트 뷰: 작성된 다이어리 목록 조회
+- 다이어리 내 이미지 업로드 및 대표 이미지 자동 썸네일 지정
+- 다이어리 / 게시글 내 키워드 검색
 
 ---
 
 ## 기술 스택
 
 ### Backend
-
-![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
-![Spring Security](https://img.shields.io/badge/Spring_Security-6DB33F?style=for-the-badge&logo=spring-security&logoColor=white)
-![MySQL](https://img.shields.io/badge/MySQL-00000F?style=for-the-badge&logo=mysql&logoColor=white)
-![JWT](https://img.shields.io/badge/JWT-323330?style=for-the-badge&logo=json-web-tokens&logoColor=pink)
-![Hibernate](https://img.shields.io/badge/Hibernate-59666C?style=for-the-badge&logo=Hibernate&logoColor=white)
+| 분류 | 기술 |
+|------|------|
+| Language | ![Java](https://img.shields.io/badge/Java_17-ED8B00?style=flat-square&logo=openjdk&logoColor=white) |
+| Framework | ![Spring Boot](https://img.shields.io/badge/Spring_Boot_3-6DB33F?style=flat-square&logo=spring-boot&logoColor=white) ![Spring Security](https://img.shields.io/badge/Spring_Security-6DB33F?style=flat-square&logo=Spring-Security&logoColor=white) |
+| ORM | ![Hibernate](https://img.shields.io/badge/JPA/Hibernate-59666C?style=flat-square&logo=Hibernate&logoColor=white) |
+| Database | ![MySQL](https://img.shields.io/badge/MySQL_8.0-005C84?style=flat-square&logo=mysql&logoColor=white) |
+| Auth | ![JWT](https://img.shields.io/badge/JWT-323330?style=flat-square&logo=json-web-tokens&logoColor=pink) |
+| Build | ![Gradle](https://img.shields.io/badge/Gradle-02303A?style=flat-square&logo=gradle&logoColor=white) |
+| Mail | ![Gmail](https://img.shields.io/badge/Gmail_SMTP-D14836?style=flat-square&logo=gmail&logoColor=white) |
 
 ### Frontend
+| 분류 | 기술 |
+|------|------|
+| Framework | ![React](https://img.shields.io/badge/React_18-20232A?style=flat-square&logo=react&logoColor=61DAFB) |
+| 상태 관리 | ![Redux](https://img.shields.io/badge/Redux_Toolkit-593D88?style=flat-square&logo=redux&logoColor=white) |
+| HTTP | ![Axios](https://img.shields.io/badge/Axios-5A29E4?style=flat-square&logo=axios&logoColor=white) |
+| 에디터 | ![CKEditor](https://img.shields.io/badge/CKEditor_5-0287D0?style=flat-square&logo=ckeditor4&logoColor=white) |
+| 보안 | ![DOMPurify](https://img.shields.io/badge/DOMPurify-XSS_방지-green?style=flat-square) |
 
-![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=JavaScript&logoColor=white)
-![Axios](https://img.shields.io/badge/Axios-5A29E4?style=for-the-badge&logo=axios&logoColor=white)
-![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
-![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
-
-### DevOps & Tools
-
-![Docker](https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white)
-![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)
-
-### Test
-
-![JUnit5](https://img.shields.io/badge/JUnit5-25A162?style=for-the-badge&logo=junit5&logoColor=white)
+### Infra
+| 분류 | 기술 |
+|------|------|
+| 컨테이너 | ![Docker](https://img.shields.io/badge/Docker-0db7ed?style=flat-square&logo=docker&logoColor=white) |
+| 버전 관리 | ![Git](https://img.shields.io/badge/Git-E44C30?style=flat-square&logo=git&logoColor=white) ![GitHub](https://img.shields.io/badge/GitHub-100000?style=flat-square&logo=github&logoColor=white) |
 
 ---
 
+## 시스템 아키텍처
+```mermaid
+graph TB
+    subgraph Client["🖥️ Client"]
+        React["React 18"]
+        Redux["Redux Toolkit"]
+        Axios["Axios + Interceptor"]
+    end
 
-## 핵심 구현 포인트
+    subgraph Backend["☕ Spring Boot 3"]
+        JWTFilter["JWT Filter"]
+        Security["Spring Security"]
+        PermEval["Permission Evaluator\n(팀 / 카테고리 2단계)"]
 
-### 1. 이중 권한 시스템
-팀 레벨 권한(ADMIN/MEMBER)과 카테고리 레벨 권한(읽기/쓰기)을 독립적으로 관리하여, 카테고리마다 세밀한 접근 제어가 가능합니다.
+        subgraph API["REST API"]
+            Auth["인증 /auth"]
+            Team["팀·카테고리 /teams"]
+            Content["게시글·댓글 /posts /comments"]
+            Diary["다이어리 /diary"]
+        end
 
-### 2. 이미지 처리 파이프라인
+        subgraph Service["Service Layer"]
+            JWTSvc["JWT 발급·갱신"]
+            ImageSvc["이미지 처리\n(임시 → 영구)"]
+            PermSvc["권한 검사"]
+        end
+    end
+
+    subgraph DB["🗄️ MySQL 8.0"]
+        Tables[("members / teams\nposts / comments\ndiaries / tokens")]
+    end
+
+    subgraph Storage["📁 File Storage"]
+        Temp["임시 저장"]
+        Perm["영구 저장"]
+        Temp -->|"저장 완료 시"| Perm
+    end
+
+    subgraph Infra["🐳 Docker"]
+        Compose["docker-compose\nMySQL + Backend"]
+    end
+
+    Axios -->|"REST API :8080"| JWTFilter
+    JWTFilter --> Security
+    Security --> PermEval
+    Security --> API
+    API --> Service
+    Service -->|"JPA"| DB
+    ImageSvc --> Temp
+    Compose -.->|"컨테이너 관리"| Backend
+    Compose -.->|"컨테이너 관리"| DB
+
+    React --- Redux
+    React --- Axios
+
+    style Client fill:#dbeafe,stroke:#3b82f6
+    style Backend fill:#dcfce7,stroke:#22c55e
+    style DB fill:#fef9c3,stroke:#eab308
+    style Storage fill:#fce7f3,stroke:#ec4899
+    style Infra fill:#f3e8ff,stroke:#a855f7
 ```
-[업로드] → /post-temp-images/ (임시)
-    ↓ 게시글 저장 시 ImageService.processContentImages()
-[이동]  → /post-images/ (영구)
-    ↓ DB 저장
-[조회]  → 상대경로 → imageUtils.convertRelativeToAbsoluteUrls() → 절대 URL
-```
-DB에는 상대 경로로 저장하고, 프론트에서 조회 시 환경변수 기반으로 절대 URL로 변환합니다.
-
-### 3. XSS 방어 이중 구조
-- **Frontend**: DOMPurify로 렌더링 전 HTML 정제
-- **Backend**: OWASP Java HTML Sanitizer로 저장 전 서버 측 정제
 
 ---
 
-## 엔티티 관계
+## ERD
 
-나중에 추가
 
----
-## 스크린샷
-
-| 게시글 목록 | 게시글 작성 (에디터) | 다이어리 달력 뷰 |
-|------------|-------------------|----------------|
-| ![list](screenshots/list.png) | ![editor](screenshots/editor.png) | ![diary](screenshots/diary.png) |
-
-- 추가 예정
----
-
-## 테스트
-
-```bash
-# 백엔드 테스트 실행 (H2 인메모리 DB 사용)
-./mvnw test
-```
-
-운영 환경(MySQL)과 동일한 JPA 로직을 H2로 테스트하여 환경 의존성을 최소화했습니다.
 
 ---
 
-## 📜 License
+## API 명세
 
-MIT License
+<details>
+<summary>인증</summary>
+
+| Method | URL | 설명 |
+|--------|-----|------|
+| POST | `/auth/register` | 회원가입 |
+| POST | `/auth/authenticate` | 로그인 |
+| POST | `/auth/refresh-token` | Access Token 갱신 |
+| POST | `/auth/logout` | 로그아웃 |
+| POST | `/auth/get-temp-password` | 임시 비밀번호 발급 |
+
+</details>
+
+<details>
+<summary>팀</summary>
+
+| Method | URL | 설명 |
+|--------|-----|------|
+| POST | `/teams/create` | 팀 생성 |
+| GET | `/teams/{teamId}` | 팀 정보 조회 |
+| PUT | `/teams/{teamId}/edit` | 팀 정보 수정 |
+| GET | `/teams/{teamId}/invite` | 초대 링크 생성 |
+| POST | `/teams/{teamId}/invite/validate` | 초대 링크 검증 및 가입 |
+| DELETE | `/teams/{teamId}/leave` | 팀 탈퇴 |
+
+</details>
+
+<details>
+<summary>카테고리 / 게시글 / 댓글</summary>
+
+| Method | URL | 설명 |
+|--------|-----|------|
+| POST | `/teams/{teamId}/categories/create` | 카테고리 생성 |
+| PUT | `/teams/{teamId}/categories/{categoryId}/order` | 카테고리 순서 변경 |
+| GET | `/teams/{teamId}/category/{categoryId}/posts` | 게시글 목록 |
+| POST | `/teams/{teamId}/category/{categoryId}/posts` | 게시글 작성 |
+| GET | `/category/{categoryId}/posts/{postId}/comments` | 댓글 목록 |
+| POST | `/category/{categoryId}/posts/{postId}/comments` | 댓글 작성 |
+
+</details>
+
+<details>
+<summary>권한 확인</summary>
+
+| Method | URL | 설명 |
+|--------|-----|------|
+| GET | `/permission-check?permission=&targetId=` | 단일 권한 확인 |
+| GET | `/permissions-check?permissions=&targetId=` | 다중 권한 확인 |
+| GET | `/edit-delete-check/post?postId=` | 게시글 수정/삭제 권한 |
+| GET | `/edit-delete-check/comment?commentId=` | 댓글 수정/삭제 권한 |
+
+</details>
+
+<details>
+<summary>다이어리</summary>
+
+| Method | URL | 설명 |
+|--------|-----|------|
+| POST | `/diary/create` | 다이어리 작성 |
+| GET | `/diary/{diaryId}` | 다이어리 조회 |
+| GET | `/diary/calendar?year=&month=` | 달력 뷰 데이터 |
+| GET | `/diary/list?year=&month=` | 리스트 뷰 데이터 |
+
+</details>
+
+---
+
+## 구현 시 고려한 사항
+
+### JWT 토큰 갱신 전략
+- Access Token 만료 시 Axios 응답 인터셉터에서 자동으로 Refresh Token을 사용해 갱신
+- 갱신 요청이 중복 발생하지 않도록 큐(queue) 방식으로 처리
+- `/auth/**` 경로는 갱신 인터셉터에서 제외하여 로그인 에러가 정상적으로 전달되도록 처리
+
+### 2단계 권한 시스템 설계
+- 팀 레벨(`TeamPermission`)과 카테고리 레벨(`CategoryPermission`)을 별도 Enum으로 분리
+- Spring Security의 `PermissionEvaluator`를 구현하여 `@PreAuthorize`에서 통일된 방식으로 권한 검사
+- 프론트엔드에서 페이지 진입 시 권한을 미리 확인하고, 결과에 따라 버튼 및 입력창을 조건부 렌더링
+
+### 이미지 처리
+- CKEditor에서 이미지 업로드 시 서버에 임시 저장 후, 게시글/다이어리 저장 시점에 영구 경로로 이동
+- 첫 번째 이미지를 자동으로 썸네일로 지정
+- 게시글/다이어리 삭제 시 연관 이미지 파일도 함께 삭제
