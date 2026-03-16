@@ -49,6 +49,10 @@ Calendiary는 팀 단위의 협업 게시판과 개인 다이어리를 하나의
 | 추가 예정 | 추가 예정 |
 
 ### 팀 협업 게시판
+| 팀 초대 | 팀 가입 |
+|---------|---------------|
+| <img width="660" height="351" alt="Image" src="https://github.com/user-attachments/assets/765a7e79-e3db-4839-bef7-a9e7ecc39748" /> <img width="660" height="265" alt="Image" src="https://github.com/user-attachments/assets/9b757cc0-7402-48e0-8078-edcaca9b57f9" /> | <img width="1015" src="https://github.com/user-attachments/assets/46ca6f6a-b307-435f-b674-e5f5cbdf5702" /> |
+
 | 팀 메인 | 카테고리 글 목록 |
 |---------|---------------|
 | 추가 예정 | 추가 예정 |
@@ -204,7 +208,7 @@ graph TB
 
 ## ERD
 
-
+<img width="1706" height="1074" alt="Image" src="https://github.com/user-attachments/assets/8e383b5a-09eb-4b80-a8a9-a11064670070" />
 
 ---
 
