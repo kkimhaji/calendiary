@@ -426,4 +426,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .body(errorResponse);
     }
+
+    @ExceptionHandler(DuplicateEmailException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateEmail(DuplicateEmailException ex) {
+        log.warn("중복 이메일 가입 시도: {}", ex.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse("DUPLICATE_EMAIL", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse); // 409
+    }
 }

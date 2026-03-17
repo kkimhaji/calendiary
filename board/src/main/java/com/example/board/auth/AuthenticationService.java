@@ -48,10 +48,32 @@ public class AuthenticationService {
 
     // save to the database and return the generated token
     public MemberRegisterResponseDTO register(RegisterRequestDTO request) {
-        //create a user object out of the registerRequest
-        Member member = Member.createMember(request.email(), request.nickname(), passwordEncoder.encode(request.password()),
-                false, emailService.generateRandomCode(),
-                LocalDateTime.now().plusMinutes(15));
+        Optional<Member> existingMember = memberRepository.findByEmail(request.email());
+
+        if (existingMember.isPresent()) {
+            Member member = existingMember.get();
+
+            // 이미 인증 완료된 계정
+            if (member.isEnabled()) {
+                throw new DuplicateEmailException("이미 사용 중인 이메일입니다.");
+            }
+            // 미인증 계정 → 인증 코드 갱신 후 재전송
+            String newCode = emailService.generateRandomCode();
+            member.setVerification(newCode, LocalDateTime.now().plusMinutes(15));
+            emailService.sendVerificationEmail(member);
+            memberRepository.save(member);
+
+            return MemberRegisterResponseDTO.from(member);
+        }
+        // 신규 회원가입
+        Member member = Member.createMember(
+                request.email(),
+                request.nickname(),
+                passwordEncoder.encode(request.password()),
+                false,
+                emailService.generateRandomCode(),
+                LocalDateTime.now().plusMinutes(15)
+        );
 
         emailService.sendVerificationEmail(member);
         memberRepository.save(member);
