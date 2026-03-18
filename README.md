@@ -181,12 +181,12 @@ graph TB
 ### 로그인 / 회원가입
 | 로그인 | 회원가입 |
 |--------|---------|
-| 추가 예정 | 추가 예정 |
+| <img width="660" height="676" alt="image" src="https://github.com/user-attachments/assets/fa8af590-01a3-441b-958a-7e3151b648b2" /> <img width="501" height="176" alt="Image" src="https://github.com/user-attachments/assets/3b6e699f-f168-4b2f-893c-2f034e67a374" /> | <img width="660" height="676" alt="Image" src="https://github.com/user-attachments/assets/269c99bf-24e3-438e-8219-81e82d6ba99b" /> <img width="533" height="491" alt="image" src="https://github.com/user-attachments/assets/dee4dfff-e052-4918-a035-8e589d3debcb" /> |
 
 ### 팀 협업 게시판
 | 팀 초대 | 팀 가입 |
 |---------|---------------|
-| <img width="660" height="351" alt="Image" src="https://github.com/user-attachments/assets/765a7e79-e3db-4839-bef7-a9e7ecc39748" /> <img width="660" height="265" alt="Image" src="https://github.com/user-attachments/assets/9b757cc0-7402-48e0-8078-edcaca9b57f9" /> | <img width="1015" src="https://github.com/user-attachments/assets/46ca6f6a-b307-435f-b674-e5f5cbdf5702" /> |
+| <img width="660" height="351" alt="Image" src="https://github.com/user-attachments/assets/765a7e79-e3db-4839-bef7-a9e7ecc39748" /> <img src="https://github.com/user-attachments/assets/9b757cc0-7402-48e0-8078-edcaca9b57f9" /> | <img src="https://github.com/user-attachments/assets/46ca6f6a-b307-435f-b674-e5f5cbdf5702" /> |
 
 | 팀 메인 | 카테고리 글 목록 |
 |---------|---------------|
