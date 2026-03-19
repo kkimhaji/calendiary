@@ -10,7 +10,10 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
@@ -42,12 +45,12 @@ public class PostSearchService {
         long start = System.nanoTime();
 
         Page<PostResponse> result = switch (searchType) {
-            case TITLE    -> postRepository.searchByTitle(keyword, teamId, categoryId, pageable)
+            case TITLE -> postRepository.searchByTitle(keyword, teamId, categoryId, pageable)
                     .map(PostResponse::from);
-            case CONTENT  -> postRepository.searchByContent(keyword, teamId, categoryId, pageable)
+            case CONTENT -> postRepository.searchByContent(keyword, teamId, categoryId, pageable)
                     .map(PostResponse::from);
             case PARALLEL -> searchInParallel(keyword, teamId, categoryId, pageable);
-            default       -> postRepository.searchByTitleOrContent(keyword, teamId, categoryId, pageable)
+            default -> postRepository.searchByTitleOrContent(keyword, teamId, categoryId, pageable)
                     .map(PostResponse::from);
         };
 
@@ -58,7 +61,6 @@ public class PostSearchService {
         return result;
     }
 
-    // ─── 병렬 검색 ────────────────────────────────────────────────────────────
 
     private Page<PostResponse> searchInParallel(
             String keyword, Long teamId, Long categoryId, Pageable pageable) {
@@ -110,8 +112,6 @@ public class PostSearchService {
         List<PostResponse> sorted = sortResponses(combined, pageable.getSort());
         return paginateResponses(sorted, pageable);
     }
-
-    // ─── 정렬 / 페이징 ────────────────────────────────────────────────────────
 
     private List<PostResponse> sortResponses(List<PostResponse> responses, Sort sort) {
         if (sort.isUnsorted()) return responses;

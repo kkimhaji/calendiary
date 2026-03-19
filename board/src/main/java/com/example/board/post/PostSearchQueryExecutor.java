@@ -1,4 +1,3 @@
-// board/src/main/java/com/example/board/post/PostSearchQueryExecutor.java
 package com.example.board.post;
 
 import com.example.board.post.dto.PostResponse;
@@ -11,10 +10,9 @@ import java.util.List;
 
 /**
  * 비동기 스레드에서 호출 시 Spring AOP가 새 트랜잭션을 생성하도록
- * PostSearchService와 빈을 분리한 실행자.
- *
+ * PostSearchService와 빈을 분리한 실행자
  * PostResponse 변환까지 트랜잭션 안에서 수행해야
- * teamMember 등의 Lazy 필드 접근이 가능합니다.
+ * teamMember 등의 Lazy 필드 접근이 가능
  */
 @Component
 @RequiredArgsConstructor

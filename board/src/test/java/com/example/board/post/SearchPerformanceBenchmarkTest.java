@@ -13,8 +13,6 @@ import com.example.board.support.TestDataBuilder;
 import com.example.board.support.TestDataFactory;
 import com.example.board.team.Team;
 import com.example.board.team.TeamRepository;
-import com.example.board.team.TeamService;
-import com.example.board.team.dto.TeamCreateRequestDTO;
 import com.example.board.teamMember.TeamMember;
 import com.example.board.teamMember.TeamMemberRepository;
 import org.junit.jupiter.api.*;
@@ -24,7 +22,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,13 +43,20 @@ public class SearchPerformanceBenchmarkTest {
     private static final int MEASURE_COUNT = 20;
     private static final String KEYWORD = "Spring";
 
-    @Autowired private PostSearchService postSearchService;
-    @Autowired private TestDataFactory testDataFactory;
-    @Autowired private TestDataBuilder testDataBuilder;
-    @Autowired private MemberRepository memberRepository;
-    @Autowired private TeamRepository teamRepository;
-    @Autowired private TeamMemberRepository teamMemberRepository;
-    @Autowired private CategoryService categoryService;
+    @Autowired
+    private PostSearchService postSearchService;
+    @Autowired
+    private TestDataFactory testDataFactory;
+    @Autowired
+    private TestDataBuilder testDataBuilder;
+    @Autowired
+    private MemberRepository memberRepository;
+    @Autowired
+    private TeamRepository teamRepository;
+    @Autowired
+    private TeamMemberRepository teamMemberRepository;
+    @Autowired
+    private CategoryService categoryService;
 
     private Member member1;
     private Team testTeam;
@@ -92,6 +96,7 @@ public class SearchPerformanceBenchmarkTest {
             TestTransaction.end();
         }
     }
+
     @Test
     @Order(1)
     @DisplayName("BOTH(단일 쿼리) vs PARALLEL(병렬 쿼리) 성능 비교")
@@ -104,10 +109,10 @@ public class SearchPerformanceBenchmarkTest {
             postSearchService.searchPosts(testTeam.getId(), KEYWORD, null, pageable, SearchType.PARALLEL);
         }
 
-        long[] bothNs     = measure(() -> postSearchService.searchPosts(testTeam.getId(), KEYWORD, null, pageable, SearchType.BOTH));
+        long[] bothNs = measure(() -> postSearchService.searchPosts(testTeam.getId(), KEYWORD, null, pageable, SearchType.BOTH));
         long[] parallelNs = measure(() -> postSearchService.searchPosts(testTeam.getId(), KEYWORD, null, pageable, SearchType.PARALLEL));
 
-        Page<PostResponse> bothResult     = postSearchService.searchPosts(testTeam.getId(), KEYWORD, null, pageable, SearchType.BOTH);
+        Page<PostResponse> bothResult = postSearchService.searchPosts(testTeam.getId(), KEYWORD, null, pageable, SearchType.BOTH);
         Page<PostResponse> parallelResult = postSearchService.searchPosts(testTeam.getId(), KEYWORD, null, pageable, SearchType.PARALLEL);
 
         Assertions.assertEquals(
@@ -131,7 +136,7 @@ public class SearchPerformanceBenchmarkTest {
         };
 
         for (int i = 0; i < DATA_SIZE; i++) {
-            String title   = titles[i % titles.length] + " " + i;
+            String title = titles[i % titles.length] + " " + i;
             String content = String.format(contents[i % contents.length], i);
             testDataBuilder.createPost(title, content, member1, testCategory, testTeam, testTeamMember);
         }
@@ -148,32 +153,32 @@ public class SearchPerformanceBenchmarkTest {
     }
 
     private void printReport(long[] bothNs, long[] parallelNs, long hitCount) {
-        Stats both     = Stats.of(bothNs);
+        Stats both = Stats.of(bothNs);
         Stats parallel = Stats.of(parallelNs);
         double improvement = (both.avgMs - parallel.avgMs) / both.avgMs * 100;
 
         System.out.printf("""
-                %n
-                검색 성능 벤치마크 결과
-                환경   : H2 인메모리 DB
-                데이터 : 게시글 %d건 / 키워드 '%s'
-                히트   : %d건
-                반복   : %d회 (워밍업 %d회 제외)
-                
-                [단일 쿼리 - BOTH]
-                Min  : %.2f ms
-                Avg  : %.2f ms
-                P95  : %.2f ms
-                Max  : %.2f ms
-
-                [병렬 쿼리 - PARALLEL]
-                Min  : %.2f ms
-                Avg  : %.2f ms
-                P95  : %.2f ms
-                Max  : %.2f ms
-
-                개선율 : %+.1f%% %-30s
-                %n""",
+                        %n
+                        검색 성능 벤치마크 결과
+                        환경   : H2 인메모리 DB
+                        데이터 : 게시글 %d건 / 키워드 '%s'
+                        히트   : %d건
+                        반복   : %d회 (워밍업 %d회 제외)
+                        
+                        [단일 쿼리 - BOTH]
+                        Min  : %.2f ms
+                        Avg  : %.2f ms
+                        P95  : %.2f ms
+                        Max  : %.2f ms
+                        
+                        [병렬 쿼리 - PARALLEL]
+                        Min  : %.2f ms
+                        Avg  : %.2f ms
+                        P95  : %.2f ms
+                        Max  : %.2f ms
+                        
+                        개선율 : %+.1f%% %-30s
+                        %n""",
                 DATA_SIZE, KEYWORD, hitCount,
                 MEASURE_COUNT, WARMUP_COUNT,
                 both.minMs, both.avgMs, both.p95Ms, both.maxMs,
