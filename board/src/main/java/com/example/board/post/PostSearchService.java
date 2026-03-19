@@ -1,16 +1,12 @@
 package com.example.board.post;
 
 import com.example.board.common.service.EntityValidationService;
-import com.example.board.config.AsyncConfig;
-import com.example.board.post.enums.SearchType;
 import com.example.board.post.dto.PostResponse;
+import com.example.board.post.enums.SearchType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,127 +21,136 @@ import java.util.stream.Stream;
 @Transactional(readOnly = true)
 @Slf4j
 public class PostSearchService {
+
+    private static final int MAX_PARALLEL_FETCH_SIZE = 500;
+
     private final PostRepository postRepository;
-    private final AsyncConfig asyncConfig;
+    private final PostSearchQueryExecutor queryExecutor; // 트랜잭션 격리용
     @Qualifier("asyncTaskExecutor")
     private final Executor asyncExecutor;
     private final EntityValidationService validationService;
 
     public Page<PostResponse> searchPosts(
-            Long teamId,
-            String keyword,
-            Long categoryId,
-            Pageable pageable,
-            SearchType searchType
-    ) {
+            Long teamId, String keyword, Long categoryId,
+            Pageable pageable, SearchType searchType) {
 
         validationService.validateTeamExists(teamId);
-        if (categoryId != null) {
-            validationService.validateCategoryExists(categoryId);
-        }
+        if (categoryId != null) validationService.validateCategoryExists(categoryId);
+        if (searchType == null) searchType = SearchType.BOTH;
+        if (keyword == null || keyword.isBlank()) return Page.empty(pageable);
 
-        if (searchType == null) {
-            searchType = SearchType.BOTH;
-        }
+        long start = System.nanoTime();
 
-        if (keyword == null || keyword.trim().isEmpty()) {
-            return Page.empty(pageable);
-        }
-        switch (searchType) {
-            case TITLE:
-                // 제목만 검색
-                return postRepository.searchByTitle(keyword, teamId, categoryId, pageable)
-                        .map(PostResponse::from);
-            case CONTENT:
-                // 내용만 검색
-                return postRepository.searchByContent(keyword, teamId, categoryId, pageable)
-                        .map(PostResponse::from);
-            case BOTH:
-            default:
-                // 제목 또는 내용 검색 (단일 쿼리 사용 권장)
-                return postRepository.searchByTitleOrContent(keyword, teamId, categoryId, pageable)
-                        .map(PostResponse::from);
-        }
+        Page<PostResponse> result = switch (searchType) {
+            case TITLE    -> postRepository.searchByTitle(keyword, teamId, categoryId, pageable)
+                    .map(PostResponse::from);
+            case CONTENT  -> postRepository.searchByContent(keyword, teamId, categoryId, pageable)
+                    .map(PostResponse::from);
+            case PARALLEL -> searchInParallel(keyword, teamId, categoryId, pageable);
+            default       -> postRepository.searchByTitleOrContent(keyword, teamId, categoryId, pageable)
+                    .map(PostResponse::from);
+        };
+
+        log.info("[Search] type={}, keyword='{}', results={}, elapsed={}ms",
+                searchType, keyword, result.getTotalElements(),
+                (System.nanoTime() - start) / 1_000_000);
+
+        return result;
+    }
+
+    // ─── 병렬 검색 ────────────────────────────────────────────────────────────
+
+    private Page<PostResponse> searchInParallel(
+            String keyword, Long teamId, Long categoryId, Pageable pageable) {
+
+        Pageable fetchPageable = PageRequest.of(0, MAX_PARALLEL_FETCH_SIZE, pageable.getSort());
+
+        // queryExecutor의 @Transactional이 비동기 스레드에서 새 트랜잭션을 생성
+        // → PostResponse 변환까지 트랜잭션 안에서 완료됨
+        CompletableFuture<List<PostResponse>> titleFuture = CompletableFuture
+                .supplyAsync(
+                        () -> queryExecutor.searchByTitle(keyword, teamId, categoryId, fetchPageable),
+                        asyncExecutor)
+                .exceptionally(ex -> {
+                    log.warn("[Search][PARALLEL] 제목 검색 실패: {}", ex.getMessage());
+                    return Collections.emptyList();
+                });
+
+        CompletableFuture<List<PostResponse>> contentFuture = CompletableFuture
+                .supplyAsync(
+                        () -> queryExecutor.searchByContent(keyword, teamId, categoryId, fetchPageable),
+                        asyncExecutor)
+                .exceptionally(ex -> {
+                    log.warn("[Search][PARALLEL] 내용 검색 실패: {}", ex.getMessage());
+                    return Collections.emptyList();
+                });
+
+        return processResults(titleFuture, contentFuture, pageable);
     }
 
     private Page<PostResponse> processResults(
-            CompletableFuture<Page<Post>> titleFuture,
-            CompletableFuture<Page<Post>> contentFuture,
-            Pageable pageable
-    ) {
-        return CompletableFuture.allOf(titleFuture, contentFuture)
-                .thenApplyAsync(v -> {
-                    try {
-                        List<Post> combined = Stream.concat(
-                                titleFuture.get().getContent().stream(),
-                                contentFuture.get().getContent().stream()
-                        ).distinct().collect(Collectors.toList());
+            CompletableFuture<List<PostResponse>> titleFuture,
+            CompletableFuture<List<PostResponse>> contentFuture,
+            Pageable pageable) {
 
-                        List<Post> sorted = sortPosts(combined, pageable.getSort());
-                        return paginateList(sorted, pageable);
+        CompletableFuture.allOf(titleFuture, contentFuture).join();
 
-                    } catch (Exception e) {
-                        throw new RuntimeException("검색 처리 실패", e);
-                    }
-                }, asyncExecutor).join();
+        List<PostResponse> combined = Stream
+                .concat(titleFuture.join().stream(), contentFuture.join().stream())
+                .collect(Collectors.toMap(
+                        PostResponse::id,
+                        response -> response,
+                        (existing, duplicate) -> existing,
+                        LinkedHashMap::new
+                ))
+                .values()
+                .stream()
+                .toList();
+
+        List<PostResponse> sorted = sortResponses(combined, pageable.getSort());
+        return paginateResponses(sorted, pageable);
     }
 
-    // 리스트 정렬 메서드
-    private List<Post> sortPosts(List<Post> posts, Sort sort) {
-        if (sort.isUnsorted()) return posts;
+    // ─── 정렬 / 페이징 ────────────────────────────────────────────────────────
 
-        return posts.stream()
-                .sorted((p1, p2) -> {
+    private List<PostResponse> sortResponses(List<PostResponse> responses, Sort sort) {
+        if (sort.isUnsorted()) return responses;
+
+        return responses.stream()
+                .sorted((r1, r2) -> {
                     for (Sort.Order order : sort) {
-                        Comparator<Post> comparator = getComparator(order);
-                        int result = comparator.compare(p1, p2);
+                        int result = getComparator(order).compare(r1, r2);
                         if (result != 0) return result;
                     }
                     return 0;
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 
-    // 페이징 처리 메서드
-    private Page<PostResponse> paginateList(List<Post> allPosts, Pageable pageable) {
-        int total = allPosts.size();
-        int pageSize = pageable.getPageSize();
-        int currentPage = pageable.getPageNumber();
-        int start = currentPage * pageSize;
+    private Page<PostResponse> paginateResponses(List<PostResponse> responses, Pageable pageable) {
+        int total = responses.size();
+        int start = (int) pageable.getOffset();
 
         if (start >= total) {
             return new PageImpl<>(Collections.emptyList(), pageable, total);
         }
 
-        int end = Math.min(start + pageSize, total);
-        List<Post> pageContent = allPosts.subList(start, end);
-
-        // DTO 변환
-        List<PostResponse> content = pageContent.stream()
-                .map(PostResponse::from)
-                .collect(Collectors.toList());
-
-        return new PageImpl<>(content, pageable, total);
+        return new PageImpl<>(
+                responses.subList(start, Math.min(start + pageable.getPageSize(), total)),
+                pageable,
+                total
+        );
     }
 
-    private Comparator<Post> getComparator(Sort.Order order) {
+    private Comparator<PostResponse> getComparator(Sort.Order order) {
         return switch (order.getProperty()) {
-            case "createdDate" -> order.isAscending() ?
-                    Comparator.comparing(
-                            Post::getCreatedDate,
-                            Comparator.nullsLast(Comparator.naturalOrder())
-                    ) :
-                    Comparator.comparing(
-                            Post::getCreatedDate,
-                            Comparator.nullsFirst(Comparator.reverseOrder())
-                    );
-            case "viewCount" -> order.isAscending() ?
-                    Comparator.comparing(Post::getViewCount) :
-                    Comparator.comparing(Post::getViewCount).reversed();
-            case "title" -> order.isAscending() ?
-                    Comparator.comparing(Post::getTitle, String.CASE_INSENSITIVE_ORDER) :
-                    Comparator.comparing(Post::getTitle, String.CASE_INSENSITIVE_ORDER).reversed();
-            default -> Comparator.comparing(Post::getId);
+            case "createdDate" -> order.isAscending()
+                    ? Comparator.comparing(PostResponse::createdDate)
+                    : Comparator.comparing(PostResponse::createdDate).reversed();
+            case "viewCount" -> order.isAscending()
+                    ? Comparator.comparing(PostResponse::viewCount)
+                    : Comparator.comparing(PostResponse::viewCount).reversed();
+            default -> (r1, r2) -> 0;
         };
     }
 }
