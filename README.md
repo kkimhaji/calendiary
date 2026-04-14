@@ -204,7 +204,7 @@ graph TB
 ### 개인 다이어리
 | 달력 뷰 | 리스트 뷰 |
 |--------|---------|
-| 추가 예정 | 추가 예정 |
+| <img width="812" height="915" alt="Image" src="https://github.com/user-attachments/assets/4708a9b9-8c08-48f2-b4cf-b7f9aa38cbba" /> <img width="889" height="1127" alt="Image" src="https://github.com/user-attachments/assets/f37d4c70-0b21-460b-92fc-75f87a5cfb38" /> | <img width="889" height="1277" alt="Image" src="https://github.com/user-attachments/assets/35d62a8d-f61b-40eb-8fd2-6ccdb4373f5a" /> |
 
 | 다이어리 작성 | 다이어리 상세 |
 |------------|------------|
