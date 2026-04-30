@@ -59,9 +59,12 @@ public class DiaryController {
     public ResponseEntity<List<DiaryListDTO>> getDiariesByMonth(
             @RequestParam("year") int year,
             @RequestParam("month") int month,
+            @RequestParam(value = "sort", defaultValue = "desc") String sort,
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
 
-        return ResponseEntity.ok(diaryService.findDiariesByMonth(userPrincipal.getMember(), year, month));
+        boolean ascending = "asc".equalsIgnoreCase(sort);
+        return ResponseEntity.ok(diaryService.findDiariesByMonth(
+                userPrincipal.getMember(), year, month, ascending));
     }
 
     @PutMapping("/{diaryId}")

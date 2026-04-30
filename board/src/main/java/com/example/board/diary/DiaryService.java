@@ -119,15 +119,13 @@ public class DiaryService {
     }
 
     // 월별 일기 리스트 조회 (년&월)
-    public List<DiaryListDTO> findDiariesByMonth(Member author, int year, int month) {
+    public List<DiaryListDTO> findDiariesByMonth(Member author, int year, int month, boolean ascending) {
         LocalDate startDate = LocalDate.of(year, month, 1);
         LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
 
-        return diaryRepository.findDiaryListData(
-                author.getMemberId(),
-                startDate,
-                endDate
-        );
+        return ascending
+                ? diaryRepository.findDiaryListDataAsc(author.getMemberId(), startDate, endDate)
+                : diaryRepository.findDiaryListData(author.getMemberId(), startDate, endDate);
     }
 
     public Page<DiaryListResponse> findByAuthor(Member author, Pageable pageable) {

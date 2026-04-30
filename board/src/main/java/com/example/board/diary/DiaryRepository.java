@@ -44,6 +44,13 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
                                          @Param("startDate") LocalDate startDate,
                                          @Param("endDate") LocalDate endDate);
 
+    @Query("SELECT new com.example.board.diary.dto.DiaryListDTO(d.id, d.title, d.content, d.createdDate, d.diaryDate, CAST(d.visibility AS string)) " +
+            "FROM Diary d WHERE d.author.memberId = :authorId " +
+            "AND d.diaryDate >= :startDate AND d.diaryDate <= :endDate " +
+            "ORDER BY d.diaryDate ASC, d.createdDate ASC")
+    List<DiaryListDTO> findDiaryListDataAsc(@Param("authorId") Long authorId,
+                                            @Param("startDate") LocalDate startDate,
+                                            @Param("endDate") LocalDate endDate);
     // Entity를 반환하는 방식 - diaryDate 기준
     @Query("SELECT d FROM Diary d WHERE d.author.memberId = :authorId " +
             "AND d.diaryDate >= :startDate AND d.diaryDate <= :endDate " +
