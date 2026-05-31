@@ -15,18 +15,28 @@ public record DiaryCalendarDTO(
         String thumbnailImageUrl,
         Long imageCount
 ) {
-    public DiaryCalendarDTO(Long diaryId, String title, LocalDateTime createdDate,
-                            String thumbnailImageUrl, Long imageCount) {
-        this(diaryId,
+    public DiaryCalendarDTO(
+            Long diaryId,
+            String title,
+            LocalDateTime createdDate,
+            String thumbnailImageUrl,
+            Long imageCount
+    ) {
+        this(
+                diaryId,
                 title,
                 createdDate != null ? createdDate.toLocalDate() : null,
                 createdDate,
                 thumbnailImageUrl,
-                imageCount != null ? imageCount : 0L);
+                imageCount != null ? imageCount : 0L
+        );
     }
 
+    /**
+     * 유효한 날짜를 반환: diaryDate 우선, 없으면 createdDate 날짜 부분
+     */
     public LocalDate getEffectiveDate() {
-        return diaryDate != null ? diaryDate :
-                (createdDate != null ? createdDate.toLocalDate() : null);
+        return diaryDate != null ? diaryDate
+                : (createdDate != null ? createdDate.toLocalDate() : null);
     }
 }

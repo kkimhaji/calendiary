@@ -31,9 +31,12 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
             group by d.id, d.title, d.diaryDate, d.createdDate, d.thumbnailImageUrl
             order by COALESCE(d.diaryDate, DATE(d.createdDate)) asc
             """)
-    List<DiaryCalendarDTO> findCalendarData(@Param("memberId") Long memberId,
-                                            @Param("startDate") LocalDate startDate,
-                                            @Param("endDate") LocalDate endDate);
+    List<DiaryCalendarDTO> findCalendarData(
+            @Param("memberId") Long memberId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
+
 
     // 리스트용 메서드 - diaryDate 기준으로 수정
     @Query("SELECT new com.example.board.diary.dto.DiaryListDTO(d.id, d.title, d.content, d.createdDate, d.diaryDate, CAST(d.visibility AS string)) " +
@@ -51,6 +54,7 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
     List<DiaryListDTO> findDiaryListDataAsc(@Param("authorId") Long authorId,
                                             @Param("startDate") LocalDate startDate,
                                             @Param("endDate") LocalDate endDate);
+
     // Entity를 반환하는 방식 - diaryDate 기준
     @Query("SELECT d FROM Diary d WHERE d.author.memberId = :authorId " +
             "AND d.diaryDate >= :startDate AND d.diaryDate <= :endDate " +
