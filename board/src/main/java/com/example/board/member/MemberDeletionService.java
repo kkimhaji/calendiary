@@ -15,6 +15,7 @@ import com.example.board.team.Team;
 import com.example.board.team.TeamService;
 import com.example.board.teamMember.TeamMember;
 import com.example.board.teamMember.TeamMemberRepository;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,6 +40,7 @@ public class MemberDeletionService {
     private final TeamService teamService;
     private final TokenRepository tokenRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final EntityManager entityManager;
 
     /**
      * 회원 탈퇴 - 모든 관련 데이터 삭제
@@ -71,12 +73,7 @@ public class MemberDeletionService {
         }
     }
 
-    /**
-     * 회원의 모든 팀 멤버십 및 팀 삭제
-     */
     private void deleteAllMemberTeamMemberships(Long memberId) {
-        log.info("회원 팀 멤버십 전체 삭제 시작 - memberId: {}", memberId);
-
         List<TeamMember> teamMemberships = teamMemberRepository.findAllByMemberId(memberId);
         int deletedMembershipCount = teamMemberships.size();
         int deletedTeamCount = 0;
@@ -85,12 +82,11 @@ public class MemberDeletionService {
             Team team = teamMember.getTeam();
             Long teamId = team.getId();
 
-            // 현재 팀의 멤버 수 확인
             long memberCount = teamMemberRepository.countByTeamId(teamId);
 
             log.debug("팀 멤버 수 확인 - teamId: {}, memberCount: {}", teamId, memberCount);
 
-            // 1. 회원의 팀 콘텐츠 삭제 (게시글, 댓글)
+            // 1. 해당 팀에서의 콘텐츠 삭제
             deleteTeamMemberContents(teamId, memberId);
 
             // 2. 양방향 관계 동기화
@@ -103,11 +99,15 @@ public class MemberDeletionService {
             // 3. TeamMember 삭제
             teamMemberRepository.delete(teamMember);
 
-            // 4. 마지막 멤버였다면 팀 전체 삭제
+            // 4. flush로 DELETE SQL을 즉시 DB에 반영
+            //    이후 deleteTeamWithoutMembers에서 동일 teamId의 멤버를 조회할 때
+            //    이미 삭제된 레코드가 보이지 않도록 보장
+            entityManager.flush();
+
+            // 5. 마지막 멤버였다면 팀 전체 삭제
             if (memberCount == 1) {
                 log.info("마지막 멤버 탈퇴로 팀 삭제 시작 - teamId: {}, teamName: {}",
                         teamId, team.getName());
-
                 try {
                     teamService.deleteTeamWithoutMembers(teamId);
                     deletedTeamCount++;
