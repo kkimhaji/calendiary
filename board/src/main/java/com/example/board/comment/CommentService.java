@@ -74,8 +74,9 @@ public class CommentService {
 
     public List<CommentResponse> getCommentsInPost(Long postId) {
         validationService.validatePostExists(postId);
-        return commentRepository.findByPostIdAndParentIsNull(postId).stream()
-                .map(CommentResponse::from).toList();
+        return commentRepository.findByPostIdWithAuthorAndReplies(postId).stream()
+                .map(CommentResponse::from)
+                .toList();
     }
 
     public Page<MemberCommentResponse> findCommentsByTeamAndMember(Long teamMemberId, int page, int size) {

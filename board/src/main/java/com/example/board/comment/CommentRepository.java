@@ -53,10 +53,17 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     // 부모 댓글 없는 최상위 댓글만
     List<Comment> findByPostIdAndParentIsNull(Long postId);
 
-    @Query("SELECT c FROM Comment c " +
+    @Query("SELECT DISTINCT c FROM Comment c " +
             "LEFT JOIN FETCH c.author " +
-            "LEFT JOIN FETCH c.replies " +
-            "WHERE c.post.id = :postId AND c.parent IS NULL")
+            "LEFT JOIN FETCH c.teamMember " +
+            "LEFT JOIN FETCH c.replies r1 " +
+            "LEFT JOIN FETCH r1.author " +
+            "LEFT JOIN FETCH r1.teamMember " +
+            "LEFT JOIN FETCH r1.replies r2 " +
+            "LEFT JOIN FETCH r2.author " +
+            "LEFT JOIN FETCH r2.teamMember " +
+            "WHERE c.post.id = :postId AND c.parent IS NULL " +
+            "ORDER BY c.createdDate ASC")
     List<Comment> findByPostIdWithAuthorAndReplies(@Param("postId") Long postId);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
