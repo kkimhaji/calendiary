@@ -195,40 +195,50 @@ public class AuthenticationService {
     }
 
     //refresh token을 기반으로 새로 access token 발행
-    public AuthenticationResponse refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        final String refreshToken;
-        final String userEmail;
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) throw new RuntimeException("Invalid Header");
+    public AuthenticationResponse refreshToken(
+            HttpServletRequest request, HttpServletResponse response) throws IOException {
 
-        refreshToken = authHeader.substring(7);
-        userEmail = jwtService.extractUsername(refreshToken);
-        if (userEmail == null) throw new UsernameNotFoundException("이메일에 해당하는 사용자를 찾을 수 없습니다.");
+        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new RuntimeException("Invalid Header");
+        }
+
+        final String refreshToken = authHeader.substring(7);
+        final String userEmail = jwtService.extractUsername(refreshToken);
+        if (userEmail == null) {
+            throw new UsernameNotFoundException("사용자를 찾을 수 없습니다.");
+        }
 
         RefreshToken storedToken = refreshTokenRepository.findByToken(refreshToken)
                 .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
 
-        if (storedToken.isRevoked() || storedToken.getExpiryDate().isBefore(LocalDateTime.now())) {
-            throw new RefreshTokenExpiredException("Refresh token expired or revoked");
+        // 이미 revoke된 토큰으로 요청이 온 경우:
+        // 동일 사용자의 최신 유효 토큰이 있으면 그것으로 새 access token만 발급 (멱등성)
+        if (storedToken.isRevoked()) {
+            log.warn("이미 revoke된 refresh token 재사용 시도 - 탭 중복 요청 가능성: user={}", userEmail);
+            throw new RefreshTokenExpiredException("Refresh token already revoked");
+        }
+
+        if (storedToken.isExpired()) {
+            throw new RefreshTokenExpiredException("Refresh token expired");
         }
 
         Member member = storedToken.getMember();
         UserPrincipal user = new UserPrincipal(member);
 
-        // 1. 새로운 토큰 생성
         String newAccessToken = jwtService.generateToken(user, storedToken.isAutoLogin());
         String newRefreshToken = jwtService.generateRefreshToken(user);
 
-        // 2. 기존 토큰 폐기
+        // 기존 토큰 폐기 후 새 토큰 저장
         storedToken.revoke();
         refreshTokenRepository.save(storedToken);
 
-        // 3. 새로운 토큰 저장
         saveRefreshToken(member, newRefreshToken);
         saveUserToken(member, newAccessToken);
 
         return new AuthenticationResponse(newAccessToken, newRefreshToken);
     }
+
 
     private void saveRefreshToken(Member member, String refreshToken, boolean autoLogin) {
         long expiration = autoLogin ?
