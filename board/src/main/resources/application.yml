@@ -19,6 +19,13 @@ spring:
       max-request-size: 15MB
       location: ${FILE_UPLOAD_TEMP}
 
+  cache:
+    type: simple
+    cache-names:
+      - permission-checks
+      - category-posts
+      - edit-delete-permissions
+
   mail:
     host: smtp.gmail.com
     port: 587

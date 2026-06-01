@@ -120,7 +120,8 @@ public class PostService {
         return new TeamRecentPostsResponse(teamName, posts);
     }
 
-    @Cacheable(key = "{#teamId, #categoryId, #pageable.pageNumber, #pageable.pageSize}") // 캐시 키 설정
+    @Cacheable(value = "category-posts", key = "{#teamId, #categoryId, #pageable.pageNumber, #pageable.pageSize}")
+    // 캐시 키 설정
     public CategoryRecentPostsResponse getPostsByCategory(Long teamId, Long categoryId, Pageable pageable) {
         validationService.validateTeamExists(teamId);
         String categoryName = validationService.validateCategoryExists(categoryId).getName();
