@@ -1,7 +1,6 @@
 package com.example.board.permission.utils;
 
 import com.example.board.permission.PermissionType;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
@@ -92,25 +91,17 @@ public class PermissionConverter {
         return bytes;
     }
 
-    /**
-     * 바이트 배열에서 권한 존재 여부 확인 (캐싱 적용)
-     */
-    @Cacheable(value = "permission-checks", key = "#bytes.hashCode() + '-' + #permission.name()")
     public static <T extends Enum<T> & PermissionType> boolean hasPermissionOptimized(
             byte[] bytes, T permission) {
-
         if (bytes == null || bytes.length == 0) {
             return false;
         }
-
         int position = permission.getPosition();
         int byteIndex = position / 8;
         int bitIndex = position % 8;
-
         if (byteIndex >= bytes.length) {
             return false;
         }
-
         return (bytes[byteIndex] & (1 << bitIndex)) != 0;
     }
 
