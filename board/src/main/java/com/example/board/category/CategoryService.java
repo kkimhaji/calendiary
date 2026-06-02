@@ -135,20 +135,19 @@ public class CategoryService {
     }
 
     @Transactional
-    public void deleteAllCategoriesInTeam(Team team) {
-        List<TeamCategory> categories = categoryRepository.findAllByTeam(team);
-        for (TeamCategory category : categories) {
-            deleteCategory(category.getId());
+    public void deleteCategory(Long categoryId) {
+        if (!permissionService.checkPermission(
+                getCategoryTeamId(categoryId), MANAGE_CATEGORIES)) {
+            throw new AccessDeniedException("카테고리 삭제 권한이 없습니다.");
         }
-        categoryRepository.deleteAll(categories);
+        deleteCategoryInternal(categoryId);
     }
 
+    // 내부(시스템) 진입점: 권한 체크 없이 호출 가능 (팀 삭제 시 사용)
     @Transactional
-    public void deleteCategory(Long categoryId) {
+    public void deleteCategoryInternal(Long categoryId) {
         TeamCategory category = validationService.validateCategoryExists(categoryId);
         Long teamId = category.getTeam().getId();
-        if (!permissionService.checkPermission(teamId, MANAGE_CATEGORIES))
-            throw new AccessDeniedException("카테고리 삭제 권한이 없습니다.");
         Integer deletedOrder = category.getDisplayOrder();
 
         List<Post> postsInCategory = postRepository.findAllByCategory(category);
@@ -163,10 +162,11 @@ public class CategoryService {
             }
         }
 
-        List<CategoryRolePermission> categoryRolePermissions = categoryPermissionRepository.findAllByCategory(category);
-        categoryRolePermissions.forEach(categoryPermission -> {
-            categoryPermission.setCategory(null);
-            categoryPermission.setRole(null);
+        List<CategoryRolePermission> categoryRolePermissions =
+                categoryPermissionRepository.findAllByCategory(category);
+        categoryRolePermissions.forEach(cp -> {
+            cp.setCategory(null);
+            cp.setRole(null);
         });
 
         categoryPermissionRepository.deleteAll(categoryRolePermissions);
@@ -174,13 +174,24 @@ public class CategoryService {
         categoryRepository.deleteById(categoryId);
 
         // 삭제 후 순서 재정렬
-        List<TeamCategory> categoriesAfter = categoryRepository.findByTeamIdAndDisplayOrderBetween(
-                teamId, deletedOrder + 1, Integer.MAX_VALUE
-        );
-
+        List<TeamCategory> categoriesAfter = categoryRepository
+                .findByTeamIdAndDisplayOrderBetween(teamId, deletedOrder + 1, Integer.MAX_VALUE);
         categoriesAfter.forEach(c -> c.updateDisplayOrder(c.getDisplayOrder() - 1));
         categoryRepository.saveAll(categoriesAfter);
+    }
 
+    // teamId 추출 헬퍼
+    private Long getCategoryTeamId(Long categoryId) {
+        return validationService.validateCategoryExists(categoryId).getTeam().getId();
+    }
+
+    // 팀 삭제 시 내부 메서드 사용
+    @Transactional
+    public void deleteAllCategoriesInTeam(Team team) {
+        List<TeamCategory> categories = categoryRepository.findAllByTeam(team);
+        for (TeamCategory category : categories) {
+            deleteCategoryInternal(category.getId());  // 권한 체크 없는 내부 메서드 호출
+        }
     }
 
     @Transactional
