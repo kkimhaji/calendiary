@@ -1,112 +1,140 @@
-# Calendiary
+# 📅 Calendiary
 
-> 팀 협업 게시판과 개인 다이어리를 하나로 통합한 웹 플랫폼
+**팀 협업 게시판과 개인 다이어리를 하나로 통합한 웹 플랫폼**
+
+팀 단위 협업 게시판과 개인 다이어리를 함께 제공하며, 역할 기반 권한 시스템을 통해 세밀한 접근 제어를 지원하는 웹 서비스
 
 <br/>
 
-![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
-![Spring Security](https://img.shields.io/badge/Spring_Security-6DB33F?style=for-the-badge&logo=Spring-Security&logoColor=white)
-![Hibernate](https://img.shields.io/badge/Hibernate-59666C?style=for-the-badge&logo=Hibernate&logoColor=white)
-![MySQL](https://img.shields.io/badge/MySQL-005C84?style=for-the-badge&logo=mysql&logoColor=white)
-![JWT](https://img.shields.io/badge/json%20web%20tokens-323330?style=for-the-badge&logo=json-web-tokens&logoColor=pink)
-![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![Redux](https://img.shields.io/badge/Redux-593D88?style=for-the-badge&logo=redux&logoColor=white)
-![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=JavaScript&logoColor=white)
-![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
+![Java](https://img.shields.io/badge/Java-17-ED8B00?style=for-the-badge\&logo=openjdk\&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge\&logo=spring-boot\&logoColor=white)
+![Spring Security](https://img.shields.io/badge/Spring_Security-6DB33F?style=for-the-badge\&logo=spring-security\&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-005C84?style=for-the-badge\&logo=mysql\&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge\&logo=react\&logoColor=61DAFB)
+![Redux](https://img.shields.io/badge/Redux-593D88?style=for-the-badge\&logo=redux\&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge\&logo=docker\&logoColor=white)
 
 ---
 
-## 목차
+# 프로젝트 소개
 
-- [프로젝트 소개](#프로젝트-소개)
-- [주요 기능](#주요-기능)
-- [기술 스택](#기술-스택)
-- [시스템 아키텍처](#시스템-아키텍처)
-- [ERD](#erd)
-- [화면 미리보기](#화면-미리보기)
-- [API 명세](#api-명세)
-- [구현 시 고려한 사항](#구현-시-고려한-사항)
+Calendiary는 팀 협업 게시판과 개인 다이어리를 하나의 플랫폼에서 제공하는 웹 서비스입니다.
 
----
+팀 단위 협업에서는 역할(Role) 기반 권한 시스템을 통해 카테고리별 접근 권한을 세밀하게 제어할 수 있으며, 개인 공간에서는 이미지 기반 다이어리를 작성하고 캘린더 형태로 기록을 관리할 수 있습니다.
 
-## 프로젝트 소개
 
-Calendiary는 팀 단위의 협업 게시판과 개인 다이어리를 하나의 플랫폼에서 제공합니다.
+### 개발 인원
 
-팀 내에서는 카테고리별로 게시글을 관리하고, 역할 기반의 2단계 권한 시스템으로 세밀하게 접근을 제어합니다.
-개인 다이어리는 달력 뷰와 리스트 뷰를 지원하며, 게시글별 공개/비공개 설정이 가능합니다.
-
-> **개발 기간:** 2024.xx ~ 2025.xx
+개인 프로젝트 (1인 개발)
 
 ---
 
-## 주요 기능
+# Problem & Motivation
 
-### 인증 / 회원
-- 이메일 인증 기반 회원가입
-- JWT Access Token + Refresh Token 인증
-- 토큰 자동 갱신 (Axios 인터셉터)
-- 임시 비밀번호 발급 (이메일 전송)
-
-### 팀 협업 게시판
-- 팀 생성 및 초대 링크를 통한 팀원 초대
-- 팀 내 별명(닉네임) 설정
-- 카테고리별 게시글 관리
-- 게시글 / 댓글 작성, 수정, 삭제
-- 카테고리 순서 드래그 앤 드롭으로 변경
-- 작성자 클릭 시 해당 팀원의 게시글 / 댓글 활동 모아보기
-
-### 2단계 권한 시스템
-| 레벨 | 권한 항목 |
-|------|----------|
-| 팀 | 팀 정보 수정, 카테고리 관리, 멤버 추가/삭제, 역할 변경 |
-| 카테고리 | 게시글 조회/작성/삭제, 댓글 작성/삭제 |
-
-- 팀 내 역할(Role)에 권한을 부여하고, 팀원에게 역할을 할당하는 구조
-- `@PreAuthorize` + 커스텀 `PermissionEvaluator`로 API 레벨에서 권한 검사
-- 프론트엔드에서 권한에 따라 버튼 / 입력창 조건부 렌더링
-
-### 개인 다이어리
-- 게시글별 공개 / 비공개 설정
-- 달력 뷰: 날짜별 다이어리 썸네일 표시
-- 리스트 뷰: 작성된 다이어리 목록 조회
-- 다이어리 내 이미지 업로드 및 대표 이미지 자동 썸네일 지정
-- 다이어리 / 게시글 내 키워드 검색
+* 팀 협업 게시판은 많지만 개인 기록 공간은 별도 서비스에 의존하는 경우가 많음
+* 게시판 운영 시 역할별 접근 권한을 세밀하게 제어하기 어려운 경우가 많음
+* 개인 기록을 날짜 기반으로 관리하면서 이미지 중심으로 회고할 수 있는 공간이 필요했음
+* 협업 공간과 개인 기록 공간을 하나의 서비스에서 제공하고자 개발
 
 ---
 
-## 기술 스택
+# 핵심 설계 포인트
 
-### Backend
-| 분류 | 기술 |
-|------|------|
-| Language | ![Java](https://img.shields.io/badge/Java_17-ED8B00?style=flat-square&logo=openjdk&logoColor=white) |
-| Framework | ![Spring Boot](https://img.shields.io/badge/Spring_Boot_3-6DB33F?style=flat-square&logo=spring-boot&logoColor=white) ![Spring Security](https://img.shields.io/badge/Spring_Security-6DB33F?style=flat-square&logo=Spring-Security&logoColor=white) |
-| ORM | ![Hibernate](https://img.shields.io/badge/JPA/Hibernate-59666C?style=flat-square&logo=Hibernate&logoColor=white) |
-| Database | ![MySQL](https://img.shields.io/badge/MySQL_8.0-005C84?style=flat-square&logo=mysql&logoColor=white) |
-| Auth | ![JWT](https://img.shields.io/badge/JWT-323330?style=flat-square&logo=json-web-tokens&logoColor=pink) |
-| Build | ![Gradle](https://img.shields.io/badge/Gradle-02303A?style=flat-square&logo=gradle&logoColor=white) |
-| Mail | ![Gmail](https://img.shields.io/badge/Gmail_SMTP-D14836?style=flat-square&logo=gmail&logoColor=white) |
-
-### Frontend
-| 분류 | 기술 |
-|------|------|
-| Framework | ![React](https://img.shields.io/badge/React_18-20232A?style=flat-square&logo=react&logoColor=61DAFB) |
-| 상태 관리 | ![Redux](https://img.shields.io/badge/Redux_Toolkit-593D88?style=flat-square&logo=redux&logoColor=white) |
-| HTTP | ![Axios](https://img.shields.io/badge/Axios-5A29E4?style=flat-square&logo=axios&logoColor=white) |
-| 에디터 | ![CKEditor](https://img.shields.io/badge/CKEditor_5-0287D0?style=flat-square&logo=ckeditor4&logoColor=white) |
-| 보안 | ![DOMPurify](https://img.shields.io/badge/DOMPurify-XSS_방지-green?style=flat-square) |
-
-### Infra
-| 분류 | 기술 |
-|------|------|
-| 컨테이너 | ![Docker](https://img.shields.io/badge/Docker-0db7ed?style=flat-square&logo=docker&logoColor=white) |
-| 버전 관리 | ![Git](https://img.shields.io/badge/Git-E44C30?style=flat-square&logo=git&logoColor=white) ![GitHub](https://img.shields.io/badge/GitHub-100000?style=flat-square&logo=github&logoColor=white) |
+* Team / Category 2단계 권한 시스템 설계
+* Bitmask 기반 권한 저장 구조 적용
+* Spring Security `PermissionEvaluator` 기반 권한 검사
+* JWT Access / Refresh Token 인증 및 자동 갱신
+* Refresh Queue 기반 중복 토큰 갱신 방지
+* Temp → Permanent 이미지 저장 파이프라인
+* CKEditor + DOMPurify + HtmlSanitizer 기반 XSS 방어
+* ConcurrentHashMap 기반 조회수 캐싱
 
 ---
 
-## 시스템 아키텍처
+# 주요 기능
+
+| 기능        | 설명                                 |
+| --------- | ---------------------------------- |
+| 인증        | 이메일 인증, JWT Access / Refresh Token |
+| 팀 관리      | 팀 생성 및 초대 링크 기반 팀 가입               |
+| 역할 관리     | 역할 생성 및 팀 권한 설정                    |
+| 카테고리 권한   | 역할별 게시글/댓글 권한 관리                   |
+| 게시판       | 게시글 및 댓글 CRUD                      |
+| 사용자 활동 조회 | 팀원별 게시글/댓글 활동 조회                   |
+| 개인 다이어리   | 공개/비공개 다이어리 작성                     |
+| 다이어리 탐색   | 캘린더 뷰 및 리스트 뷰 제공                   |
+| 이미지 관리    | CKEditor 이미지 업로드 및 썸네일 자동 생성       |
+
+---
+
+# Screenshots
+
+## Team Collaboration
+
+### [게시글 목록]
+
+<img width="641" height="514" alt="team_post_list" src="https://github.com/user-attachments/assets/1e6537fb-d31b-4502-bc68-f951ac464eb7" />
+
+
+### [팀 초대 - 링크 생성]
+
+<img width="660" height="351" alt="create_invite_link" src="https://github.com/user-attachments/assets/ee86ec22-35da-4b7f-975d-812e048976b4" />
+<img width="660" height="265" alt="invite_link_done" src="https://github.com/user-attachments/assets/22b53b46-425e-472b-8edb-214aa7742b5d" />
+
+### [팀 초대 - 링크 접속]
+
+<img width="660" alt="invite_team_info" src="https://github.com/user-attachments/assets/06800512-9446-4501-a7fe-79d5dd665953" />
+
+
+### [사용자 활동]
+
+<img width="660" alt="member_profile" src="https://github.com/user-attachments/assets/cb47bc70-6c84-4934-bbfa-315ebb2c0496" />
+
+
+## Personal Diary
+
+### [캘린더]
+
+<img width="640" height="515" alt="diary_calendar" src="https://github.com/user-attachments/assets/869d270e-3749-409f-96c4-7e0ab3b22793" />
+
+### [리스트]
+
+<img width="660" alt="diary_list" src="https://github.com/user-attachments/assets/5ca76fde-958b-406c-b962-72edce84f224" />
+
+
+---
+
+# 기술 스택
+
+## Backend
+
+* Java 17
+* Spring Boot 3
+* Spring Security
+* JPA / Hibernate
+* MySQL
+* JWT
+* Gradle
+
+## Frontend
+
+* React 18
+* Redux Toolkit
+* Axios
+* CKEditor 5
+* DOMPurify
+
+## Infra
+
+* Docker
+* Docker Compose
+* Git
+* GitHub
+
+---
+
+# 시스템 아키텍처
+
 ```mermaid
 graph TB
     subgraph Client["🖥️ Client"]
@@ -118,181 +146,152 @@ graph TB
     subgraph Backend["☕ Spring Boot 3"]
         JWTFilter["JWT Filter"]
         Security["Spring Security"]
-        PermEval["Permission Evaluator\n(팀 / 카테고리 2단계)"]
+        PermEval["Permission Evaluator"]
 
         subgraph API["REST API"]
-            Auth["인증 /auth"]
-            Team["팀·카테고리 /teams"]
-            Content["게시글·댓글 /posts /comments"]
-            Diary["다이어리 /diary"]
+            Auth["/auth"]
+            Team["/teams"]
+            Content["/posts /comments"]
+            Diary["/diary"]
         end
 
         subgraph Service["Service Layer"]
-            JWTSvc["JWT 발급·갱신"]
-            ImageSvc["이미지 처리\n(임시 → 영구)"]
-            PermSvc["권한 검사"]
+            JWTSvc["JWT Service"]
+            ImageSvc["Image Service"]
+            PermSvc["Permission Service"]
         end
     end
 
-    subgraph DB["🗄️ MySQL 8.0"]
-        Tables[("members / teams\nposts / comments\ndiaries / tokens")]
+    subgraph DB["🗄️ MySQL"]
+        Tables[("members / teams / roles / permissions / posts / diaries")]
     end
 
     subgraph Storage["📁 File Storage"]
-        Temp["임시 저장"]
-        Perm["영구 저장"]
-        Temp -->|"저장 완료 시"| Perm
+        Temp["Temp Storage"]
+        Perm["Permanent Storage"]
     end
 
-    subgraph Infra["🐳 Docker"]
-        Compose["docker-compose\nMySQL + Backend"]
-    end
-
-    Axios -->|"REST API :8080"| JWTFilter
+    Axios --> JWTFilter
     JWTFilter --> Security
     Security --> PermEval
     Security --> API
     API --> Service
-    Service -->|"JPA"| DB
+    Service --> DB
     ImageSvc --> Temp
-    Compose -.->|"컨테이너 관리"| Backend
-    Compose -.->|"컨테이너 관리"| DB
+    ImageSvc --> Perm
 
     React --- Redux
     React --- Axios
-
-    style Client fill:#dbeafe,stroke:#3b82f6
-    style Backend fill:#dcfce7,stroke:#22c55e
-    style DB fill:#fef9c3,stroke:#eab308
-    style Storage fill:#fce7f3,stroke:#ec4899
-    style Infra fill:#f3e8ff,stroke:#a855f7
 ```
 
----
+### 아키텍처 특징
 
-## ERD
-
-<img width="1706" height="1074" alt="Image" src="https://github.com/user-attachments/assets/8e383b5a-09eb-4b80-a8a9-a11064670070" />
-
----
-
-## 화면 미리보기
-
-### 로그인 / 회원가입
-| 로그인 | 회원가입 |
-|--------|---------|
-| <img width="660" height="676" alt="image" src="https://github.com/user-attachments/assets/fa8af590-01a3-441b-958a-7e3151b648b2" /> <img width="501" height="176" alt="Image" src="https://github.com/user-attachments/assets/3b6e699f-f168-4b2f-893c-2f034e67a374" /> | <img width="660" height="676" alt="Image" src="https://github.com/user-attachments/assets/269c99bf-24e3-438e-8219-81e82d6ba99b" /> <img width="533" height="491" alt="image" src="https://github.com/user-attachments/assets/dee4dfff-e052-4918-a035-8e589d3debcb" /> |
-
-### 팀 협업 게시판
-| 팀 초대 | 팀 가입 |
-|---------|---------------|
-| <img width="660" height="351" alt="Image" src="https://github.com/user-attachments/assets/765a7e79-e3db-4839-bef7-a9e7ecc39748" /> <img src="https://github.com/user-attachments/assets/9b757cc0-7402-48e0-8078-edcaca9b57f9" /> | <img src="https://github.com/user-attachments/assets/46ca6f6a-b307-435f-b674-e5f5cbdf5702" /> |
-
-| 팀 메인 | 카테고리 글 목록 |
-|---------|---------------|
-| 추가 예정 | 추가 예정 |
-
-| 게시글 상세 | 게시글 작성 |
-|-----------|-----------|
-| 추가 예정 | 추가 예정 |
-
-### 권한 관리
-| 팀 정보 / 역할 설정 | 카테고리 권한 설정 |
-|------------------|----------------|
-| 추가 예정 | 추가 예정 |
-
-### 개인 다이어리
-| 달력 뷰 | 리스트 뷰 |
-|--------|---------|
-| <img width="812" height="915" alt="Image" src="https://github.com/user-attachments/assets/4708a9b9-8c08-48f2-b4cf-b7f9aa38cbba" /> <img width="889" height="1127" alt="Image" src="https://github.com/user-attachments/assets/f37d4c70-0b21-460b-92fc-75f87a5cfb38" /> | <img width="889" height="1277" alt="Image" src="https://github.com/user-attachments/assets/35d62a8d-f61b-40eb-8fd2-6ccdb4373f5a" /> |
-
-| 다이어리 작성 | 다이어리 상세 |
-|------------|------------|
-| 추가 예정 | 추가 예정 |
-
----
-## API 명세
-
-<details>
-<summary>인증</summary>
-
-| Method | URL | 설명 |
-|--------|-----|------|
-| POST | `/auth/register` | 회원가입 |
-| POST | `/auth/authenticate` | 로그인 |
-| POST | `/auth/refresh-token` | Access Token 갱신 |
-| POST | `/auth/logout` | 로그아웃 |
-| POST | `/auth/get-temp-password` | 임시 비밀번호 발급 |
-
-</details>
-
-<details>
-<summary>팀</summary>
-
-| Method | URL | 설명 |
-|--------|-----|------|
-| POST | `/teams/create` | 팀 생성 |
-| GET | `/teams/{teamId}` | 팀 정보 조회 |
-| PUT | `/teams/{teamId}/edit` | 팀 정보 수정 |
-| GET | `/teams/{teamId}/invite` | 초대 링크 생성 |
-| POST | `/teams/{teamId}/invite/validate` | 초대 링크 검증 및 가입 |
-| DELETE | `/teams/{teamId}/leave` | 팀 탈퇴 |
-
-</details>
-
-<details>
-<summary>카테고리 / 게시글 / 댓글</summary>
-
-| Method | URL | 설명 |
-|--------|-----|------|
-| POST | `/teams/{teamId}/categories/create` | 카테고리 생성 |
-| PUT | `/teams/{teamId}/categories/{categoryId}/order` | 카테고리 순서 변경 |
-| GET | `/teams/{teamId}/category/{categoryId}/posts` | 게시글 목록 |
-| POST | `/teams/{teamId}/category/{categoryId}/posts` | 게시글 작성 |
-| GET | `/category/{categoryId}/posts/{postId}/comments` | 댓글 목록 |
-| POST | `/category/{categoryId}/posts/{postId}/comments` | 댓글 작성 |
-
-</details>
-
-<details>
-<summary>권한 확인</summary>
-
-| Method | URL | 설명 |
-|--------|-----|------|
-| GET | `/permission-check?permission=&targetId=` | 단일 권한 확인 |
-| GET | `/permissions-check?permissions=&targetId=` | 다중 권한 확인 |
-| GET | `/edit-delete-check/post?postId=` | 게시글 수정/삭제 권한 |
-| GET | `/edit-delete-check/comment?commentId=` | 댓글 수정/삭제 권한 |
-
-</details>
-
-<details>
-<summary>다이어리</summary>
-
-| Method | URL | 설명 |
-|--------|-----|------|
-| POST | `/diary/create` | 다이어리 작성 |
-| GET | `/diary/{diaryId}` | 다이어리 조회 |
-| GET | `/diary/calendar?year=&month=` | 달력 뷰 데이터 |
-| GET | `/diary/list?year=&month=` | 리스트 뷰 데이터 |
-
-</details>
+* JWT 기반 인증 구조 적용
+* Spring Security 기반 권한 검사
+* 역할 및 카테고리 권한 분리
+* 게시글/다이어리 이미지 파일 관리
+* Docker 기반 개발 환경 구성
 
 ---
 
-## 구현 시 고려한 사항
+# Database Schema
 
-### JWT 토큰 갱신 전략
-- Access Token 만료 시 Axios 응답 인터셉터에서 자동으로 Refresh Token을 사용해 갱신
-- 갱신 요청이 중복 발생하지 않도록 큐(queue) 방식으로 처리
-- `/auth/**` 경로는 갱신 인터셉터에서 제외하여 로그인 에러가 정상적으로 전달되도록 처리
+<img width="1706" height="1074" alt="ERD" src="https://github.com/user-attachments/assets/8e383b5a-09eb-4b80-a8a9-a11064670070" />
 
-### 2단계 권한 시스템 설계
-- 팀 레벨(`TeamPermission`)과 카테고리 레벨(`CategoryPermission`)을 별도 Enum으로 분리
-- Spring Security의 `PermissionEvaluator`를 구현하여 `@PreAuthorize`에서 통일된 방식으로 권한 검사
-- 프론트엔드에서 페이지 진입 시 권한을 미리 확인하고, 결과에 따라 버튼 및 입력창을 조건부 렌더링
+## 권한 구조
 
-### 이미지 처리
-- CKEditor에서 이미지 업로드 시 서버에 임시 저장 후, 게시글/다이어리 저장 시점에 영구 경로로 이동
-- 첫 번째 이미지를 자동으로 썸네일로 지정
-- 게시글/다이어리 삭제 시 연관 이미지 파일도 함께 삭제
+```text
+Member
+  │
+  ▼
+TeamMember
+  │
+  ▼
+TeamRole
+  │
+  ├── Team Permission
+  │
+  └── CategoryRolePermission
+           │
+           ▼
+      TeamCategory
+```
+
+* TeamRole은 팀 관리 권한을 담당
+* TeamMember는 팀 내 사용자 역할을 담당
+* CategoryRolePermission은 카테고리별 세부 권한을 담당
+
+### 역할 관리
+<img width="800" height="931" alt="create_role_page" src="https://github.com/user-attachments/assets/1c060850-a674-4422-860e-86cde1e46211" />
+
+
+
+### 카테고리 권한
+<img width="997" height="828" alt="category_permission" src="https://github.com/user-attachments/assets/3826ff61-4266-4650-8073-d195e947502f" />
+
+
+---
+
+# Technical Decisions
+
+## Bitmask 기반 권한 관리
+
+권한을 문자열로 관리하는 대신 Bitmask 구조로 저장하여 저장 공간을 줄이고 권한 검사 성능을 개선했습니다.
+
+팀 권한과 카테고리 권한을 각각 비트 플래그 형태로 관리하여 확장성과 유지보수성을 확보했습니다.
+
+---
+
+## JWT Refresh Queue
+
+동시에 여러 API 요청이 발생한 상황에서 Access Token이 만료될 경우 Refresh 요청이 중복 발생할 수 있습니다.
+
+이를 해결하기 위해 Refresh 진행 중에는 후속 요청을 대기시키고, 갱신 완료 후 순차적으로 재실행하는 Queue 구조를 적용했습니다.
+
+---
+
+## 이미지 처리 파이프라인
+
+이미지는 업로드 직후 임시 저장소에 저장되며, 게시글 또는 다이어리 저장 시 영구 저장소로 이동합니다.
+
+```text
+Upload
+ → Temp Storage
+ → Save Content
+ → Permanent Storage
+```
+
+이를 통해 저장 취소 시 발생하는 불필요한 파일 생성을 최소화했습니다.
+
+또한 UUID 기반 파일명을 사용하여 파일명 충돌을 방지했습니다.
+
+---
+
+## 조회수 캐싱
+
+게시글 조회 시마다 DB를 갱신하지 않고 ConcurrentHashMap과 AtomicLong 기반 캐시에 누적한 뒤 주기적으로 반영하도록 구현했습니다.
+
+이를 통해 DB Write 부하를 줄이고 동시성 환경에서 안정적으로 조회수를 처리할 수 있도록 구성했습니다.
+
+---
+
+## XSS 방어
+
+CKEditor 기반 Rich Text 입력을 안전하게 처리하기 위해 클라이언트와 서버 양쪽에서 Sanitizing을 수행했습니다.
+
+* Frontend : DOMPurify
+* Backend : HtmlSanitizer
+
+이중 검증 구조를 통해 악성 스크립트 삽입 가능성을 최소화했습니다.
+
+---
+
+
+## 만료 토큰 정리
+
+Refresh Token 저장 테이블의 크기 증가를 방지하기 위해 Scheduler 기반 토큰 정리 작업을 구현했습니다.
+
+만료된 토큰을 주기적으로 삭제하여 인증 데이터의 관리 비용을 줄였습니다.
+
+---
+
