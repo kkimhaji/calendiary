@@ -277,9 +277,10 @@ Upload
 
 ## 조회수 캐싱
 
-게시글 조회 시마다 DB를 갱신하지 않고 ConcurrentHashMap과 AtomicLong 기반 캐시에 누적한 뒤 주기적으로 반영하도록 구현했습니다.
+게시글 조회수는 `ConcurrentHashMap<Long, AtomicLong>`에 누적되며, (1) 개별 게시글의
+조회수가 10회에 도달하면 즉시 DB에 반영하고, (2) 1분 주기 스케줄러가 전체 캐시를 순회하며
+미반영분을 일괄 반영하는 이중 동기화 구조로 DB Write 부하를 분산했습니다.
 
-이를 통해 DB Write 부하를 줄이고 동시성 환경에서 안정적으로 조회수를 처리할 수 있도록 구성했습니다.
 ### Trade-off
 
 조회수 증가를 `ConcurrentHashMap<Long, AtomicLong>`에 누적한 후
